@@ -4,9 +4,9 @@
 
 Gigling Racing Intel is the intelligence layer for Gigaverse Gigling Racing. I would start on the dashboard, where a player can immediately see tracked races, active lobbies, top factions, top Giglings, meta alerts, and condition charts.
 
-Then I would jump into the predictor. A player chooses race conditions and entrants, runs the Race Intelligence Engine, and gets ranked win probabilities, podium odds, confidence, risk, and plain-English reasons.
+Then I would jump into the predictor. A player chooses race conditions and entrants, runs the Race Intelligence Engine, and gets ranked probabilities, confidence, field volatility, model edge, and a cautious entry recommendation.
 
-Finally, I would open a race detail page and show the "Why Winner Won" and "Why Did I Lose?" panels. That is the core value: the app turns raw race and Gigling data into useful decisions.
+Finally, I would open a race detail page and show "Why Winner Won," "Why Did I Lose?", and the concrete next-race adjustments. That is the core value: raw racing data becomes a decision the player can act on.
 
 ## 60-90 Second Version
 
@@ -23,10 +23,10 @@ Finally, I would open a race detail page and show the "Why Winner Won" and "Why 
    Select conditions and entrants, run the prediction, and explain that the model is intentionally transparent rather than claiming guaranteed accuracy.
 
 5. Open `/stable`.
-   Connect a wallet and show its live owned Giglings, best and weakest Gigling, suggested races, risk alerts, and stable performance chart.
+   Connect a wallet and show live owned Giglings, contract eligibility, best and weakest Gigling, suggested races, breeding-profile research, and rotation warnings.
 
 6. Open `/rivals`, `/leaderboard`, and `/reports`.
-   Show community utility: rivals/allies/nemesis, ranked Giglings and players, and shareable report cards for social posts.
+   Show community utility: the rivalry pressure map, player and stable leaderboards, then download a 1200 x 630 PNG report for a social post.
 
 7. Close with integration readiness.
    The app reads the public Gigaverse Racing REST API and PetRacingSystem through viem. It uses live data exclusively and clearly reports upstream outages or empty results.

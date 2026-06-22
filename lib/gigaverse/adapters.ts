@@ -346,7 +346,7 @@ function adaptTrait(input: unknown, index: number): GiglingTrait {
     value: normalizeNumber(firstValue(record, ["value", "score", "tier"]), undefined),
     description: normalizeText(
       firstValue(record, ["description", "summary"]),
-      "Trait details will be enriched as Gigaverse trait metadata is connected."
+      "No live description was provided for this trait."
     )
   };
 }

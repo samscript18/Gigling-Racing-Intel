@@ -5,6 +5,7 @@ import { ArrowUpRight, Gauge } from "lucide-react";
 import Link from "next/link";
 
 import { FactionBadge } from "@/components/shared/faction-badge";
+import { GiglingAvatar } from "@/components/shared/gigling-avatar";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { cn } from "@/lib/utils/cn";
 import { formatPercent, formatToken } from "@/lib/utils/format";
@@ -24,13 +25,11 @@ export function GiglingCard({ gigling, compact = false, className }: GiglingCard
     >
       <div className="relative z-10">
         <div className="mb-4 flex items-start gap-4">
-          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-white/12 bg-track-radial">
-            <div className="absolute inset-0 bg-racing-grid opacity-45" />
-            <div className="absolute inset-x-3 bottom-3 h-2 rounded-full bg-cyan-racing/45 blur-sm" />
-            <span className="absolute inset-0 flex items-center justify-center text-xl font-black text-white">
-              {gigling.name.slice(0, 2).toUpperCase()}
-            </span>
-          </div>
+          <GiglingAvatar
+            className="h-16 w-16 shrink-0 rounded-lg"
+            imageUrl={gigling.imageUrl}
+            name={gigling.name}
+          />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { GiglingDetailCharts } from "@/components/giglings/gigling-detail-charts";
 import { DataTable, type DataTableColumn } from "@/components/shared/data-table";
 import { FactionBadge } from "@/components/shared/faction-badge";
+import { GiglingAvatar } from "@/components/shared/gigling-avatar";
 import { GiglingCard } from "@/components/shared/gigling-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
@@ -104,7 +105,7 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
   return (
     <div>
       <PageHeader
-        description={`Token ${gigling.tokenId} owned by ${gigling.ownerName ?? shortenAddress(gigling.ownerAddress)}. This foundation detail view already links career data to race history.`}
+        description={`Token ${gigling.tokenId} owned by ${gigling.ownerName ?? shortenAddress(gigling.ownerAddress)}, with live career data linked to indexed race history.`}
         eyebrow="Gigling Detail"
         title={gigling.name}
       />
@@ -112,13 +113,13 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
       <section className="premium-panel rounded-lg p-5">
         <div className="relative z-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="relative min-h-72 overflow-hidden rounded-lg border border-white/10 bg-track-radial">
-            <div className="absolute inset-0 bg-racing-grid opacity-55" />
-            <div className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-racing/25 bg-cyan-racing/10 shadow-glow" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-7xl font-black text-white/90">
-                {gigling.name.slice(0, 2).toUpperCase()}
-              </span>
-            </div>
+            <GiglingAvatar
+              className="absolute inset-0 h-full w-full border-0"
+              imageUrl={gigling.imageUrl}
+              name={gigling.name}
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#05070d] via-transparent to-transparent" />
             <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
               <FactionBadge faction={gigling.faction} />
               <RarityBadge rarity={gigling.rarity} />
