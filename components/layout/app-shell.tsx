@@ -1,17 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bell, Search, Wallet } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { useAccount } from "wagmi";
 
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { primaryNavItems } from "@/components/layout/nav-items";
 import { Sidebar } from "@/components/layout/sidebar";
+import { WalletConnectButton } from "@/components/shared/wallet-connect-button";
 import { cn } from "@/lib/utils/cn";
-import { shortenAddress } from "@/lib/utils/format";
 import { useAppStore } from "@/store/app-store";
 
 type AppShellProps = {
@@ -20,7 +19,6 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
-  const { address } = useAccount();
   const { sidebarCollapsed } = useAppStore();
 
   if (pathname === "/") {
@@ -52,7 +50,7 @@ export function AppShell({ children }: AppShellProps) {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-racing/30 bg-cyan-racing/10">
                 <span className="text-xs font-black tracking-[0.18em] text-cyan-racing">GRI</span>
               </div>
-              <div>
+              <div className="hidden min-[480px]:block">
                 <p className="text-sm font-bold text-white">Gigling Racing Intel</p>
                 <p className="text-xs text-white/45">{currentItem.label}</p>
               </div>
@@ -72,18 +70,14 @@ export function AppShell({ children }: AppShellProps) {
               </div>
               <button
                 aria-label="Notifications"
-                className="rounded-lg border border-white/10 bg-white/[0.04] p-2.5 text-white/62 transition hover:border-orange-racing/40 hover:text-orange-racing"
+                className="hidden rounded-lg border border-white/10 bg-white/[0.04] p-2.5 text-white/62 transition hover:border-orange-racing/40 hover:text-orange-racing sm:block"
                 type="button"
               >
                 <Bell className="h-5 w-5" />
               </button>
-              <Link
-                className="hidden items-center gap-2 rounded-lg border border-emerald-racing/25 bg-emerald-racing/10 px-3 py-2 text-sm font-semibold text-emerald-racing sm:flex"
-                href="/stable"
-              >
-                <Wallet className="h-4 w-4" />
-                {address ? shortenAddress(address) : "Connect wallet"}
-              </Link>
+              <div>
+                <WalletConnectButton />
+              </div>
             </div>
           </div>
         </header>

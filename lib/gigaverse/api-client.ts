@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { appEnv, hasGigaverseApiConfig } from "@/lib/config/env";
 import type {
   Gigling,
@@ -22,6 +24,13 @@ import { getFactionPerformanceFromRaces } from "./analytics";
 import { readRaceContract } from "./contract-client";
 
 const REQUEST_TIMEOUT_MS = 8_000;
+const gigaverseHttp = axios.create({
+  baseURL: appEnv.gigaverseApiBaseUrl,
+  headers: {
+    Accept: "application/json"
+  },
+  timeout: REQUEST_TIMEOUT_MS
+});
 
 type RequestOptions = {
   allowNotFound?: boolean;
@@ -47,24 +56,6 @@ function toRemoteRaceId(id: string) {
   return id.replace(/^race-/, "");
 }
 
-function buildGigaverseUrl(path: string, searchParams?: RequestOptions["searchParams"]) {
-  if (!appEnv.gigaverseApiBaseUrl) {
-    return undefined;
-  }
-
-  const url = new URL(
-    `${appEnv.gigaverseApiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`
-  );
-
-  Object.entries(searchParams ?? {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      url.searchParams.set(key, String(value));
-    }
-  });
-
-  return url;
-}
-
 async function requestGigaverseJson(path: string, options: RequestOptions = {}) {
   if (!hasGigaverseApiConfig()) {
     throw new GigaverseDataError(
@@ -72,60 +63,66 @@ async function requestGigaverseJson(path: string, options: RequestOptions = {}) 
     );
   }
 
-  const url = buildGigaverseUrl(path, options.searchParams);
-
-  if (!url) {
-    throw new GigaverseDataError("The Gigaverse Racing API URL is invalid.");
-  }
-
-  const controller = new AbortController();
-  const timeout = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
   try {
-    const response = await fetch(url, {
-      cache: "no-store",
+    const response = await gigaverseHttp.get(path, {
       headers: {
-        Accept: "application/json",
         ...(options.authToken ? { Authorization: `Bearer ${options.authToken}` } : {})
       },
-      signal: controller.signal
+      params: options.searchParams
     });
 
-    if (response.status === 404 && options.allowNotFound) {
-      return undefined;
-    }
-
-    if (!response.ok) {
-      const reason =
-        response.status === 401 || response.status === 403
-          ? "This live Gigaverse endpoint requires an authenticated Gigaverse session."
-          : `Gigaverse returned HTTP ${response.status} for this live request.`;
-      throw new GigaverseDataError(reason, response.status);
-    }
-
-    try {
-      return (await response.json()) as unknown;
-    } catch {
+    if (
+      response.data === null ||
+      (typeof response.data !== "object" && !Array.isArray(response.data))
+    ) {
       throw new GigaverseDataError(
         "Gigaverse returned a response that could not be read as racing data."
       );
     }
+
+    return response.data as unknown;
   } catch (error) {
     if (error instanceof GigaverseDataError) {
       throw error;
     }
 
-    if (error instanceof Error && error.name === "AbortError") {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+
+      if (status === 404 && options.allowNotFound) {
+        return undefined;
+      }
+
+      if (status === 401 || status === 403) {
+        throw new GigaverseDataError(
+          "This live Gigaverse endpoint requires an authenticated Gigaverse session.",
+          status
+        );
+      }
+
+      if (status) {
+        throw new GigaverseDataError(
+          `Gigaverse returned HTTP ${status} for this live request.`,
+          status
+        );
+      }
+
+      if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
+        throw new GigaverseDataError(
+          "The live Gigaverse request timed out. The service may be busy; please retry shortly."
+        );
+      }
+    }
+
+    if (error instanceof Error && error.name === "CanceledError") {
       throw new GigaverseDataError(
-        "The live Gigaverse request timed out. The service may be busy; please retry shortly."
+        "The live Gigaverse request was cancelled before it completed."
       );
     }
 
     throw new GigaverseDataError(
       "Live Gigaverse racing data is currently unreachable. Check your connection and try again."
     );
-  } finally {
-    globalThis.clearTimeout(timeout);
   }
 }
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertTriangle, PlugZap, ShieldCheck, Wallet } from "lucide-react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { AlertTriangle, ShieldCheck, Wallet } from "lucide-react";
+import { useAccount } from "wagmi";
 import {
   Area,
   AreaChart,
@@ -23,6 +23,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RaceCard } from "@/components/shared/race-card";
 import { SectionHeader } from "@/components/shared/section-header";
+import { WalletConnectButton } from "@/components/shared/wallet-connect-button";
 import { useRaces } from "@/hooks/use-races";
 import { useStable } from "@/hooks/use-stable";
 import { formatPercent, formatToken, shortenAddress } from "@/lib/utils/format";
@@ -62,29 +63,14 @@ function StableTooltip({ active, payload, label }: StableTooltipProps) {
 
 export function StableManager() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, error: connectError, isPending: isConnecting } = useConnect();
-  const { disconnect } = useDisconnect();
   const { data: stable, error, isLoading, isError } = useStable(address);
   const { data: races } = useRaces();
 
   if (!isConnected || !address) {
     return (
       <EmptyState
-        action={
-          <button
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-cyan-racing px-4 text-sm font-black text-[#031018] shadow-glow disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={connectors.length === 0 || isConnecting}
-            type="button"
-            onClick={() => connectors[0] && connect({ connector: connectors[0] })}
-          >
-            <PlugZap className="h-4 w-4" />
-            {isConnecting ? "Connecting..." : "Connect wallet"}
-          </button>
-        }
-        description={
-          connectError?.message ??
-          "Connect an injected wallet to load Giglings and race history owned by your live wallet address."
-        }
+        action={<WalletConnectButton />}
+        description="Connect a wallet to load Giglings and race history owned by your live wallet address."
         icon={Wallet}
         title="Connect your racing wallet"
       />
@@ -121,15 +107,7 @@ export function StableManager() {
   if (stable.giglings.length === 0) {
     return (
       <EmptyState
-        action={
-          <button
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-white/15 bg-white/[0.04] px-4 text-sm font-bold text-white/70"
-            type="button"
-            onClick={() => disconnect()}
-          >
-            Disconnect wallet
-          </button>
-        }
+        action={<WalletConnectButton />}
         description={`Gigaverse returned no indexed Giglings or race entries for ${shortenAddress(address)}. Try a wallet that has participated in Gigling Racing.`}
         icon={Wallet}
         title="No live stable data found"
@@ -184,14 +162,7 @@ export function StableManager() {
               </p>
             </div>
           </div>
-          <button
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-emerald-racing/35 bg-emerald-racing/10 px-4 text-sm font-black text-emerald-racing transition hover:border-orange-racing/35 hover:text-orange-racing"
-            type="button"
-            onClick={() => disconnect()}
-          >
-            <PlugZap className="h-4 w-4" />
-            Disconnect
-          </button>
+          <WalletConnectButton />
         </div>
       </section>
 

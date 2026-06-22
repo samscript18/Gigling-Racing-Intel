@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Shield, Skull, Swords, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount } from "wagmi";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -11,6 +11,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RaceCard } from "@/components/shared/race-card";
 import { SectionHeader } from "@/components/shared/section-header";
+import { WalletConnectButton } from "@/components/shared/wallet-connect-button";
 import { usePlayerRaceHistory, useRivalries } from "@/hooks/use-stable";
 import { cn } from "@/lib/utils/cn";
 import { formatPercent, shortenAddress } from "@/lib/utils/format";
@@ -25,27 +26,14 @@ type RivalryIntelligenceProps = {
 
 export function LiveRivalryIntelligence() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, error: connectError, isPending } = useConnect();
   const raceQuery = usePlayerRaceHistory(address);
   const rivalryQuery = useRivalries(address);
 
   if (!isConnected || !address) {
     return (
       <EmptyState
-        action={
-          <button
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-cyan-racing px-4 text-sm font-black text-[#031018] shadow-glow disabled:opacity-50"
-            disabled={connectors.length === 0 || isPending}
-            type="button"
-            onClick={() => connectors[0] && connect({ connector: connectors[0] })}
-          >
-            {isPending ? "Connecting..." : "Connect wallet"}
-          </button>
-        }
-        description={
-          connectError?.message ??
-          "Connect your racing wallet to calculate repeat opponents from its live Gigaverse race history."
-        }
+        action={<WalletConnectButton />}
+        description="Connect your racing wallet to calculate repeat opponents from its live Gigaverse race history."
         icon={Swords}
         title="Connect a wallet to find rivals"
       />

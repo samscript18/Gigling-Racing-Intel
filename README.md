@@ -11,7 +11,7 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - Race dashboard and race detail pages with placements, item timelines, winner explanations, and "Why Did I Lose?" analysis.
 - Meta insights for faction, rarity, weather, distance, and track condition performance.
 - Race Intelligence Engine with weighted scoring, probabilities, confidence, risk, warnings, and plain-English reasoning.
-- Stable manager with injected wallet connection, live owned Giglings, race suggestions, and risk alerts.
+- Stable manager with RainbowKit wallet connection, live owned Giglings, race suggestions, and risk alerts.
 - Rivalry intelligence, leaderboards, and shareable report cards.
 - Live-only Gigaverse REST integration with isolated Abstract contract reads and explicit outage states.
 
@@ -21,11 +21,13 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - TypeScript
 - Tailwind CSS
 - TanStack Query
+- Axios
 - Zustand
 - Recharts
 - Framer Motion
 - viem
 - wagmi
+- RainbowKit
 - Vercel-ready deployment
 
 ## Getting Started
@@ -73,14 +75,14 @@ UI Page
   -> Feature Component
     -> Hook
       -> Query function
-        -> Gigaverse API/contract client
+        -> Axios Gigaverse API client or viem contract client
           -> Adapter
             -> App types
 ```
 
 Important files:
 
-- `lib/gigaverse/api-client.ts` - live REST fetch functions and typed availability errors.
+- `lib/gigaverse/api-client.ts` - centralized Axios REST requests and typed availability errors.
 - `lib/gigaverse/contract-client.ts` - viem public client and PetRacingSystem read helpers.
 - `lib/gigaverse/adapters.ts` - normalization from API/contract payloads into app types.
 - `lib/gigaverse/query-keys.ts` - centralized TanStack Query keys.
@@ -93,6 +95,7 @@ Important files:
 The current integration layer is live-connected and safe by default:
 
 - Public race, race detail, pet, leaderboard, stats, and player race-history reads target the Gigaverse Racing REST API.
+- Axios handles live REST transport and timeouts; TanStack Query handles client caching, loading, and error states.
 - API errors and malformed payloads produce user-readable retry states; valid empty responses produce feature-specific empty states.
 - Contract reads default to Abstract mainnet and return typed status results when unavailable.
 - API and contract responses are adapted before reaching components.
