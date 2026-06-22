@@ -23,7 +23,11 @@ import {
   getRaceWinner,
   getSimilarRaces
 } from "@/lib/gigaverse/analytics";
-import { mockGiglings, mockRaces } from "@/lib/gigaverse/mock-data";
+import {
+  fetchGiglingsByIds,
+  fetchRaceById,
+  fetchRaces
+} from "@/lib/gigaverse/api-client";
 import { formatDateTime, formatToken } from "@/lib/utils/format";
 import type { RaceParticipant } from "@/types";
 
@@ -35,15 +39,33 @@ type RaceDetailPageProps = {
 
 export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
   const { id } = await params;
-  const race = mockRaces.find((entry) => entry.id === id);
+  const baseRace = await fetchRaceById(id);
 
-  if (!race) {
+  if (!baseRace) {
     notFound();
   }
 
-  const winner = getRaceWinner(race, mockGiglings);
-  const selectedLoss = getRaceLoserCandidate(race, mockGiglings);
-  const fieldSummary = getRaceFieldSummary(race, mockGiglings);
+  const [fieldGiglings, races] = await Promise.all([
+    fetchGiglingsByIds(baseRace.participants.map((participant) => participant.giglingId)),
+    fetchRaces()
+  ]);
+  const race = {
+    ...baseRace,
+    participants: baseRace.participants.map((participant) => {
+      const gigling = fieldGiglings.find((entry) => entry.id === participant.giglingId);
+
+      return {
+        ...participant,
+        giglingName: gigling?.name ?? participant.giglingName,
+        ownerName: gigling?.ownerName ?? participant.ownerName,
+        faction: gigling?.faction ?? participant.faction,
+        rarity: gigling?.rarity ?? participant.rarity
+      };
+    })
+  };
+  const winner = getRaceWinner(race, fieldGiglings);
+  const selectedLoss = getRaceLoserCandidate(race, fieldGiglings);
+  const fieldSummary = getRaceFieldSummary(race, fieldGiglings);
   const participantColumns: DataTableColumn<RaceParticipant>[] = [
     {
       header: "Gigling",
@@ -92,7 +114,7 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
         : undefined
     }))
   );
-  const similarRaces = getSimilarRaces(race, mockRaces);
+  const similarRaces = getSimilarRaces(race, races);
 
   return (
     <div>

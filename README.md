@@ -52,7 +52,7 @@ npm run build
 
 ## Environment
 
-Copy `.env.example` to `.env.local` for local integration work. Leave values blank to run in mock-first mode.
+Copy `.env.example` to `.env.local` for local integration work. The public REST client defaults to `https://gigaverse.io/api/racing`; leave the other values blank until contract reads are configured.
 
 ```txt
 NEXT_PUBLIC_APP_NAME=Gigling Racing Intel
@@ -69,7 +69,7 @@ NEXT_PUBLIC_GIGAVERSE_API_BASE_URL=https://gigaverse.io/api/racing
 NEXT_PUBLIC_CHAIN_ID=2741
 ```
 
-Set `NEXT_PUBLIC_ABSTRACT_RPC_URL` to an Abstract RPC endpoint and `NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS` to the deployed PetRacingSystem contract address when enabling viem reads.
+Set `NEXT_PUBLIC_ABSTRACT_RPC_URL` to an Abstract RPC endpoint and `NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS` to the deployed PetRacingSystem contract address when enabling viem reads. If the REST API is unreachable or returns an unexpected payload, the app falls back to the centralized mock dataset.
 
 ## Data Architecture
 
@@ -98,9 +98,9 @@ Important files:
 
 ## Gigaverse Integration Notes
 
-The current integration layer is safe by default:
+The current integration layer is live-connected and safe by default:
 
-- If no API base URL is configured, fetch functions return mock data.
+- Public race, race detail, pet, leaderboard, stats, and player race-history reads target the Gigaverse Racing REST API.
 - If the API responds with an error, malformed payload, or empty result, the app falls back to mock data.
 - If contract env vars are missing, contract helpers return a typed `not-configured` result.
 - API and contract responses are adapted before reaching components.

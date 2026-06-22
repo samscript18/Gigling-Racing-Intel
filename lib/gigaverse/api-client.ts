@@ -1,5 +1,5 @@
 import { appEnv, hasGigaverseApiConfig } from "@/lib/config/env";
-import type { Gigling, Race, StableSummary } from "@/types";
+import type { Gigling, MetaInsight, Race, StableSummary } from "@/types";
 
 import {
   adaptApiGigling,
@@ -9,9 +9,11 @@ import {
   adaptApiRace,
   adaptApiRaces,
   adaptApiStable,
+  extractRecordList,
   isRecord,
   normalizeAddress
 } from "./adapters";
+import { readRaceContract } from "./contract-client";
 import {
   activeRaces,
   leaderboardPlayers,
@@ -24,7 +26,7 @@ import {
   mockStableSummaries
 } from "./mock-data";
 
-const REQUEST_TIMEOUT_MS = 8_000;
+const REQUEST_TIMEOUT_MS = 4_000;
 
 type RequestOptions = {
   authToken?: string;
@@ -112,6 +114,62 @@ function mergeRecordPayloads(primary: unknown, secondary: unknown) {
   };
 }
 
+function pickStatsRecord(statsPayload: unknown, petId: string) {
+  const statsList = extractRecordList(statsPayload, ["stats"]);
+  const matchingStats = statsList.find((entry) => {
+    const entryPetId = String(entry.petId ?? entry.id ?? "");
+    return entryPetId === petId;
+  });
+
+  if (matchingStats) {
+    return matchingStats;
+  }
+
+  if (isRecord(statsPayload) && isRecord(statsPayload.stats)) {
+    return statsPayload.stats;
+  }
+
+  return statsPayload;
+}
+
+function extractOwnedGiglingIds(ownerAddress: string, races: Race[]) {
+  const normalizedOwner = normalizeAddress(ownerAddress);
+  const ids = races.flatMap((race) =>
+    race.participants
+      .filter((participant) => normalizeAddress(participant.ownerAddress) === normalizedOwner)
+      .map((participant) => participant.giglingId)
+  );
+
+  return Array.from(new Set(ids));
+}
+
+function buildGlobalStatsInsight(payload: unknown): MetaInsight | undefined {
+  const data = isRecord(payload) && isRecord(payload.data) ? payload.data : undefined;
+
+  if (!data) {
+    return undefined;
+  }
+
+  const totalRacesCreated = Number(data.totalRacesCreated ?? 0);
+  const totalEntries = Number(data.totalEntries ?? 0);
+  const uniqueRacers = Number(data.uniqueRacers ?? 0);
+
+  if (!Number.isFinite(totalRacesCreated) || totalRacesCreated <= 0) {
+    return undefined;
+  }
+
+  return {
+    id: "live-global-racing-stats",
+    title: "Live Gigling Racing volume is connected",
+    description: `${Intl.NumberFormat("en").format(totalEntries)} entries from ${Intl.NumberFormat("en").format(uniqueRacers)} unique racers are indexed from the public Gigaverse racing API.`,
+    severity: "info",
+    metricLabel: "Total races created",
+    metricValue: Intl.NumberFormat("en").format(totalRacesCreated),
+    trendDirection: "up",
+    createdAt: new Date().toISOString()
+  };
+}
+
 function buildStableFromGiglings(
   ownerAddress: string,
   giglings: Gigling[],
@@ -165,9 +223,11 @@ export async function fetchGiglingById(id: string) {
     requestGigaverseJson("/pets", { searchParams: { ids: remoteId } }),
     requestGigaverseJson(`/pets/${remoteId}/stats`)
   ]);
-  const remotePet =
-    adaptApiGiglings(petPayload)[0] ??
-    adaptApiGigling(mergeRecordPayloads(petPayload, statsPayload));
+  const rawPet =
+    extractRecordList(petPayload, ["pets", "giglings", "entries"])[0] ?? petPayload;
+  const remotePet = adaptApiGigling(
+    mergeRecordPayloads(rawPet, pickStatsRecord(statsPayload, remoteId))
+  );
 
   if (remotePet) {
     const merged = adaptApiGigling(mergeRecordPayloads(remotePet, statsPayload));
@@ -196,8 +256,40 @@ export async function fetchRaceById(id: string) {
     return remoteRace;
   }
 
+  const contractRace = await readRaceContract(id);
+
+  if (contractRace.status === "ok" && contractRace.data) {
+    return contractRace.data;
+  }
+
   const race = mockRaces.find((entry) => entry.id === id);
   return race ? adaptApiRace(race) : undefined;
+}
+
+export async function fetchGiglingsByIds(ids: string[]) {
+  const remoteIds = ids.map(toRemotePetId).filter(Boolean);
+
+  if (remoteIds.length === 0) {
+    return [];
+  }
+
+  const [petsPayload, statsPayload] = await Promise.all([
+    requestGigaverseJson("/pets", { searchParams: { ids: remoteIds.join(",") } }),
+    requestGigaverseJson("/pets/stats", { searchParams: { ids: remoteIds.join(",") } })
+  ]);
+  const rawPets = extractRecordList(petsPayload, ["pets", "giglings", "entries"]);
+  const remoteGiglings = rawPets.flatMap((rawPet) => {
+    const petId = String(rawPet.id ?? rawPet.petId ?? "");
+    const adapted = adaptApiGigling(
+      mergeRecordPayloads(rawPet, pickStatsRecord(statsPayload, petId))
+    );
+
+    return adapted ? [adapted] : [];
+  });
+
+  return remoteGiglings.length > 0
+    ? remoteGiglings
+    : mockGiglings.filter((gigling) => ids.includes(gigling.id));
 }
 
 export async function fetchRaceState(id: string) {
@@ -246,6 +338,17 @@ export async function fetchStable(ownerAddress: string) {
     return buildStableFromGiglings(normalizedOwner, remoteGiglings, races);
   }
 
+  const playerRacePayload = await requestGigaverseJson(`/races/${normalizedOwner}`, {
+    searchParams: { limit: 50 }
+  });
+  const playerRaces = adaptApiRaces(playerRacePayload);
+  const ownedGiglingIds = extractOwnedGiglingIds(normalizedOwner, playerRaces);
+
+  if (ownedGiglingIds.length > 0) {
+    const ownedGiglings = await fetchGiglingsByIds(ownedGiglingIds);
+    return buildStableFromGiglings(normalizedOwner, ownedGiglings, playerRaces);
+  }
+
   return mockStableSummaries.find(
     (summary) => normalizeAddress(summary.ownerAddress) === normalizedOwner
   );
@@ -269,8 +372,11 @@ export async function fetchHostEligibility(ownerAddress: string) {
 }
 
 export async function fetchMetaData() {
+  const statsPayload = await requestGigaverseJson("/stats");
+  const liveInsight = buildGlobalStatsInsight(statsPayload);
+
   return {
-    insights: mockMetaInsights,
+    insights: liveInsight ? [liveInsight, ...mockMetaInsights] : mockMetaInsights,
     factionPerformance: mockFactionPerformance
   };
 }

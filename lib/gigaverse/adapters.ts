@@ -114,6 +114,18 @@ function normalizePercent(value: unknown, fallback = 0) {
   return parsed > 0 && parsed <= 1 ? Number((parsed * 100).toFixed(1)) : parsed;
 }
 
+function clampStat(value: number) {
+  return Math.max(0, Math.min(100, Number(value.toFixed(1))));
+}
+
+function normalizeTokenAmount(value: unknown, fallback = 0) {
+  if (typeof value === "string" && /^\d+$/.test(value) && value.length > 12) {
+    return Number((Number(value) / 1_000_000_000_000_000_000).toFixed(4));
+  }
+
+  return normalizeNumber(value, fallback);
+}
+
 function normalizeId(prefix: "gigling" | "race" | "player", value: unknown, fallback: string) {
   const raw = normalizeText(value, fallback).replace(/^#/, "");
 
@@ -137,6 +149,14 @@ function normalizeFaction(value: unknown): GiglingFaction {
   }
 
   const mapped: Record<string, GiglingFaction> = {
+    "1": "ember",
+    "2": "shadow",
+    "3": "aqua",
+    "4": "shadow",
+    "5": "terra",
+    "6": "neutral",
+    "7": "volt",
+    "8": "neutral",
     archon: "shadow",
     athena: "aqua",
     chobo: "volt",
@@ -157,7 +177,22 @@ function normalizeFaction(value: unknown): GiglingFaction {
 
 function normalizeRarity(value: unknown): GiglingRarity {
   const raw = normalizeText(value, "common").toLowerCase();
-  return rarityValues.includes(raw as GiglingRarity) ? (raw as GiglingRarity) : "common";
+
+  if (rarityValues.includes(raw as GiglingRarity)) {
+    return raw as GiglingRarity;
+  }
+
+  const mapped: Record<string, GiglingRarity> = {
+    "1": "common",
+    "2": "uncommon",
+    "3": "rare",
+    "4": "epic",
+    "5": "legendary",
+    "6": "legendary",
+    giga: "legendary"
+  };
+
+  return mapped[raw] ?? "common";
 }
 
 function normalizeWeather(value: unknown): RaceWeather {
@@ -168,6 +203,7 @@ function normalizeWeather(value: unknown): RaceWeather {
   }
 
   const mapped: Record<string, RaceWeather> = {
+    average: "sunny",
     cold: "foggy",
     hot: "sunny",
     snow: "stormy",
@@ -255,16 +291,50 @@ function normalizeStatus(value: unknown): RaceStatus {
 }
 
 function normalizeStats(record?: UnknownRecord): GiglingStats {
+  const averageRange = (key: string) => {
+    const range = nestedRecord(record ?? {}, [key]);
+
+    if (!range) {
+      return undefined;
+    }
+
+    return (
+      (normalizeNumber(firstValue(range, ["min"]), 70) +
+        normalizeNumber(firstValue(range, ["max"]), 70)) /
+      2
+    );
+  };
+  const elo = normalizeNumber(firstValue(record ?? {}, ["elo"]), 0);
+
   return {
-    speed: normalizeNumber(firstValue(record ?? {}, ["speed", "spd"]), 70),
-    stamina: normalizeNumber(firstValue(record ?? {}, ["stamina", "sta"]), 70),
-    handling: normalizeNumber(firstValue(record ?? {}, ["handling", "control"]), 70),
-    acceleration: normalizeNumber(
-      firstValue(record ?? {}, ["acceleration", "accel", "launch"]),
-      70
+    speed: clampStat(
+      normalizeNumber(firstValue(record ?? {}, ["speed", "spd"]), averageRange("speedRange") ?? 70)
     ),
-    luck: normalizeNumber(firstValue(record ?? {}, ["luck", "rng"]), 70),
-    consistency: normalizeNumber(firstValue(record ?? {}, ["consistency", "elo"]), 70)
+    stamina: clampStat(
+      normalizeNumber(
+        firstValue(record ?? {}, ["stamina", "sta"]),
+        averageRange("staminaRange") ?? 70
+      )
+    ),
+    handling: clampStat(
+      normalizeNumber(
+        firstValue(record ?? {}, ["handling", "control", "finish"]),
+        averageRange("finishRange") ?? 70
+      )
+    ),
+    acceleration: clampStat(
+      normalizeNumber(
+        firstValue(record ?? {}, ["acceleration", "accel", "launch", "start"]),
+        averageRange("startRange") ?? 70
+      )
+    ),
+    luck: clampStat(normalizeNumber(firstValue(record ?? {}, ["luck", "rng"]), 70)),
+    consistency: clampStat(
+      normalizeNumber(
+        firstValue(record ?? {}, ["consistency"]),
+        elo > 0 ? Math.min(96, Math.max(55, elo / 25)) : 70
+      )
+    )
   };
 }
 
@@ -287,7 +357,7 @@ function adaptTrait(input: unknown, index: number): GiglingTrait {
     name: normalizeText(firstValue(record, ["name", "traitName"]), `Trait ${index + 1}`),
     category: safeCategory,
     revealed: Boolean(firstValue(record, ["revealed", "isRevealed"]) ?? true),
-    value: normalizeNumber(firstValue(record, ["value", "score"]), undefined),
+    value: normalizeNumber(firstValue(record, ["value", "score", "tier"]), undefined),
     description: normalizeText(
       firstValue(record, ["description", "summary"]),
       "Trait details will be enriched as Gigaverse trait metadata is connected."
@@ -377,13 +447,18 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
     };
   }
 
-  const statsRecord = nestedRecord(input, ["stats", "racingStats", "attributes"]) ?? input;
+  const racePublic = nestedRecord(input, ["racePublic"]);
+  const statsRecord = nestedRecord(input, ["stats", "racingStats", "attributes"]) ?? racePublic ?? input;
   const stats = normalizeStats(statsRecord);
   const idSource = firstValue(input, ["id", "petId", "giglingId", "tokenId", "pet_id"]);
   const id = normalizeId("gigling", idSource, "unknown");
-  const wins = normalizeNumber(firstValue(input, ["wins", "winCount"]), 0);
+  const wins = normalizeNumber(
+    firstValue(input, ["wins", "winCount"]) ?? firstValue(racePublic ?? {}, ["wins"]),
+    0
+  );
   const totalRaces = normalizeNumber(
-    firstValue(input, ["totalRaces", "races", "racesRun", "raceCount"]),
+    firstValue(input, ["totalRaces", "races", "racesRun", "raceCount"]) ??
+      firstValue(racePublic ?? {}, ["racesRun", "eloRaceCount"]),
     0
   );
   const podiums = normalizeNumber(firstValue(input, ["podiums", "podiumCount"]), wins);
@@ -399,11 +474,18 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
       normalizeText(idSource, id)
     ),
     name: normalizeText(firstValue(input, ["name", "displayName", "petName"]), `Gigling ${id}`),
-    imageUrl: normalizeText(firstValue(input, ["imageUrl", "image", "avatarUrl"]), ""),
+    imageUrl: normalizeText(
+      firstValue(input, ["imageUrl", "image", "imgUrl", "avatarUrl"]),
+      ""
+    ),
     ownerAddress: normalizeAddress(firstValue(input, ["ownerAddress", "owner", "wallet"])),
-    ownerName: normalizeText(firstValue(input, ["ownerName", "ownerDisplayName"]), undefined),
-    faction: normalizeFaction(firstValue(input, ["faction", "factionName"])),
-    rarity: normalizeRarity(firstValue(input, ["rarity", "tier"])),
+    ownerName: normalizeText(
+      firstValue(input, ["ownerName", "ownerDisplayName"]) ??
+        firstValue(nestedRecord(input, ["ownerSummary"]) ?? {}, ["username"]),
+      undefined
+    ),
+    faction: normalizeFaction(firstValue(input, ["factionName", "faction"])),
+    rarity: normalizeRarity(firstValue(input, ["rarityName", "rarity", "tier"])),
     level: normalizeNumber(firstValue(input, ["level", "rank"]), 1),
     traits: adaptTraits(firstValue(input, ["traits", "attributes"]), stats),
     stats,
@@ -415,7 +497,10 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
       firstValue(input, ["podiumRate", "podium_rate"]),
       totalRaces > 0 ? Number(((podiums / totalRaces) * 100).toFixed(1)) : 0
     ),
-    earnings: normalizeNumber(firstValue(input, ["earnings", "totalEarnings", "prize"]), 0),
+    earnings: normalizeTokenAmount(
+      firstValue(input, ["earnings", "totalEarnings", "prize", "weiNet", "weiWon"]),
+      0
+    ),
     currentStreak: normalizeNumber(firstValue(input, ["currentStreak", "streak"]), 0),
     bestDistance: normalizeDistance(firstValue(input, ["bestDistance", "distance"])),
     bestWeather: normalizeWeather(firstValue(input, ["bestWeather", "weather"])),
@@ -423,14 +508,37 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
   };
 }
 
-function adaptParticipant(input: unknown, index: number): RaceParticipant {
+function adaptParticipant(
+  input: unknown,
+  index: number,
+  context: {
+    finalRanking?: unknown[];
+    finishTimes?: unknown[];
+    petOwners?: UnknownRecord;
+  } = {}
+): RaceParticipant {
   const record = isRecord(input) ? input : {};
+  const petIdSource = firstValue(record, ["giglingId", "petId", "id", "tokenId"]);
   const giglingId = normalizeId(
     "gigling",
-    firstValue(record, ["giglingId", "petId", "id", "tokenId"]),
+    petIdSource,
     String(index + 1)
   );
   const items = firstValue(record, ["itemsUsed", "items", "itemUsages"]);
+  const rankedIndex =
+    context.finalRanking?.findIndex(
+      (rankedPetId) => normalizeText(rankedPetId) === normalizeText(petIdSource)
+    ) ?? -1;
+  const finalPosition =
+    firstValue(record, ["finalPosition", "placement", "rank"]) === undefined
+      ? rankedIndex >= 0
+        ? rankedIndex + 1
+        : undefined
+      : normalizeNumber(firstValue(record, ["finalPosition", "placement", "rank"]));
+  const ownerFromMap =
+    context.petOwners && petIdSource !== undefined
+      ? context.petOwners[normalizeText(petIdSource)]
+      : undefined;
 
   return {
     giglingId,
@@ -438,19 +546,20 @@ function adaptParticipant(input: unknown, index: number): RaceParticipant {
       firstValue(record, ["giglingName", "petName", "name"]),
       `Gigling ${giglingId.replace("gigling-", "")}`
     ),
-    ownerAddress: normalizeAddress(firstValue(record, ["ownerAddress", "owner", "entrant"])),
+    ownerAddress: normalizeAddress(
+      firstValue(record, ["ownerAddress", "owner", "entrant"]) ?? ownerFromMap
+    ),
     ownerName: normalizeText(firstValue(record, ["ownerName", "entrantName"]), undefined),
-    faction: normalizeFaction(firstValue(record, ["faction", "factionName"])),
-    rarity: normalizeRarity(firstValue(record, ["rarity", "tier"])),
-    startingLane: normalizeNumber(firstValue(record, ["startingLane", "lane"]), index + 1),
-    finalPosition:
-      firstValue(record, ["finalPosition", "placement", "rank"]) === undefined
-        ? undefined
-        : normalizeNumber(firstValue(record, ["finalPosition", "placement", "rank"])),
+    faction: normalizeFaction(firstValue(record, ["factionName", "faction"])),
+    rarity: normalizeRarity(firstValue(record, ["rarityName", "rarity", "tier"])),
+    startingLane: normalizeNumber(firstValue(record, ["startingLane", "lane", "slot"]), index) + 1,
+    finalPosition,
     itemsUsed: Array.isArray(items) ? items.map(adaptRaceItem) : [],
     performanceScore:
       firstValue(record, ["performanceScore", "score"]) === undefined
-        ? undefined
+        ? finalPosition
+          ? Math.max(45, 100 - finalPosition * 5)
+          : undefined
         : normalizeNumber(firstValue(record, ["performanceScore", "score"]))
   };
 }
@@ -500,12 +609,21 @@ export function adaptApiRace(input: unknown): Race | undefined {
   const raceIdSource = firstValue(raceRecord, ["raceId", "id"]);
   const weather =
     weatherFromParams(raceRecord) ??
-    normalizeWeather(firstValue(raceRecord, ["weather", "weatherName"]));
+    normalizeWeather(firstValue(raceRecord, ["weather", "weatherName", "raceTemp"]));
   const participants =
     firstValue(raceRecord, ["participants", "entries", "pets"]) ??
     firstValue(input, ["participants", "entries", "pets"]);
   const finalRanking = firstValue(raceRecord, ["finalRanking", "ranking"]);
   const rankingWinner = Array.isArray(finalRanking) ? finalRanking[0] : undefined;
+  const finishTimes = firstValue(raceRecord, ["finishTimes", "msFinishTimes"]);
+  const petOwners = nestedRecord(raceRecord, ["petOwners"]);
+  const generatedParticipants =
+    !Array.isArray(participants) && Array.isArray(firstValue(raceRecord, ["racePets"]))
+      ? (firstValue(raceRecord, ["racePets"]) as unknown[]).map((petId, index) => ({
+          petId,
+          slot: index
+        }))
+      : undefined;
 
   return {
     id: normalizeId("race", raceIdSource, "unknown"),
@@ -520,11 +638,18 @@ export function adaptApiRace(input: unknown): Race | undefined {
       firstValue(raceRecord, ["trackCondition", "condition"]),
       weather
     ),
-    entryFee: normalizeNumber(firstValue(raceRecord, ["entryFee", "entryFeeWei"]), 0),
-    prizePool: normalizeNumber(firstValue(raceRecord, ["prizePool", "pool"]), 0),
+    entryFee: normalizeTokenAmount(firstValue(raceRecord, ["entryFee", "entryFeeWei"]), 0),
+    prizePool: normalizeTokenAmount(firstValue(raceRecord, ["prizePool", "pool"]), 0),
     startedAt: normalizeDate(firstValue(raceRecord, ["startedAt", "raceStart", "createdAt"])),
     endedAt: normalizeDate(firstValue(raceRecord, ["endedAt", "raceFinish", "resolvedAt"])),
-    participants: Array.isArray(participants) ? participants.map(adaptParticipant) : [],
+    participants: (Array.isArray(participants) ? participants : generatedParticipants ?? []).map(
+      (participant, index) =>
+        adaptParticipant(participant, index, {
+          finalRanking: Array.isArray(finalRanking) ? finalRanking : undefined,
+          finishTimes: Array.isArray(finishTimes) ? finishTimes : undefined,
+          petOwners
+        })
+    ),
     winnerGiglingId:
       firstValue(raceRecord, ["winnerGiglingId", "winnerPetId"]) === undefined &&
       rankingWinner === undefined
@@ -535,7 +660,13 @@ export function adaptApiRace(input: unknown): Race | undefined {
             ""
           ),
     payoutTxHash: normalizeText(
-      firstValue(raceRecord, ["payoutTxHash", "txHash", "resolveTxHash"]),
+      firstValue(raceRecord, [
+        "payoutTxHash",
+        "txHash",
+        "resolveTxHash",
+        "broadcastTxHash",
+        "createdTxHash"
+      ]),
       undefined
     )
   };
@@ -555,23 +686,52 @@ export function adaptApiPlayer(input: unknown): Player | undefined {
     };
   }
 
-  const wins = normalizeNumber(firstValue(input, ["wins", "winCount"]), 0);
-  const totalRaces = normalizeNumber(firstValue(input, ["totalRaces", "raceCount", "races"]), 0);
+  const racePublic = nestedRecord(input, ["racePublic"]);
+  const ownerSummary = nestedRecord(input, ["ownerSummary"]);
+  const wins = normalizeNumber(
+    firstValue(input, ["wins", "winCount"]) ?? firstValue(racePublic ?? {}, ["wins"]),
+    0
+  );
+  const totalRaces = normalizeNumber(
+    firstValue(input, ["totalRaces", "raceCount", "races", "racesRun"]) ??
+      firstValue(racePublic ?? {}, ["racesRun", "eloRaceCount"]),
+    0
+  );
 
   return {
-    id: normalizeId("player", firstValue(input, ["id", "walletAddress", "address"]), "unknown"),
-    walletAddress: normalizeAddress(firstValue(input, ["walletAddress", "address", "owner"])),
-    displayName: normalizeText(firstValue(input, ["displayName", "name", "username"]), undefined),
-    avatarUrl: normalizeText(firstValue(input, ["avatarUrl", "avatar", "image"]), undefined),
+    id: normalizeId(
+      "player",
+      firstValue(input, ["id", "walletAddress", "ownerAddress", "address"]),
+      "unknown"
+    ),
+    walletAddress: normalizeAddress(
+      firstValue(input, ["walletAddress", "ownerAddress", "address", "owner"])
+    ),
+    displayName: normalizeText(
+      firstValue(input, ["displayName", "name", "username"]) ??
+        firstValue(ownerSummary ?? {}, ["username"]),
+      undefined
+    ),
+    avatarUrl: normalizeText(
+      firstValue(input, ["avatarUrl", "avatar", "image"]) ??
+        firstValue(ownerSummary ?? {}, ["headSheetUrl", "bodySheetUrl"]),
+      undefined
+    ),
     totalRaces,
     wins,
     winRate: normalizePercent(
       firstValue(input, ["winRate", "win_rate"]),
       totalRaces > 0 ? Number(((wins / totalRaces) * 100).toFixed(1)) : 0
     ),
-    totalEarnings: normalizeNumber(firstValue(input, ["totalEarnings", "earnings"]), 0),
-    favoriteFaction: normalizeFaction(firstValue(input, ["favoriteFaction", "faction"])),
-    stableSize: normalizeNumber(firstValue(input, ["stableSize", "pets", "giglings"]), 0)
+    totalEarnings: normalizeTokenAmount(firstValue(input, ["totalEarnings", "earnings", "weiNet"]), 0),
+    favoriteFaction: normalizeFaction(
+      firstValue(input, ["favoriteFaction", "factionName", "faction"])
+    ),
+    stableSize: normalizeNumber(
+      firstValue(input, ["stableSize", "pets", "giglings"]) ??
+        firstValue(ownerSummary ?? {}, ["petCount"]),
+      0
+    )
   };
 }
 
@@ -632,12 +792,17 @@ export function extractRecordList(input: unknown, keys: string[]) {
 }
 
 export function adaptApiGiglings(input: unknown) {
-  return extractRecordList(input, ["giglings", "pets", "items", "results", "leaderboard"]).flatMap(
-    (entry) => {
-      const adapted = adaptApiGigling(entry);
-      return adapted ? [adapted] : [];
-    }
-  );
+  return extractRecordList(input, [
+    "giglings",
+    "pets",
+    "entries",
+    "items",
+    "results",
+    "leaderboard"
+  ]).flatMap((entry) => {
+    const adapted = adaptApiGigling(entry);
+    return adapted ? [adapted] : [];
+  });
 }
 
 export function adaptApiRaces(input: unknown) {
@@ -648,10 +813,15 @@ export function adaptApiRaces(input: unknown) {
 }
 
 export function adaptApiPlayers(input: unknown) {
-  return extractRecordList(input, ["players", "owners", "items", "results", "leaderboard"]).flatMap(
-    (entry) => {
-      const adapted = adaptApiPlayer(entry);
-      return adapted ? [adapted] : [];
-    }
-  );
+  return extractRecordList(input, [
+    "players",
+    "owners",
+    "entries",
+    "items",
+    "results",
+    "leaderboard"
+  ]).flatMap((entry) => {
+    const adapted = adaptApiPlayer(entry);
+    return adapted ? [adapted] : [];
+  });
 }

@@ -19,7 +19,11 @@ import {
   getGiglingStatRadarData,
   getRecommendedRaceConditions
 } from "@/lib/gigaverse/analytics";
-import { mockGiglings, mockRaces } from "@/lib/gigaverse/mock-data";
+import {
+  fetchGiglingById,
+  fetchGiglings,
+  fetchRaces
+} from "@/lib/gigaverse/api-client";
 import {
   formatDateTime,
   formatPercent,
@@ -35,20 +39,24 @@ type GiglingDetailPageProps = {
 
 export default async function GiglingDetailPage({ params }: GiglingDetailPageProps) {
   const { id } = await params;
-  const gigling = mockGiglings.find((entry) => entry.id === id);
+  const [gigling, races, giglings] = await Promise.all([
+    fetchGiglingById(id),
+    fetchRaces(),
+    fetchGiglings()
+  ]);
 
   if (!gigling) {
     notFound();
   }
 
-  const raceHistory = getGiglingRaceHistory(gigling.id, mockRaces);
+  const raceHistory = getGiglingRaceHistory(gigling.id, races);
   const completedHistory = raceHistory.filter(
     ({ participant }) => typeof participant.finalPosition === "number"
   );
   const statData = getGiglingStatRadarData(gigling);
-  const weatherData = getGiglingPerformanceByWeather(gigling.id, mockRaces);
-  const distanceData = getGiglingPerformanceByDistance(gigling.id, mockRaces);
-  const intelligence = getGiglingIntelligenceSummary(gigling, mockRaces);
+  const weatherData = getGiglingPerformanceByWeather(gigling.id, races);
+  const distanceData = getGiglingPerformanceByDistance(gigling.id, races);
+  const intelligence = getGiglingIntelligenceSummary(gigling, races);
   const recommendations = getRecommendedRaceConditions(gigling);
   const warnings = getGiglingRiskWarnings(gigling);
   const columns: DataTableColumn<(typeof raceHistory)[number]>[] = [
@@ -81,7 +89,7 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
       cell: ({ race }) => formatDateTime(race.startedAt)
     }
   ];
-  const similarGiglings = mockGiglings
+  const similarGiglings = giglings
     .filter((entry) => entry.id !== gigling.id && entry.faction === gigling.faction)
     .sort((first, second) => second.winRate - first.winRate)
     .slice(0, 3);
@@ -188,7 +196,7 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
           <section className="premium-panel rounded-lg p-5">
             <div className="relative z-10">
               <SectionHeader
-                description="What the current mock data says about entry decisions."
+                description="What the current indexed data says about entry decisions."
                 title="Intelligence Summary"
               />
               <div className="space-y-3">
