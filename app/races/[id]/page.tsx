@@ -1,5 +1,12 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
+import {
+  ItemTimeline,
+  PlacementLadder,
+  RaceConditionStrip,
+  type RaceTimelineItem
+} from "@/components/races/race-detail-visuals";
 import { DataTable, type DataTableColumn } from "@/components/shared/data-table";
 import { FactionBadge } from "@/components/shared/faction-badge";
 import { MetricCard } from "@/components/shared/metric-card";
@@ -8,7 +15,14 @@ import { RarityBadge } from "@/components/shared/rarity-badge";
 import { RaceCard } from "@/components/shared/race-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { explainLoss, explainWinner, getRaceWinner } from "@/lib/gigaverse/analytics";
+import {
+  explainLoss,
+  explainWinner,
+  getRaceFieldSummary,
+  getRaceLoserCandidate,
+  getRaceWinner,
+  getSimilarRaces
+} from "@/lib/gigaverse/analytics";
 import { mockGiglings, mockRaces } from "@/lib/gigaverse/mock-data";
 import { formatDateTime, formatToken } from "@/lib/utils/format";
 import type { RaceParticipant } from "@/types";
@@ -28,16 +42,19 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
   }
 
   const winner = getRaceWinner(race, mockGiglings);
-  const selectedLoser = race.participants.find(
-    (participant) => participant.finalPosition && participant.finalPosition > 1
-  );
-  const loserGigling = selectedLoser
-    ? mockGiglings.find((gigling) => gigling.id === selectedLoser.giglingId)
-    : undefined;
+  const selectedLoss = getRaceLoserCandidate(race, mockGiglings);
+  const fieldSummary = getRaceFieldSummary(race, mockGiglings);
   const participantColumns: DataTableColumn<RaceParticipant>[] = [
     {
       header: "Gigling",
-      cell: (participant) => participant.giglingName
+      cell: (participant) => (
+        <Link
+          className="font-bold text-cyan-racing transition hover:text-white"
+          href={`/giglings/${participant.giglingId}`}
+        >
+          {participant.giglingName}
+        </Link>
+      )
     },
     {
       header: "Owner",
@@ -65,21 +82,17 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
       cell: (participant) => participant.performanceScore ?? "Pending"
     }
   ];
-  const itemTimeline = race.participants.flatMap((participant) =>
+  const itemTimeline: RaceTimelineItem[] = race.participants.flatMap((participant) =>
     participant.itemsUsed.map((item) => ({
       ...item,
-      giglingName: participant.giglingName
+      giglingName: participant.giglingName,
+      targetGiglingName: item.targetGiglingId
+        ? race.participants.find((entry) => entry.giglingId === item.targetGiglingId)
+            ?.giglingName
+        : undefined
     }))
   );
-  const similarRaces = mockRaces
-    .filter(
-      (entry) =>
-        entry.id !== race.id &&
-        (entry.distance === race.distance ||
-          entry.weather === race.weather ||
-          entry.trackCondition === race.trackCondition)
-    )
-    .slice(0, 2);
+  const similarRaces = getSimilarRaces(race, mockRaces);
 
   return (
     <div>
@@ -90,40 +103,105 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
         title={`Race #${race.raceNumber}`}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Prize Pool" value={formatToken(race.prizePool)} />
-        <MetricCard label="Entry Fee" tone="orange" value={formatToken(race.entryFee)} />
-        <MetricCard label="Participants" tone="emerald" value={`${race.participants.length}`} />
-        <MetricCard label="Started" tone="violet" value={formatDateTime(race.startedAt)} />
+      <section className="premium-panel rounded-lg p-5">
+        <div className="relative z-10 grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="relative min-h-72 overflow-hidden rounded-lg border border-white/10 bg-track-radial">
+            <div className="absolute inset-0 bg-racing-grid opacity-55" />
+            <div className="absolute left-8 top-8 h-24 w-24 rounded-full border border-cyan-racing/20 bg-cyan-racing/8 blur-sm" />
+            <div className="absolute bottom-8 right-8 h-32 w-32 rounded-full border border-orange-racing/20 bg-orange-racing/8 blur-sm" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.26em] text-cyan-racing">
+                Race Intelligence
+              </p>
+              <p className="mt-4 text-6xl font-black text-white">#{race.raceNumber}</p>
+              <p className="mt-3 max-w-xs text-sm leading-6 text-white/54">
+                {fieldSummary.summary}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <RaceConditionStrip
+              distance={race.distance}
+              trackCondition={race.trackCondition}
+              weather={race.weather}
+            />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/38">Winner</p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {winner?.name ?? "Pending"}
+                </p>
+                <p className="mt-1 text-sm text-white/46">
+                  {winner ? `${winner.faction} / ${winner.rarity}` : "Race still resolving"}
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/38">Field Favorite</p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {fieldSummary.favorite?.name ?? "Pending"}
+                </p>
+                <p className="mt-1 text-sm text-white/46">
+                  Avg field win rate {fieldSummary.averageWinRate}%
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/38">Risk</p>
+                <p className="mt-2 text-xl font-black capitalize text-orange-racing">
+                  {fieldSummary.conditionRisk}
+                </p>
+                <p className="mt-1 text-sm text-white/46">
+                  {fieldSummary.itemCount} item actions
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/38">Payout Tx</p>
+                <p className="mt-2 truncate text-sm font-black text-cyan-racing">
+                  {race.payoutTxHash ?? "Pending settlement"}
+                </p>
+                <p className="mt-1 text-sm text-white/46">Explorer link placeholder</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <MetricCard icon="trophy" label="Prize Pool" value={formatToken(race.prizePool)} />
+        <MetricCard icon="coins" label="Entry Fee" tone="orange" value={formatToken(race.entryFee)} />
+        <MetricCard icon="users" label="Participants" tone="emerald" value={`${race.participants.length}`} />
+        <MetricCard icon="radar" label="Items Used" tone="violet" value={`${fieldSummary.itemCount}`} />
+        <MetricCard icon="timer" label="Started" value={formatDateTime(race.startedAt)} />
       </div>
 
       <div className="mt-6 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="premium-panel rounded-lg p-5">
           <div className="relative z-10">
-            <SectionHeader description="Lane, final placement, faction, rarity, and performance score." title="Participants" />
-            <DataTable columns={participantColumns} data={race.participants} getRowKey={(participant) => participant.giglingId} />
+            <SectionHeader
+              description="Final placement, lane, faction, rarity, owner, and performance score."
+              title="Final Placements"
+            />
+            <PlacementLadder
+              participants={race.participants}
+              winnerGiglingId={race.winnerGiglingId}
+            />
           </div>
         </section>
 
         <section className="premium-panel rounded-lg p-5">
           <div className="relative z-10">
-            <SectionHeader description="Boosts, sabotages, defenses, and utility items used during the race." title="Item Timeline" />
-            <div className="space-y-3">
-              {itemTimeline.length > 0 ? (
-                itemTimeline.map((item) => (
-                  <div key={item.id} className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
-                    <p className="text-sm font-bold text-white">{item.itemName}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-cyan-racing/70">{item.usedAtStage} / {item.type}</p>
-                    <p className="mt-2 text-sm text-white/54">{item.giglingName} impact score: {item.impact}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-white/54">No item usage recorded for this race.</p>
-              )}
-            </div>
+            <SectionHeader description="Boosts, sabotages, defenses, and utility items used during the race." title="Items Used Timeline" />
+            <ItemTimeline items={itemTimeline} />
           </div>
         </section>
       </div>
+
+      <section className="mt-6 premium-panel rounded-lg p-5">
+        <div className="relative z-10">
+          <SectionHeader description="Dense table view for lane, final placement, faction, rarity, and performance score." title="Participants Table" />
+            <DataTable columns={participantColumns} data={race.participants} getRowKey={(participant) => participant.giglingId} />
+        </div>
+      </section>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <section className="premium-panel rounded-lg p-5">
@@ -145,10 +223,17 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
 
         <section className="premium-panel rounded-lg p-5">
           <div className="relative z-10">
-            <SectionHeader description="Demo-ready loss explanation using the first non-winning finisher." title="Why Did I Lose?" />
+            <SectionHeader
+              description={
+                selectedLoss
+                  ? `Selected Gigling: ${selectedLoss.gigling.name}`
+                  : "Loss explanation appears after placements are final."
+              }
+              title="Why Did I Lose?"
+            />
             <div className="space-y-3">
-              {loserGigling ? (
-                explainLoss(race, loserGigling).map((line) => (
+              {selectedLoss ? (
+                explainLoss(race, selectedLoss.gigling).map((line) => (
                   <p key={line} className="rounded-lg border border-orange-racing/20 bg-orange-racing/8 p-3 text-sm leading-6 text-white/68">
                     {line}
                   </p>
@@ -163,7 +248,7 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
 
       <section className="mt-6">
         <SectionHeader description="Similar distance, weather, or track condition races." title="Similar Races" />
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           {similarRaces.map((entry) => (
             <RaceCard key={entry.id} race={entry} />
           ))}

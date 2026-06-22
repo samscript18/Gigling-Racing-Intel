@@ -268,6 +268,91 @@ export function explainLoss(race: Race, gigling: Gigling) {
   ];
 }
 
+export function getRaceFieldSummary(race: Race, giglings: Gigling[]) {
+  const fieldGiglings = race.participants
+    .map((participant) => giglings.find((gigling) => gigling.id === participant.giglingId))
+    .filter((gigling): gigling is Gigling => Boolean(gigling));
+  const averageWinRate =
+    fieldGiglings.reduce((total, gigling) => total + gigling.winRate, 0) /
+    Math.max(fieldGiglings.length, 1);
+  const favorite = [...fieldGiglings].sort(
+    (first, second) => second.winRate - first.winRate
+  )[0];
+  const itemCount = race.participants.reduce(
+    (total, participant) => total + participant.itemsUsed.length,
+    0
+  );
+  const conditionRisk =
+    race.trackCondition === "chaotic" ||
+    race.weather === "stormy" ||
+    race.trackCondition === "icy"
+      ? "high"
+      : race.weather === "rainy" || race.trackCondition === "muddy"
+        ? "medium"
+        : "low";
+
+  return {
+    averageWinRate: Number(averageWinRate.toFixed(1)),
+    favorite,
+    itemCount,
+    conditionRisk,
+    summary:
+      conditionRisk === "high"
+        ? "This race carried elevated variance because harsh conditions increased the value of luck, handling, and item timing."
+        : conditionRisk === "medium"
+          ? "This race rewarded condition fit more than raw speed because the surface or weather introduced technical pressure."
+          : "This race leaned cleaner, so baseline stats and lane execution were easier to trust."
+  };
+}
+
+export function getRaceLoserCandidate(race: Race, giglings: Gigling[]) {
+  const placedLosers = race.participants
+    .filter((participant) => participant.finalPosition && participant.finalPosition > 1)
+    .sort((first, second) => {
+      const firstGigling = giglings.find((gigling) => gigling.id === first.giglingId);
+      const secondGigling = giglings.find((gigling) => gigling.id === second.giglingId);
+
+      return (secondGigling?.winRate ?? 0) - (firstGigling?.winRate ?? 0);
+    });
+  const selectedParticipant = placedLosers[0];
+
+  if (!selectedParticipant) {
+    return undefined;
+  }
+
+  const gigling = giglings.find((entry) => entry.id === selectedParticipant.giglingId);
+
+  if (!gigling) {
+    return undefined;
+  }
+
+  return {
+    participant: selectedParticipant,
+    gigling
+  };
+}
+
+export function getSimilarRaces(race: Race, races: Race[]) {
+  return races
+    .filter((entry) => entry.id !== race.id)
+    .map((entry) => {
+      const score =
+        (entry.distance === race.distance ? 3 : 0) +
+        (entry.weather === race.weather ? 2 : 0) +
+        (entry.trackCondition === race.trackCondition ? 2 : 0) +
+        (entry.status === race.status ? 1 : 0);
+
+      return {
+        race: entry,
+        score
+      };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((first, second) => second.score - first.score)
+    .slice(0, 3)
+    .map((entry) => entry.race);
+}
+
 export function countRacesByCondition(
   races: Race[],
   key: "weather" | "distance" | "trackCondition"
