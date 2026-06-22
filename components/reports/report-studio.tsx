@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Copy, Download, Share2, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, Copy, Download, LoaderCircle, Share2, Sparkles } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import type { RefObject } from "react";
 
 import { FactionBadge } from "@/components/shared/faction-badge";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -46,10 +47,12 @@ async function copyText(value: string) {
 function ActionButton({
   action,
   activeAction,
+  pendingAction,
   onAction
 }: {
   action: ShareAction;
   activeAction?: ShareAction;
+  pendingAction?: ShareAction;
   onAction: (action: ShareAction) => void;
 }) {
   const icons = {
@@ -59,6 +62,7 @@ function ActionButton({
   };
   const Icon = icons[action];
   const active = activeAction === action;
+  const pending = pendingAction === action;
   const activeLabels: Record<ShareAction, string> = {
     copy: "Copied",
     share: "Shared",
@@ -67,16 +71,24 @@ function ActionButton({
 
   return (
     <button
+      aria-label={`${action} report`}
       className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-bold capitalize transition ${
         active
           ? "border-emerald-racing/35 bg-emerald-racing/10 text-emerald-racing"
           : "border-white/10 bg-white/[0.04] text-white/62 hover:border-cyan-racing/35 hover:text-cyan-racing"
       }`}
+      disabled={Boolean(pendingAction)}
       type="button"
       onClick={() => onAction(action)}
     >
-      {active ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-      {active ? activeLabels[action] : action}
+      {pending ? (
+        <LoaderCircle className="h-4 w-4 animate-spin" />
+      ) : active ? (
+        <Check className="h-4 w-4" />
+      ) : (
+        <Icon className="h-4 w-4" />
+      )}
+      {pending ? "Preparing" : active ? activeLabels[action] : action}
     </button>
   );
 }
@@ -115,11 +127,128 @@ function ReportShell({
   );
 }
 
+function VisualReportArtifact({
+  artifactRef,
+  gigling,
+  insight,
+  race
+}: {
+  artifactRef: RefObject<HTMLDivElement | null>;
+  gigling: Gigling;
+  insight: MetaInsight;
+  race: Race;
+}) {
+  return (
+    <div
+      ref={artifactRef}
+      aria-hidden="true"
+      className="pointer-events-none fixed left-[-10000px] top-0 overflow-hidden bg-[#05070d] p-12 text-white"
+      style={{ height: 630, width: 1200 }}
+    >
+      <div className="absolute inset-0 bg-racing-grid opacity-35" />
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="flex items-start justify-between border-b border-white/10 pb-7">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.24em] text-cyan-racing">
+              Gigling Racing Intel
+            </p>
+            <h2 className="mt-3 text-4xl font-black">Live Racing Report</h2>
+          </div>
+          <div className="rounded-lg border border-orange-racing/30 bg-orange-racing/10 px-4 py-3 text-right">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-racing">
+              Race #{race.raceNumber}
+            </p>
+            <p className="mt-1 text-sm font-black capitalize">
+              {race.distance} / {race.weather} / {race.trackCondition}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid flex-1 grid-cols-[1.1fr_0.9fr_1fr] gap-8 py-8">
+          <section className="border-r border-white/10 pr-8">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-racing">
+              Stable Watch
+            </p>
+            <h3 className="mt-3 text-3xl font-black">{gigling.name}</h3>
+            <p className="mt-1 text-sm text-white/50">Token #{gigling.tokenId}</p>
+            <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5">
+              <div>
+                <p className="text-xs text-white/42">Win rate</p>
+                <p className="mt-1 text-3xl font-black text-cyan-racing">
+                  {formatPercent(gigling.winRate)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-white/42">Podium rate</p>
+                <p className="mt-1 text-3xl font-black text-orange-racing">
+                  {formatPercent(gigling.podiumRate)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-white/42">Best distance</p>
+                <p className="mt-1 text-lg font-black capitalize">{gigling.bestDistance}</p>
+              </div>
+              <div>
+                <p className="text-xs text-white/42">Best weather</p>
+                <p className="mt-1 text-lg font-black capitalize">{gigling.bestWeather}</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="border-r border-white/10 pr-8">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-racing">
+              Race Result
+            </p>
+            <p className="mt-3 text-sm text-white/42">Winner</p>
+            <h3 className="mt-1 text-3xl font-black">{winnerName(race)}</h3>
+            <div className="mt-7 space-y-5">
+              <div>
+                <p className="text-xs text-white/42">Prize pool</p>
+                <p className="mt-1 text-2xl font-black text-orange-racing">
+                  {formatToken(race.prizePool)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-white/42">Field</p>
+                <p className="mt-1 text-xl font-black">
+                  {race.participants.length} entrants / {race.participants.flatMap((entry) => entry.itemsUsed).length} item actions
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-racing">
+              Meta Signal
+            </p>
+            <h3 className="mt-3 text-2xl font-black leading-tight">{insight.title}</h3>
+            <p className="mt-5 text-5xl font-black text-emerald-racing">
+              {insight.metricValue}
+            </p>
+            <p className="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-white/42">
+              {insight.metricLabel}
+            </p>
+            <p className="mt-6 text-sm leading-6 text-white/62">{insight.description}</p>
+          </section>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-white/10 pt-5 text-xs text-white/42">
+          <span>Live Gigaverse data / decision support, not guaranteed outcomes</span>
+          <span className="font-bold text-white/68">gigling racing intelligence</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
   const [selectedGiglingId, setSelectedGiglingId] = useState(giglings[0]?.id ?? "");
   const [selectedRaceId, setSelectedRaceId] = useState(races[0]?.id ?? "");
   const [selectedInsightId, setSelectedInsightId] = useState(insights[0]?.id ?? "");
   const [activeAction, setActiveAction] = useState<ShareAction | undefined>();
+  const [pendingAction, setPendingAction] = useState<ShareAction | undefined>();
+  const [actionMessage, setActionMessage] = useState("");
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const gigling = useMemo(
     () => giglings.find((entry) => entry.id === selectedGiglingId) ?? giglings[0],
@@ -145,52 +274,88 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
 
   const socialCopy = `${gigling.name} watchlist: ${formatPercent(gigling.winRate)} win rate, ${formatPercent(gigling.podiumRate)} podium rate, best fit ${gigling.bestDistance}/${gigling.bestWeather}. Race #${race.raceNumber} winner: ${winnerName(race)}. Meta signal: ${insight.title} (${insight.metricValue}). Powered by Gigling Racing Intel.`;
 
+  async function renderReportImage() {
+    if (!exportRef.current) {
+      throw new Error("The visual report is not ready yet.");
+    }
+
+    await document.fonts.ready;
+    const { toBlob } = await import("html-to-image");
+    const blob = await toBlob(exportRef.current, {
+      backgroundColor: "#05070d",
+      cacheBust: true,
+      height: 630,
+      pixelRatio: 2,
+      width: 1200
+    });
+
+    if (!blob) {
+      throw new Error("The browser could not render the report image.");
+    }
+
+    return blob;
+  }
+
   async function handleAction(action: ShareAction) {
+    setPendingAction(action);
+    setActionMessage("");
+
     try {
       if (action === "copy") {
         await copyText(socialCopy);
+        setActionMessage("Social copy added to your clipboard.");
       }
 
       if (action === "share") {
-        if (navigator.share) {
+        const blob = await renderReportImage();
+        const file = new File([blob], `gigling-racing-intel-${gigling.id}.png`, {
+          type: "image/png"
+        });
+
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: "Gigling Racing Intel Report",
+            text: socialCopy
+          });
+          setActionMessage("Visual report shared from your device.");
+        } else if (navigator.share) {
           await navigator.share({
             title: "Gigling Racing Intel Report",
             text: socialCopy,
             url: window.location.href
           });
+          setActionMessage("This browser shared the report text; use Download for the PNG.");
         } else {
           await copyText(socialCopy);
+          setActionMessage("Native sharing is unavailable, so the report text was copied.");
         }
       }
 
       if (action === "download") {
-        const report = [
-          "Gigling Racing Intel Report",
-          "",
-          socialCopy,
-          "",
-          `Gigling: ${gigling.name} (${gigling.tokenId})`,
-          `Win rate: ${formatPercent(gigling.winRate)}`,
-          `Podium rate: ${formatPercent(gigling.podiumRate)}`,
-          `Race: #${race.raceNumber}`,
-          `Winner: ${winnerName(race)}`,
-          `Meta signal: ${insight.title} - ${insight.metricValue}`
-        ].join("\n");
-        const blob = new Blob([report], { type: "text/plain;charset=utf-8" });
+        const blob = await renderReportImage();
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `gigling-racing-intel-${gigling.id}-race-${race.raceNumber}.txt`;
+        link.download = `gigling-racing-intel-${gigling.id}-race-${race.raceNumber}.png`;
         document.body.appendChild(link);
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
+        setActionMessage("A 1200 x 630 PNG report was saved.");
       }
 
       setActiveAction(action);
       window.setTimeout(() => setActiveAction(undefined), 2200);
-    } catch {
+    } catch (error) {
       setActiveAction(undefined);
+      setActionMessage(
+        error instanceof Error
+          ? error.message
+          : "The report action could not be completed in this browser."
+      );
+    } finally {
+      setPendingAction(undefined);
     }
   }
 
@@ -254,12 +419,22 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
             </select>
           </label>
           <div className="flex flex-wrap gap-2">
-            <ActionButton action="copy" activeAction={activeAction} onAction={handleAction} />
-            <ActionButton action="share" activeAction={activeAction} onAction={handleAction} />
-            <ActionButton action="download" activeAction={activeAction} onAction={handleAction} />
+            <ActionButton action="copy" activeAction={activeAction} pendingAction={pendingAction} onAction={handleAction} />
+            <ActionButton action="share" activeAction={activeAction} pendingAction={pendingAction} onAction={handleAction} />
+            <ActionButton action="download" activeAction={activeAction} pendingAction={pendingAction} onAction={handleAction} />
           </div>
         </div>
+        <p aria-live="polite" className="relative z-10 mt-3 text-sm text-white/52">
+          {actionMessage}
+        </p>
       </section>
+
+      <VisualReportArtifact
+        artifactRef={exportRef}
+        gigling={gigling}
+        insight={insight}
+        race={race}
+      />
 
       <section>
         <SectionHeader
