@@ -452,6 +452,170 @@ export function getDashboardRaceMix(races: Race[]) {
   };
 }
 
+export function getRarityPerformanceData(races: Race[]) {
+  const completedParticipants = races
+    .filter((race) => race.status === "completed")
+    .flatMap((race) => race.participants)
+    .filter((participant) => typeof participant.finalPosition === "number");
+  const rarities = ["common", "uncommon", "rare", "epic", "legendary"] as const;
+
+  return rarities.map((rarity) => {
+    const entries = completedParticipants.filter(
+      (participant) => participant.rarity === rarity
+    );
+    const wins = entries.filter((participant) => participant.finalPosition === 1).length;
+    const podiums = entries.filter(
+      (participant) =>
+        typeof participant.finalPosition === "number" && participant.finalPosition <= 3
+    ).length;
+    const scoreTotal = entries.reduce(
+      (total, participant) => total + (participant.performanceScore ?? 0),
+      0
+    );
+
+    return {
+      rarity: getConditionLabel(rarity),
+      races: entries.length,
+      wins,
+      podiums,
+      winRate: Number(((wins / Math.max(entries.length, 1)) * 100).toFixed(1)),
+      podiumRate: Number(((podiums / Math.max(entries.length, 1)) * 100).toFixed(1)),
+      averageScore: Number((scoreTotal / Math.max(entries.length, 1)).toFixed(1))
+    };
+  });
+}
+
+export function getWeatherImpactData(races: Race[]) {
+  return weatherOrder.map((weather) => {
+    const matchingRaces = races.filter(
+      (race) => race.status === "completed" && race.weather === weather
+    );
+    const participants = matchingRaces.flatMap((race) => race.participants);
+    const scoreTotal = participants.reduce(
+      (total, participant) => total + (participant.performanceScore ?? 0),
+      0
+    );
+    const itemPressure = matchingRaces.reduce(
+      (total, race) =>
+        total +
+        race.participants.reduce(
+          (participantTotal, participant) => participantTotal + participant.itemsUsed.length,
+          0
+        ),
+      0
+    );
+
+    return {
+      weather: getConditionLabel(weather),
+      races: matchingRaces.length,
+      averageScore: Number((scoreTotal / Math.max(participants.length, 1)).toFixed(1)),
+      itemPressure,
+      volatility: Number(
+        ((itemPressure / Math.max(matchingRaces.length, 1)) * 12 +
+          (weather === "stormy" ? 36 : weather === "foggy" ? 28 : weather === "rainy" ? 20 : 12)).toFixed(1)
+      )
+    };
+  });
+}
+
+export function getDistanceImpactData(races: Race[]) {
+  return distanceOrder.map((distance) => {
+    const matchingRaces = races.filter(
+      (race) => race.status === "completed" && race.distance === distance
+    );
+    const participants = matchingRaces.flatMap((race) => race.participants);
+    const scoreTotal = participants.reduce(
+      (total, participant) => total + (participant.performanceScore ?? 0),
+      0
+    );
+    const prizeTotal = matchingRaces.reduce((total, race) => total + race.prizePool, 0);
+    const averageWinnerScore =
+      matchingRaces.reduce((total, race) => {
+        const winner = race.participants.find(
+          (participant) => participant.finalPosition === 1
+        );
+
+        return total + (winner?.performanceScore ?? 0);
+      }, 0) / Math.max(matchingRaces.length, 1);
+
+    return {
+      distance: getConditionLabel(distance),
+      races: matchingRaces.length,
+      averageScore: Number((scoreTotal / Math.max(participants.length, 1)).toFixed(1)),
+      averagePrize: Number((prizeTotal / Math.max(matchingRaces.length, 1)).toFixed(1)),
+      winnerScore: Number(averageWinnerScore.toFixed(1))
+    };
+  });
+}
+
+export function getTrackConditionTrendData(races: Race[]) {
+  const trackOrder: TrackCondition[] = ["dry", "wet", "muddy", "icy", "chaotic"];
+
+  return trackOrder.map((trackCondition) => {
+    const matchingRaces = races.filter(
+      (race) =>
+        race.status === "completed" && race.trackCondition === trackCondition
+    );
+    const participants = matchingRaces.flatMap((race) => race.participants);
+    const podiumScores = participants.filter(
+      (participant) =>
+        typeof participant.finalPosition === "number" && participant.finalPosition <= 3
+    );
+    const upsetCount = matchingRaces.filter((race) => {
+      const winner = race.participants.find(
+        (participant) => participant.finalPosition === 1
+      );
+      const favorite = [...race.participants].sort(
+        (first, second) =>
+          (second.performanceScore ?? 0) - (first.performanceScore ?? 0)
+      )[0];
+
+      return Boolean(winner && favorite && winner.giglingId !== favorite.giglingId);
+    }).length;
+
+    return {
+      trackCondition: getConditionLabel(trackCondition),
+      races: matchingRaces.length,
+      podiumScores: podiumScores.length,
+      upsetRate: Number(
+        ((upsetCount / Math.max(matchingRaces.length, 1)) * 100).toFixed(1)
+      ),
+      technicalLoad: Number(
+        (((trackCondition === "chaotic" ? 90 : trackCondition === "icy" ? 82 : trackCondition === "muddy" ? 72 : trackCondition === "wet" ? 62 : 38) +
+          podiumScores.length * 2) /
+          1).toFixed(1)
+      )
+    };
+  });
+}
+
+export function getWeeklyTrendSummary(races: Race[], performance: FactionPerformance[]) {
+  const topFaction = getTopFaction(performance);
+  const conditionTrend = getRaceConditionTrend(races);
+  const volatilityAverage =
+    conditionTrend.reduce((total, entry) => total + entry.conditionScore, 0) /
+    Math.max(conditionTrend.length, 1);
+  const itemPressure = races.reduce(
+    (total, race) =>
+      total +
+      race.participants.reduce(
+        (participantTotal, participant) => participantTotal + participant.itemsUsed.length,
+        0
+      ),
+    0
+  );
+
+  return {
+    title: `${getConditionLabel(topFaction.faction)} is setting the pace`,
+    description: `${getConditionLabel(topFaction.faction)} owns the strongest faction win rate at ${topFaction.winRate}%, while recent race volatility averages ${volatilityAverage.toFixed(1)}/100 across the latest completed samples.`,
+    bullets: [
+      `${itemPressure} recorded item actions are shaping current race variance.`,
+      `Podium conversion is the better signal than raw wins in volatile tracks.`,
+      `Condition fit is most important when stormy, foggy, muddy, icy, or chaotic tags stack.`
+    ]
+  };
+}
+
 export function getTopEmergingGiglings(giglings: Gigling[]) {
   return [...giglings]
     .filter((gigling) => gigling.totalRaces >= 15)

@@ -1,8 +1,19 @@
+import { MetaCharts } from "@/components/meta/meta-charts";
+import { FactionBadge } from "@/components/shared/faction-badge";
 import { InsightCard } from "@/components/shared/insight-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { SectionHeader } from "@/components/shared/section-header";
-import { getTopEmergingGiglings, getTopFaction } from "@/lib/gigaverse/analytics";
+import {
+  getDistanceImpactData,
+  getFactionDashboardData,
+  getRarityPerformanceData,
+  getTopEmergingGiglings,
+  getTopFaction,
+  getTrackConditionTrendData,
+  getWeatherImpactData,
+  getWeeklyTrendSummary
+} from "@/lib/gigaverse/analytics";
 import {
   mockFactionPerformance,
   mockGiglings,
@@ -15,66 +26,143 @@ export default function MetaPage() {
   const topFaction = getTopFaction(mockFactionPerformance);
   const emerging = getTopEmergingGiglings(mockGiglings);
   const completedRaces = mockRaces.filter((race) => race.status === "completed");
+  const factionData = getFactionDashboardData(mockFactionPerformance);
+  const rarityData = getRarityPerformanceData(mockRaces);
+  const weatherData = getWeatherImpactData(mockRaces);
+  const distanceData = getDistanceImpactData(mockRaces);
+  const trackData = getTrackConditionTrendData(mockRaces);
+  const weeklySummary = getWeeklyTrendSummary(mockRaces, mockFactionPerformance);
+  const highestVolatility = [...weatherData].sort(
+    (first, second) => second.volatility - first.volatility
+  )[0];
 
   return (
     <div>
       <PageHeader
-        description="Current faction, weather, distance, and track condition reads from centralized mock race results. Task 07 upgrades this into full Recharts analytics."
+        description="Read the current Gigling Racing meta across faction, rarity, weather, distance, and track-condition performance."
         eyebrow="Meta Intelligence"
         title="Meta"
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard detail={`${topFaction.faction} leading`} icon="barChart" label="Top Faction" value={formatPercent(topFaction.winRate)} />
-        <MetricCard detail="Completed races analyzed" icon="activity" label="Samples" tone="emerald" value={`${completedRaces.length}`} />
-        <MetricCard detail="Active meta cards" icon="lineChart" label="Insights" tone="violet" value={`${mockMetaInsights.length}`} />
-        <MetricCard detail={emerging[0]?.name ?? "Pending"} icon="zap" label="Emerging Pick" tone="orange" value={formatPercent(emerging[0]?.podiumRate ?? 0)} />
+        <MetricCard
+          detail={`${topFaction.faction} leading`}
+          icon="barChart"
+          label="Top Faction"
+          value={formatPercent(topFaction.winRate)}
+        />
+        <MetricCard
+          detail="Completed races analyzed"
+          icon="activity"
+          label="Samples"
+          tone="emerald"
+          value={`${completedRaces.length}`}
+        />
+        <MetricCard
+          detail={`${highestVolatility.weather} weather pressure`}
+          icon="lineChart"
+          label="Volatility"
+          tone="violet"
+          value={`${highestVolatility.volatility}/100`}
+        />
+        <MetricCard
+          detail={emerging[0]?.name ?? "Pending"}
+          icon="zap"
+          label="Emerging Pick"
+          tone="orange"
+          value={formatPercent(emerging[0]?.podiumRate ?? 0)}
+        />
       </div>
 
-      <div className="mt-6 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-        <section className="premium-panel rounded-lg p-5">
-          <div className="relative z-10">
-            <SectionHeader description="Foundation faction chart using mock placements." title="Faction Win Rate" />
-            <div className="space-y-4">
-              {mockFactionPerformance.map((entry) => (
-                <div key={entry.faction}>
-                  <div className="mb-2 flex items-center justify-between text-sm">
-                    <span className="font-bold capitalize text-white">{entry.faction}</span>
-                    <span className="text-white/54">{formatPercent(entry.winRate)}</span>
-                  </div>
-                  <div className="h-3 overflow-hidden rounded-full bg-white/8">
-                    <div className="h-full rounded-full bg-gradient-to-r from-emerald-racing via-cyan-racing to-violet-racing" style={{ width: `${Math.max(8, entry.winRate * 2.5)}%` }} />
-                  </div>
-                </div>
-              ))}
+      <section className="mt-6 premium-panel rounded-lg p-5">
+        <div className="relative z-10 grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-racing">
+              Weekly Trend Summary
+            </p>
+            <h2 className="mt-3 text-3xl font-black text-white">{weeklySummary.title}</h2>
+            <p className="mt-3 text-sm leading-6 text-white/58">
+              {weeklySummary.description}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <FactionBadge faction={topFaction.faction} />
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-bold text-white/62">
+                {completedRaces.length} completed samples
+              </span>
             </div>
           </div>
-        </section>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {weeklySummary.bullets.map((bullet, index) => (
+              <div key={bullet} className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-racing/25 bg-cyan-racing/10 text-sm font-black text-cyan-racing">
+                  {index + 1}
+                </span>
+                <p className="mt-3 text-sm leading-6 text-white/58">{bullet}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
+      <div className="mt-6">
+        <MetaCharts
+          distanceData={distanceData}
+          factionData={factionData}
+          rarityData={rarityData}
+          trackData={trackData}
+          weatherData={weatherData}
+        />
+      </div>
+
+      <div className="mt-6 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
         <section>
-          <SectionHeader description="Meta shift cards already use the same centralized insight type." title="Meta Shift Cards" />
+          <SectionHeader
+            description="Meta shift cards explain which signals are moving and why they matter."
+            title="Meta Shift Cards"
+          />
           <div className="grid gap-4 md:grid-cols-2">
             {mockMetaInsights.map((insight) => (
               <InsightCard key={insight.id} insight={insight} />
             ))}
           </div>
         </section>
-      </div>
 
-      <section className="mt-6 premium-panel rounded-lg p-5">
-        <div className="relative z-10">
-          <SectionHeader description="Giglings gaining podium equity or streak momentum." title="Top Emerging Giglings" />
-          <div className="grid gap-3 md:grid-cols-5">
-            {emerging.map((gigling) => (
-              <div key={gigling.id} className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
-                <p className="text-sm font-bold text-white">{gigling.name}</p>
-                <p className="mt-1 text-xs capitalize text-cyan-racing">{gigling.faction}</p>
-                <p className="mt-3 text-sm text-white/56">Podium {formatPercent(gigling.podiumRate)}</p>
-              </div>
-            ))}
+        <section className="premium-panel rounded-lg p-5">
+          <div className="relative z-10">
+            <SectionHeader
+              description="Giglings gaining podium equity or streak momentum."
+              title="Top Emerging Giglings"
+            />
+            <div className="space-y-3">
+              {emerging.map((gigling, index) => (
+                <div key={gigling.id} className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-black text-white">{gigling.name}</p>
+                      <p className="mt-1 text-xs capitalize text-cyan-racing">
+                        {gigling.faction} / {gigling.rarity}
+                      </p>
+                    </div>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-orange-racing/24 bg-orange-racing/10 text-sm font-black text-orange-racing">
+                      {index + 1}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-2">
+                      <p className="text-white/38">Podium</p>
+                      <p className="font-bold text-white">{formatPercent(gigling.podiumRate)}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-2">
+                      <p className="text-white/38">Streak</p>
+                      <p className="font-bold text-white">{gigling.currentStreak}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
