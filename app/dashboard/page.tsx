@@ -3,6 +3,7 @@ import Link from "next/link";
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
 import { QuickActionGrid } from "@/components/dashboard/quick-action-grid";
 import { GiglingCard } from "@/components/shared/gigling-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { InsightCard } from "@/components/shared/insight-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
@@ -23,12 +24,30 @@ import {
 } from "@/lib/gigaverse/api-client";
 import { formatPercent, formatToken } from "@/lib/utils/format";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const [races, giglings, metaData] = await Promise.all([
     fetchRaces(),
     fetchGiglings(),
     fetchMetaData()
   ]);
+
+  if (races.length === 0 || giglings.length === 0) {
+    return (
+      <div>
+        <PageHeader
+          description="Live command center for race conditions, top Giglings, active lobbies, and meta pressure."
+          eyebrow="Race Command"
+          title="Dashboard"
+        />
+        <EmptyState
+          description="Gigaverse responded successfully, but the recent race feed or live Gigling leaderboard is empty. Dashboard analytics will appear when both sources contain records."
+          title="Live dashboard data is incomplete"
+        />
+      </div>
+    );
+  }
   const activeRaces = races.filter(
     (race) => race.status === "live" || race.status === "scheduled"
   );

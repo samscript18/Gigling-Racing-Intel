@@ -9,7 +9,8 @@ const factionStyles: Record<GiglingFaction, string> = {
   foxglove: "border-emerald-racing/35 bg-emerald-racing/12 text-emerald-100",
   summoner: "border-fuchsia-300/35 bg-fuchsia-300/12 text-fuchsia-100",
   chobo: "border-yellow-300/35 bg-yellow-300/12 text-yellow-100",
-  gigus: "border-white/20 bg-white/8 text-white/80"
+  gigus: "border-white/20 bg-white/8 text-white/80",
+  unknown: "border-white/15 bg-white/[0.04] text-white/50"
 };
 
 type FactionBadgeProps = {

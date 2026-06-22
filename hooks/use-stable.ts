@@ -6,39 +6,47 @@ import {
   fetchHostEligibility,
   fetchPayouts,
   fetchPlayerRaceHistory,
+  fetchRivalries,
   fetchStable
 } from "@/lib/gigaverse/api-client";
-import { GIGAVERSE_OWNER_ADDRESS } from "@/lib/gigaverse/mock-data";
 import { gigaverseQueryKeys } from "@/lib/gigaverse/query-keys";
 
-export function useStable(ownerAddress = GIGAVERSE_OWNER_ADDRESS) {
+export function useStable(ownerAddress?: string) {
   return useQuery({
-    queryKey: gigaverseQueryKeys.stable(ownerAddress),
-    queryFn: () => fetchStable(ownerAddress),
+    queryKey: gigaverseQueryKeys.stable(ownerAddress ?? "disconnected"),
+    queryFn: () => fetchStable(ownerAddress ?? ""),
     enabled: Boolean(ownerAddress)
   });
 }
 
-export function usePlayerRaceHistory(ownerAddress = GIGAVERSE_OWNER_ADDRESS) {
+export function usePlayerRaceHistory(ownerAddress?: string) {
   return useQuery({
-    queryKey: gigaverseQueryKeys.playerRaceHistory(ownerAddress),
-    queryFn: () => fetchPlayerRaceHistory(ownerAddress),
+    queryKey: gigaverseQueryKeys.playerRaceHistory(ownerAddress ?? "disconnected"),
+    queryFn: () => fetchPlayerRaceHistory(ownerAddress ?? ""),
     enabled: Boolean(ownerAddress)
   });
 }
 
-export function usePayouts(ownerAddress = GIGAVERSE_OWNER_ADDRESS) {
+export function usePayouts(ownerAddress?: string) {
   return useQuery({
-    queryKey: gigaverseQueryKeys.payouts(ownerAddress),
-    queryFn: () => fetchPayouts(ownerAddress),
+    queryKey: gigaverseQueryKeys.payouts(ownerAddress ?? "disconnected"),
+    queryFn: () => fetchPayouts(ownerAddress ?? ""),
     enabled: Boolean(ownerAddress)
   });
 }
 
-export function useHostEligibility(ownerAddress = GIGAVERSE_OWNER_ADDRESS) {
+export function useHostEligibility(ownerAddress?: string) {
   return useQuery({
-    queryKey: gigaverseQueryKeys.hostEligibility(ownerAddress),
-    queryFn: () => fetchHostEligibility(ownerAddress),
+    queryKey: gigaverseQueryKeys.hostEligibility(ownerAddress ?? "disconnected"),
+    queryFn: () => fetchHostEligibility(ownerAddress ?? ""),
+    enabled: Boolean(ownerAddress)
+  });
+}
+
+export function useRivalries(ownerAddress?: string) {
+  return useQuery({
+    queryKey: gigaverseQueryKeys.rivalries(ownerAddress ?? "disconnected"),
+    queryFn: () => fetchRivalries(ownerAddress ?? ""),
     enabled: Boolean(ownerAddress)
   });
 }

@@ -421,14 +421,16 @@ export function getRaceConditionTrend(races: Race[]) {
     wet: 58,
     muddy: 66,
     icy: 74,
-    chaotic: 88
+    chaotic: 88,
+    unknown: 0
   };
   const weatherWeight: Record<RaceWeather, number> = {
     sunny: 28,
     windy: 46,
     rainy: 62,
     foggy: 69,
-    stormy: 82
+    stormy: 82,
+    unknown: 0
   };
 
   return [...races]
@@ -470,7 +472,8 @@ export function getDashboardRaceMix(races: Race[]) {
       scheduled: 0,
       live: 0,
       completed: 0,
-      cancelled: 0
+      cancelled: 0,
+      unknown: 0
     }
   );
   const completed = races.filter((race) => race.status === "completed");

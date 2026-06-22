@@ -114,7 +114,7 @@ function matchesSearch(gigling: Gigling, search: string) {
 }
 
 export function GiglingExplorer() {
-  const { data: giglings, isLoading, isError } = useGiglings();
+  const { data: giglings, error, isLoading, isError } = useGiglings();
   const [search, setSearch] = useState("");
   const [faction, setFaction] = useState<GiglingFaction | "all">("all");
   const [rarity, setRarity] = useState<GiglingRarity | "all">("all");
@@ -161,8 +161,21 @@ export function GiglingExplorer() {
   if (isError || !giglings) {
     return (
       <ErrorState
-        description="The Gigling query layer could not load the live roster or fallback dataset."
+        description={
+          error instanceof Error
+            ? error.message
+            : "Gigaverse could not load the live Gigling leaderboard."
+        }
         title="Gigling explorer unavailable"
+      />
+    );
+  }
+
+  if (giglings.length === 0) {
+    return (
+      <EmptyState
+        description="The Gigaverse leaderboard responded successfully but currently has no Giglings to display."
+        title="No live Giglings returned"
       />
     );
   }

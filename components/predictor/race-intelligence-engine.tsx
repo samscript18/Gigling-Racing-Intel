@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { AlertTriangle, Check, Play, Radar, Trophy, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -12,7 +12,6 @@ import { MetricCard } from "@/components/shared/metric-card";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
 import { useGiglings } from "@/hooks/use-giglings";
-import { mockPredictionExamples } from "@/lib/gigaverse/mock-data";
 import { runRacePrediction } from "@/lib/gigaverse/predictor";
 import { cn } from "@/lib/utils/cn";
 import { formatPercent } from "@/lib/utils/format";
@@ -155,14 +154,6 @@ function ResultCard({
 }
 
 function getDefaultSelectedIds(giglings: Gigling[]) {
-  const sampleIds = mockPredictionExamples[0]?.input.participantGiglingIds ?? [];
-  const availableIds = new Set(giglings.map((gigling) => gigling.id));
-  const sampleAvailable = sampleIds.filter((id) => availableIds.has(id));
-
-  if (sampleAvailable.length >= 2) {
-    return sampleAvailable;
-  }
-
   return [...giglings]
     .sort((first, second) => second.winRate - first.winRate)
     .slice(0, 6)
@@ -170,17 +161,20 @@ function getDefaultSelectedIds(giglings: Gigling[]) {
 }
 
 export function RaceIntelligenceEngine() {
-  const { data: giglings, isLoading, isError } = useGiglings();
-  const sample = mockPredictionExamples[0];
-  const [distance, setDistance] = useState<RaceDistance>(sample.input.distance);
-  const [weather, setWeather] = useState<RaceWeather>(sample.input.weather);
-  const [trackCondition, setTrackCondition] = useState<TrackCondition>(
-    sample.input.trackCondition
-  );
-  const [selectedGiglingIds, setSelectedGiglingIds] = useState<string[]>(
-    sample.input.participantGiglingIds
-  );
+  const { data: giglings, error, isLoading, isError } = useGiglings();
+  const [distance, setDistance] = useState<RaceDistance>("sprint");
+  const [weather, setWeather] = useState<RaceWeather>("sunny");
+  const [trackCondition, setTrackCondition] = useState<TrackCondition>("dry");
+  const [selectedGiglingIds, setSelectedGiglingIds] = useState<string[]>([]);
   const [prediction, setPrediction] = useState<PredictionResult | undefined>();
+
+  useEffect(() => {
+    if (giglings?.length) {
+      setSelectedGiglingIds((current) =>
+        current.length > 0 ? current : getDefaultSelectedIds(giglings)
+      );
+    }
+  }, [giglings]);
 
   const availableGiglings = useMemo(() => giglings ?? [], [giglings]);
   const selectedGiglings = availableGiglings.filter((gigling) =>
@@ -198,14 +192,14 @@ export function RaceIntelligenceEngine() {
     );
   }
 
-  function resetSample() {
+  function resetSelection() {
     if (!giglings) {
       return;
     }
 
-    setDistance(sample.input.distance);
-    setWeather(sample.input.weather);
-    setTrackCondition(sample.input.trackCondition);
+    setDistance("sprint");
+    setWeather("sunny");
+    setTrackCondition("dry");
     setSelectedGiglingIds(getDefaultSelectedIds(giglings));
     setPrediction(undefined);
   }
@@ -235,8 +229,21 @@ export function RaceIntelligenceEngine() {
   if (isError || !giglings) {
     return (
       <ErrorState
-        description="The predictor could not load the centralized Gigling roster."
+        description={
+          error instanceof Error
+            ? error.message
+            : "The predictor could not load the live Gigling leaderboard."
+        }
         title="Race Intelligence Engine unavailable"
+      />
+    );
+  }
+
+  if (giglings.length < 2) {
+    return (
+      <EmptyState
+        description="The live Gigaverse leaderboard did not return enough Giglings to build a prediction field. At least two live participant profiles are required."
+        title="Not enough live Giglings"
       />
     );
   }
@@ -290,10 +297,10 @@ export function RaceIntelligenceEngine() {
             <button
               className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-bold text-white/64 transition hover:border-orange-racing/40 hover:text-orange-racing"
               type="button"
-              onClick={resetSample}
+              onClick={resetSelection}
             >
               <X className="h-4 w-4" />
-              Reset sample
+              Reset selection
             </button>
           </div>
 

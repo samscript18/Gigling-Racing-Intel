@@ -5,7 +5,7 @@ export default function StablePage() {
   return (
     <div>
       <PageHeader
-        description="Use the connected demo wallet to inspect owned Giglings, stable strength, suggested races, and risk alerts through the wallet-ready ownership layer."
+        description="Connect your wallet to inspect live owned Giglings, stable strength, suggested races, and risk alerts from indexed racing history."
         eyebrow="Stable Manager"
         title="Stable"
       />

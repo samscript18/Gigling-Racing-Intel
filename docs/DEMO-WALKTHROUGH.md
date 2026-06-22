@@ -23,13 +23,13 @@ Finally, I would open a race detail page and show the "Why Winner Won" and "Why 
    Select conditions and entrants, run the prediction, and explain that the model is intentionally transparent rather than claiming guaranteed accuracy.
 
 5. Open `/stable`.
-   Show the connected demo wallet state, owned Giglings, best and weakest Gigling, suggested races, risk alerts, and stable performance chart.
+   Connect a wallet and show its live owned Giglings, best and weakest Gigling, suggested races, risk alerts, and stable performance chart.
 
 6. Open `/rivals`, `/leaderboard`, and `/reports`.
    Show community utility: rivals/allies/nemesis, ranked Giglings and players, and shareable report cards for social posts.
 
 7. Close with integration readiness.
-   The app reads the public Gigaverse Racing REST API, prepares PetRacingSystem contract reads through viem, and falls back to a realistic centralized demo dataset if external services fail.
+   The app reads the public Gigaverse Racing REST API and PetRacingSystem through viem. It uses live data exclusively and clearly reports upstream outages or empty results.
 
 ## One Sentence Close
 

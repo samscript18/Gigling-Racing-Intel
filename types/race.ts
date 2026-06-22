@@ -1,12 +1,12 @@
 import type { GiglingFaction, GiglingRarity } from "./gigling";
 
-export type RaceStatus = "scheduled" | "live" | "completed" | "cancelled";
+export type RaceStatus = "scheduled" | "live" | "completed" | "cancelled" | "unknown";
 
-export type RaceWeather = "sunny" | "rainy" | "stormy" | "foggy" | "windy";
+export type RaceWeather = "sunny" | "rainy" | "stormy" | "foggy" | "windy" | "unknown";
 
-export type RaceDistance = "sprint" | "medium" | "long" | "marathon";
+export type RaceDistance = "sprint" | "medium" | "long" | "marathon" | "unknown";
 
-export type TrackCondition = "dry" | "wet" | "muddy" | "icy" | "chaotic";
+export type TrackCondition = "dry" | "wet" | "muddy" | "icy" | "chaotic" | "unknown";
 
 export type RaceItemUsage = {
   id: string;

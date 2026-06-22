@@ -3,11 +3,15 @@
 import { motion } from "framer-motion";
 import { Shield, Skull, Swords, Users } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useAccount, useConnect } from "wagmi";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { ErrorState } from "@/components/shared/error-state";
+import { LoadingState } from "@/components/shared/loading-state";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RaceCard } from "@/components/shared/race-card";
 import { SectionHeader } from "@/components/shared/section-header";
+import { usePlayerRaceHistory, useRivalries } from "@/hooks/use-stable";
 import { cn } from "@/lib/utils/cn";
 import { formatPercent, shortenAddress } from "@/lib/utils/format";
 import type { Race, RivalryRecord } from "@/types";
@@ -18,6 +22,69 @@ type RivalryIntelligenceProps = {
   records: RivalryRecord[];
   races: Race[];
 };
+
+export function LiveRivalryIntelligence() {
+  const { address, isConnected } = useAccount();
+  const { connect, connectors, error: connectError, isPending } = useConnect();
+  const raceQuery = usePlayerRaceHistory(address);
+  const rivalryQuery = useRivalries(address);
+
+  if (!isConnected || !address) {
+    return (
+      <EmptyState
+        action={
+          <button
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-cyan-racing px-4 text-sm font-black text-[#031018] shadow-glow disabled:opacity-50"
+            disabled={connectors.length === 0 || isPending}
+            type="button"
+            onClick={() => connectors[0] && connect({ connector: connectors[0] })}
+          >
+            {isPending ? "Connecting..." : "Connect wallet"}
+          </button>
+        }
+        description={
+          connectError?.message ??
+          "Connect your racing wallet to calculate repeat opponents from its live Gigaverse race history."
+        }
+        icon={Swords}
+        title="Connect a wallet to find rivals"
+      />
+    );
+  }
+
+  if (raceQuery.isLoading || rivalryQuery.isLoading) {
+    return <LoadingState />;
+  }
+
+  if (raceQuery.isError || rivalryQuery.isError) {
+    const error = raceQuery.error ?? rivalryQuery.error;
+    return (
+      <ErrorState
+        description={
+          error instanceof Error
+            ? error.message
+            : "Gigaverse could not load the live race history for this wallet."
+        }
+        title="Rivalry data unavailable"
+      />
+    );
+  }
+
+  const races = raceQuery.data ?? [];
+  const records = rivalryQuery.data ?? [];
+
+  if (records.length === 0) {
+    return (
+      <EmptyState
+        description="The live race history has no opponent with at least two completed head-to-head encounters yet. More races will create a reliable rivalry signal."
+        icon={Swords}
+        title="No repeat rivalries found"
+      />
+    );
+  }
+
+  return <RivalryIntelligence races={races} records={records} />;
+}
 
 const relationshipStyles: Record<RivalryRecord["relationshipType"], string> = {
   ally: "border-emerald-racing/30 bg-emerald-racing/10 text-emerald-racing",

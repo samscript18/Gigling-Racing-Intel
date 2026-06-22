@@ -58,7 +58,7 @@ function nestedRecord(record: UnknownRecord, keys: string[]) {
   return isRecord(value) ? value : undefined;
 }
 
-function normalizeText(value: unknown, fallback = "") {
+function normalizeText(value: unknown, defaultValue = "") {
   if (typeof value === "string" && value.trim().length > 0) {
     return value.trim();
   }
@@ -67,11 +67,11 @@ function normalizeText(value: unknown, fallback = "") {
     return String(value);
   }
 
-  return fallback;
+  return defaultValue;
 }
 
-export function normalizeAddress(value: unknown, fallback = ZERO_ADDRESS) {
-  const text = normalizeText(value, fallback);
+export function normalizeAddress(value: unknown, defaultValue = ZERO_ADDRESS) {
+  const text = normalizeText(value, defaultValue);
   return text.toLowerCase();
 }
 
@@ -94,7 +94,7 @@ export function normalizeDate(value: unknown) {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 
-export function normalizeNumber(value: unknown, fallback = 0) {
+export function normalizeNumber(value: unknown, defaultValue = 0) {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
   }
@@ -105,14 +105,14 @@ export function normalizeNumber(value: unknown, fallback = 0) {
 
   if (typeof value === "string") {
     const parsed = Number(value.replace(/,/g, ""));
-    return Number.isFinite(parsed) ? parsed : fallback;
+    return Number.isFinite(parsed) ? parsed : defaultValue;
   }
 
-  return fallback;
+  return defaultValue;
 }
 
-function normalizePercent(value: unknown, fallback = 0) {
-  const parsed = normalizeNumber(value, fallback);
+function normalizePercent(value: unknown, defaultValue = 0) {
+  const parsed = normalizeNumber(value, defaultValue);
   return parsed > 0 && parsed <= 1 ? Number((parsed * 100).toFixed(1)) : parsed;
 }
 
@@ -120,16 +120,16 @@ function clampStat(value: number) {
   return Math.max(0, Math.min(100, Number(value.toFixed(1))));
 }
 
-function normalizeTokenAmount(value: unknown, fallback = 0) {
+function normalizeTokenAmount(value: unknown, defaultValue = 0) {
   if (typeof value === "string" && /^\d+$/.test(value) && value.length > 12) {
     return Number((Number(value) / 1_000_000_000_000_000_000).toFixed(4));
   }
 
-  return normalizeNumber(value, fallback);
+  return normalizeNumber(value, defaultValue);
 }
 
-function normalizeId(prefix: "gigling" | "race" | "player", value: unknown, fallback: string) {
-  const raw = normalizeText(value, fallback).replace(/^#/, "");
+function normalizeId(prefix: "gigling" | "race" | "player", value: unknown, defaultValue: string) {
+  const raw = normalizeText(value, defaultValue).replace(/^#/, "");
 
   if (raw.startsWith(`${prefix}-`)) {
     return raw;
@@ -138,13 +138,13 @@ function normalizeId(prefix: "gigling" | "race" | "player", value: unknown, fall
   return `${prefix}-${raw}`;
 }
 
-function normalizeTokenId(value: unknown, fallback: string) {
-  const raw = normalizeText(value, fallback).replace(/^#/, "");
+function normalizeTokenId(value: unknown, defaultValue: string) {
+  const raw = normalizeText(value, defaultValue).replace(/^#/, "");
   return `#${raw}`;
 }
 
 function normalizeFaction(value: unknown): GiglingFaction {
-  const raw = normalizeText(value, "gigus").toLowerCase();
+  const raw = normalizeText(value).toLowerCase();
 
   if (factionValues.includes(raw as GiglingFaction)) {
     return raw as GiglingFaction;
@@ -172,11 +172,11 @@ function normalizeFaction(value: unknown): GiglingFaction {
     water: "athena"
   };
 
-  return mapped[raw] ?? "gigus";
+  return mapped[raw] ?? "unknown";
 }
 
 function normalizeRarity(value: unknown): GiglingRarity {
-  const raw = normalizeText(value, "common").toLowerCase();
+  const raw = normalizeText(value).toLowerCase();
 
   if (rarityValues.includes(raw as GiglingRarity)) {
     return raw as GiglingRarity;
@@ -192,11 +192,11 @@ function normalizeRarity(value: unknown): GiglingRarity {
     giga: "legendary"
   };
 
-  return mapped[raw] ?? "common";
+  return mapped[raw] ?? "unknown";
 }
 
 function normalizeWeather(value: unknown): RaceWeather {
-  const raw = normalizeText(value, "sunny").toLowerCase();
+  const raw = normalizeText(value).toLowerCase();
 
   if (weatherValues.includes(raw as RaceWeather)) {
     return raw as RaceWeather;
@@ -211,7 +211,7 @@ function normalizeWeather(value: unknown): RaceWeather {
     wet: "rainy"
   };
 
-  return mapped[raw] ?? "sunny";
+  return mapped[raw] ?? "unknown";
 }
 
 function normalizeDistance(value: unknown, trackLength?: unknown): RaceDistance {
@@ -239,33 +239,21 @@ function normalizeDistance(value: unknown, trackLength?: unknown): RaceDistance 
     return "marathon";
   }
 
-  return "medium";
+  return "unknown";
 }
 
-function normalizeTrack(value: unknown, weather: RaceWeather): TrackCondition {
+function normalizeTrack(value: unknown): TrackCondition {
   const raw = normalizeText(value).toLowerCase();
 
   if (trackValues.includes(raw as TrackCondition)) {
     return raw as TrackCondition;
   }
 
-  if (weather === "rainy") {
-    return "wet";
-  }
-
-  if (weather === "stormy") {
-    return "chaotic";
-  }
-
-  if (weather === "foggy") {
-    return "icy";
-  }
-
-  return "dry";
+  return "unknown";
 }
 
 function normalizeStatus(value: unknown): RaceStatus {
-  const raw = normalizeText(value, "completed").toLowerCase();
+  const raw = normalizeText(value).toLowerCase();
 
   if (["scheduled", "live", "completed", "cancelled"].includes(raw)) {
     return raw as RaceStatus;
@@ -287,7 +275,7 @@ function normalizeStatus(value: unknown): RaceStatus {
     return "cancelled";
   }
 
-  return "completed";
+  return "unknown";
 }
 
 function normalizeStats(record?: UnknownRecord): GiglingStats {
@@ -299,40 +287,38 @@ function normalizeStats(record?: UnknownRecord): GiglingStats {
     }
 
     return (
-      (normalizeNumber(firstValue(range, ["min"]), 70) +
-        normalizeNumber(firstValue(range, ["max"]), 70)) /
+      (normalizeNumber(firstValue(range, ["min"]), 0) +
+        normalizeNumber(firstValue(range, ["max"]), 0)) /
       2
     );
   };
-  const elo = normalizeNumber(firstValue(record ?? {}, ["elo"]), 0);
-
   return {
     speed: clampStat(
-      normalizeNumber(firstValue(record ?? {}, ["speed", "spd"]), averageRange("speedRange") ?? 70)
+      normalizeNumber(firstValue(record ?? {}, ["speed", "spd"]), averageRange("speedRange") ?? 0)
     ),
     stamina: clampStat(
       normalizeNumber(
         firstValue(record ?? {}, ["stamina", "sta"]),
-        averageRange("staminaRange") ?? 70
+        averageRange("staminaRange") ?? 0
       )
     ),
     handling: clampStat(
       normalizeNumber(
         firstValue(record ?? {}, ["handling", "control", "finish"]),
-        averageRange("finishRange") ?? 70
+        averageRange("finishRange") ?? 0
       )
     ),
     acceleration: clampStat(
       normalizeNumber(
         firstValue(record ?? {}, ["acceleration", "accel", "launch", "start"]),
-        averageRange("startRange") ?? 70
+        averageRange("startRange") ?? 0
       )
     ),
-    luck: clampStat(normalizeNumber(firstValue(record ?? {}, ["luck", "rng"]), 70)),
+    luck: clampStat(normalizeNumber(firstValue(record ?? {}, ["luck", "rng"]), 0)),
     consistency: clampStat(
       normalizeNumber(
         firstValue(record ?? {}, ["consistency"]),
-        elo > 0 ? Math.min(96, Math.max(55, elo / 25)) : 70
+        0
       )
     )
   };
@@ -365,21 +351,12 @@ function adaptTrait(input: unknown, index: number): GiglingTrait {
   };
 }
 
-function adaptTraits(value: unknown, stats: GiglingStats): GiglingTrait[] {
+function adaptTraits(value: unknown): GiglingTrait[] {
   if (Array.isArray(value) && value.length > 0) {
     return value.map(adaptTrait);
   }
 
-  return [
-    {
-      id: "generated-speed",
-      name: "Racing Profile",
-      category: stats.speed >= stats.stamina ? "speed" : "stamina",
-      revealed: true,
-      value: Math.max(stats.speed, stats.stamina),
-      description: "Generated from racing stats until official trait metadata is attached."
-    }
-  ];
+  return [];
 }
 
 function weatherFromParams(record: UnknownRecord) {
@@ -451,6 +428,11 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
   const statsRecord = nestedRecord(input, ["stats", "racingStats", "attributes"]) ?? racePublic ?? input;
   const stats = normalizeStats(statsRecord);
   const idSource = firstValue(input, ["id", "petId", "giglingId", "tokenId", "pet_id"]);
+
+  if (idSource === undefined) {
+    return undefined;
+  }
+
   const id = normalizeId("gigling", idSource, "unknown");
   const wins = normalizeNumber(
     firstValue(input, ["wins", "winCount"]) ?? firstValue(racePublic ?? {}, ["wins"]),
@@ -487,7 +469,7 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
     faction: normalizeFaction(firstValue(input, ["factionName", "faction"])),
     rarity: normalizeRarity(firstValue(input, ["rarityName", "rarity", "tier"])),
     level: normalizeNumber(firstValue(input, ["level", "rank"]), 1),
-    traits: adaptTraits(firstValue(input, ["traits", "attributes"]), stats),
+    traits: adaptTraits(firstValue(input, ["traits", "attributes"])),
     stats,
     totalRaces,
     wins,
@@ -607,6 +589,11 @@ export function adaptApiRace(input: unknown): Race | undefined {
 
   const raceRecord = nestedRecord(input, ["race", "state"]) ?? input;
   const raceIdSource = firstValue(raceRecord, ["raceId", "id"]);
+
+  if (raceIdSource === undefined) {
+    return undefined;
+  }
+
   const weather =
     weatherFromParams(raceRecord) ??
     normalizeWeather(firstValue(raceRecord, ["weather", "weatherName", "raceTemp"]));
@@ -634,10 +621,7 @@ export function adaptApiRace(input: unknown): Race | undefined {
       firstValue(raceRecord, ["trackLength", "length"])
     ),
     weather,
-    trackCondition: normalizeTrack(
-      firstValue(raceRecord, ["trackCondition", "condition"]),
-      weather
-    ),
+    trackCondition: normalizeTrack(firstValue(raceRecord, ["trackCondition", "condition"])),
     entryFee: normalizeTokenAmount(firstValue(raceRecord, ["entryFee", "entryFeeWei"]), 0),
     prizePool: normalizeTokenAmount(firstValue(raceRecord, ["prizePool", "pool"]), 0),
     startedAt: normalizeDate(firstValue(raceRecord, ["startedAt", "raceStart", "createdAt"])),

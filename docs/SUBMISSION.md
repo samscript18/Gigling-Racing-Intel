@@ -30,7 +30,7 @@ The app turns raw racing, pet, owner, item, condition, and onchain data into dec
 - Parses global racing stats from `/stats`.
 - Prepares viem contract reads for PetRacingSystem views such as `getRace`, `getRacePets`, `getRaceFinalRanking`, `getRaceFinishTimes`, `getPetOwnerInRace`, and `canPetRace`.
 - Uses the eight official racing factions: Crusader, Overseer, Athena, Archon, Foxglove, Summoner, Chobo, and Gigus.
-- Falls back to a centralized demo dataset when external APIs or contract reads fail.
+- Uses live data exclusively and presents explicit retry or empty states when upstream data is unavailable.
 
 ## Core Features
 
@@ -40,7 +40,7 @@ The app turns raw racing, pet, owner, item, condition, and onchain data into dec
 - Race Detail: placements, item timeline, winner explanation, loss explanation, and similar races.
 - Race Intelligence Engine: explainable weighted scoring model with probabilities, confidence, risk, reasons, and warnings.
 - Meta Insights: faction, rarity, weather, distance, and track-condition analysis.
-- Stable Manager: wallet-ready demo stable state, owned Giglings, suggested races, and risk alerts.
+- Stable Manager: injected wallet connection, live owned Giglings, suggested races, and risk alerts.
 - Rivalry Intelligence: rival, ally, and nemesis tracking with notes.
 - Leaderboards: top Giglings, players, factions, streaks, earnings, and recent winners.
 - Reports: shareable Gigling, race, and meta report cards with copy, native share, and download actions.
@@ -61,6 +61,6 @@ The entire product is centered on Gigling Racing language and decisions. It does
 
 - Add authenticated item inventory and race chat.
 - Add realtime race updates through GigaSocket/Pusher.
-- Add wallet connection and ownership-backed stable management.
+- Add authenticated Gigaverse sessions for protected item, chat, and inventory endpoints.
 - Add richer statistical models after more live race history is indexed.
 - Add player-facing public report URLs and social card image export.

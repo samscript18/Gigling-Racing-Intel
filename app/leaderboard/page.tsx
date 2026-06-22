@@ -9,6 +9,8 @@ import {
   fetchRaces
 } from "@/lib/gigaverse/api-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function LeaderboardPage() {
   const [giglings, players, races] = await Promise.all([
     fetchGiglings(),

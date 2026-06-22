@@ -31,6 +31,8 @@ import {
 import { formatDateTime, formatToken } from "@/lib/utils/format";
 import type { RaceParticipant } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 type RaceDetailPageProps = {
   params: Promise<{
     id: string;

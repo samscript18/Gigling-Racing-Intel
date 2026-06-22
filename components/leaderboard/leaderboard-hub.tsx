@@ -14,6 +14,7 @@ import {
 } from "recharts";
 
 import { DataTable, type DataTableColumn } from "@/components/shared/data-table";
+import { EmptyState } from "@/components/shared/empty-state";
 import { FactionBadge } from "@/components/shared/faction-badge";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RaceCard } from "@/components/shared/race-card";
@@ -96,6 +97,7 @@ export function LeaderboardHub({
   races
 }: LeaderboardHubProps) {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>("giglings");
+
   const topStreaks = useMemo(
     () => [...giglings].sort((first, second) => second.currentStreak - first.currentStreak),
     [giglings]
@@ -115,6 +117,16 @@ export function LeaderboardHub({
         ),
     [races]
   );
+
+  if (giglings.length === 0 || players.length === 0 || recentWinners.length === 0) {
+    return (
+      <EmptyState
+        description="Gigaverse responded, but one or more live leaderboard sources are empty. Community rankings need Giglings, players, and completed race results."
+        title="Live leaderboard data is incomplete"
+      />
+    );
+  }
+
   const highestStreak = topStreaks[0]?.currentStreak ?? 0;
   const chartData = giglings.slice(0, 8).map((gigling) => ({
     name: gigling.name,

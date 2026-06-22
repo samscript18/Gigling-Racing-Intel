@@ -1,5 +1,6 @@
 import { MetaCharts } from "@/components/meta/meta-charts";
 import { FactionBadge } from "@/components/shared/faction-badge";
+import { EmptyState } from "@/components/shared/empty-state";
 import { InsightCard } from "@/components/shared/insight-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
@@ -22,6 +23,8 @@ import {
 } from "@/lib/gigaverse/api-client";
 import { formatPercent } from "@/lib/utils/format";
 
+export const dynamic = "force-dynamic";
+
 export default async function MetaPage() {
   const [races, giglings, metaData] = await Promise.all([
     fetchRaces(),
@@ -29,9 +32,30 @@ export default async function MetaPage() {
     fetchMetaData()
   ]);
   const factionPerformance = getFactionPerformanceFromRaces(races);
+  const completedRaces = races.filter(
+    (race) =>
+      race.status === "completed" &&
+      race.participants.some((participant) => typeof participant.finalPosition === "number")
+  );
+
+  if (completedRaces.length === 0) {
+    return (
+      <div>
+        <PageHeader
+          description="Read the current Gigling Racing meta across faction, rarity, weather, distance, and track-condition performance."
+          eyebrow="Meta Intelligence"
+          title="Meta"
+        />
+        <EmptyState
+          description="The live race feed has no completed races with final placements, so faction and condition analytics cannot be calculated yet."
+          title="No completed live samples"
+        />
+      </div>
+    );
+  }
+
   const topFaction = getTopFaction(factionPerformance);
   const emerging = getTopEmergingGiglings(giglings);
-  const completedRaces = races.filter((race) => race.status === "completed");
   const factionData = getFactionDashboardData(factionPerformance);
   const rarityData = getRarityPerformanceData(races);
   const weatherData = getWeatherImpactData(races);

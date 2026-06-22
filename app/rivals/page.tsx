@@ -1,17 +1,7 @@
-import { RivalryIntelligence } from "@/components/rivals/rivalry-intelligence";
+import { LiveRivalryIntelligence } from "@/components/rivals/rivalry-intelligence";
 import { PageHeader } from "@/components/shared/page-header";
-import {
-  fetchPlayerRaceHistory,
-  fetchRivalries
-} from "@/lib/gigaverse/api-client";
-import { GIGAVERSE_OWNER_ADDRESS } from "@/lib/gigaverse/mock-data";
 
-export default async function RivalsPage() {
-  const [races, records] = await Promise.all([
-    fetchPlayerRaceHistory(GIGAVERSE_OWNER_ADDRESS),
-    fetchRivalries(GIGAVERSE_OWNER_ADDRESS)
-  ]);
-
+export default function RivalsPage() {
   return (
     <div>
       <PageHeader
@@ -19,7 +9,7 @@ export default async function RivalsPage() {
         eyebrow="Rivalry Intelligence"
         title="Rivals"
       />
-      <RivalryIntelligence races={races} records={records} />
+      <LiveRivalryIntelligence />
     </div>
   );
 }

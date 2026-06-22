@@ -6,6 +6,8 @@ import {
   fetchRaces
 } from "@/lib/gigaverse/api-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function ReportsPage() {
   const [giglings, races, metaData] = await Promise.all([
     fetchGiglings(),

@@ -2,6 +2,30 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
+import { defineChain } from "viem";
+import { createConfig, http, injected, WagmiProvider } from "wagmi";
+
+import { appEnv } from "@/lib/config/env";
+
+const abstract = defineChain({
+  id: appEnv.chainId,
+  name: "Abstract",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    default: { http: [appEnv.abstractRpcUrl] }
+  },
+  blockExplorers: {
+    default: { name: "Abscan", url: "https://abscan.org" }
+  }
+});
+
+const wagmiConfig = createConfig({
+  chains: [abstract],
+  connectors: [injected()],
+  transports: {
+    [abstract.id]: http(appEnv.abstractRpcUrl)
+  }
+});
 
 type ProvidersProps = {
   children: ReactNode;
@@ -20,5 +44,9 @@ export function Providers({ children }: ProvidersProps) {
       })
   );
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </WagmiProvider>
+  );
 }

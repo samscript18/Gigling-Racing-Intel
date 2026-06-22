@@ -5,6 +5,7 @@ import { Check, Copy, Download, Share2, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { FactionBadge } from "@/components/shared/faction-badge";
+import { EmptyState } from "@/components/shared/empty-state";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
@@ -132,6 +133,16 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
     () => insights.find((entry) => entry.id === selectedInsightId) ?? insights[0],
     [insights, selectedInsightId]
   );
+
+  if (!gigling || !race || !insight) {
+    return (
+      <EmptyState
+        description="Reports require a live Gigling, a completed live race, and a live meta signal. Gigaverse has not returned all three inputs yet."
+        title="Not enough live data for a report"
+      />
+    );
+  }
+
   const socialCopy = `${gigling.name} watchlist: ${formatPercent(gigling.winRate)} win rate, ${formatPercent(gigling.podiumRate)} podium rate, best fit ${gigling.bestDistance}/${gigling.bestWeather}. Race #${race.raceNumber} winner: ${winnerName(race)}. Meta signal: ${insight.title} (${insight.metricValue}). Powered by Gigling Racing Intel.`;
 
   async function handleAction(action: ShareAction) {

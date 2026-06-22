@@ -9,15 +9,16 @@ import {
 import Link from "next/link";
 
 import { InsightCard } from "@/components/shared/insight-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { MetricCard } from "@/components/shared/metric-card";
 import {
   fetchGiglings,
   fetchMetaData,
-  fetchRaces,
-  fetchStable
+  fetchRaces
 } from "@/lib/gigaverse/api-client";
-import { GIGAVERSE_OWNER_ADDRESS } from "@/lib/gigaverse/mock-data";
 import { formatPercent } from "@/lib/utils/format";
+
+export const dynamic = "force-dynamic";
 
 const features = [
   {
@@ -47,15 +48,23 @@ const features = [
 ];
 
 export default async function LandingPage() {
-  const [giglings, races, metaData, stable] = await Promise.all([
+  const [giglingResult, raceResult, metaResult] = await Promise.allSettled([
     fetchGiglings(),
     fetchRaces(),
-    fetchMetaData(),
-    fetchStable(GIGAVERSE_OWNER_ADDRESS)
+    fetchMetaData()
   ]);
+  const giglings = giglingResult.status === "fulfilled" ? giglingResult.value : [];
+  const races = raceResult.status === "fulfilled" ? raceResult.value : [];
+  const metaData =
+    metaResult.status === "fulfilled"
+      ? metaResult.value
+      : { factionPerformance: [], insights: [] };
   const topGigling = [...giglings].sort(
     (first, second) => second.winRate - first.winRate
   )[0];
+  const activeRaceCount = races.filter(
+    (race) => race.status === "live" || race.status === "scheduled"
+  ).length;
 
   return (
     <main className="min-h-screen overflow-hidden">
@@ -132,18 +141,18 @@ export default async function LandingPage() {
               value={`${races.length}`}
             />
             <MetricCard
-              detail={`${topGigling.name} leads the current indexed field`}
+              detail={topGigling ? `${topGigling.name} leads the live indexed field` : "No live leaderboard records returned"}
               icon="bot"
               label="Top Win Rate"
               tone="orange"
-              value={formatPercent(topGigling.winRate)}
+              value={topGigling ? formatPercent(topGigling.winRate) : "--"}
             />
             <MetricCard
-              detail="Wallet-ready connected stable"
-              icon="wallet"
-              label="Stable Wins"
+              detail="Open and resolving races from Gigaverse"
+              icon="activity"
+              label="Active Races"
               tone="emerald"
-              value={`${stable?.totalWins ?? 0}`}
+              value={`${activeRaceCount}`}
             />
             <MetricCard
               detail="Faction, rarity, weather, distance, and track reads"
@@ -173,21 +182,28 @@ export default async function LandingPage() {
           </div>
 
           <div className="mt-14 grid gap-5 lg:grid-cols-3">
-            <InsightCard insight={metaData.insights[0]} />
+            {metaData.insights[0] ? (
+              <InsightCard insight={metaData.insights[0]} />
+            ) : (
+              <EmptyState
+                description="Live Gigaverse meta statistics are not available right now. No substitute data is shown."
+                title="Live meta signal unavailable"
+              />
+            )}
             <article className="premium-panel rounded-lg p-5">
               <div className="relative z-10">
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-racing">
                   Stable Manager
                 </p>
                 <h2 className="mt-3 text-2xl font-black text-white">
-                  {`${stable?.ownerName ?? "Connected"} Stable`}
+                  Connect your racing wallet
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-white/56">
-                  Owned Giglings, best race suggestions, alerts, and wallet-ready ownership structure
-                  are ready for live ownership and contract reads.
+                  Load owned Giglings, race suggestions, and performance signals directly from
+                  your wallet&apos;s indexed Gigaverse racing history.
                 </p>
                 <div className="mt-5 rounded-lg border border-emerald-racing/25 bg-emerald-racing/10 p-4 text-emerald-racing">
-                  {stable?.giglings.length ?? 0} Giglings / {formatPercent(stable?.averageWinRate ?? 0)} average win rate
+                  Live wallet ownership only. No synthetic stable is substituted.
                 </div>
               </div>
             </article>
@@ -203,7 +219,7 @@ export default async function LandingPage() {
                 </p>
                 <div className="mt-5 flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-white/62">
                   <ShieldCheck className="h-5 w-5 text-emerald-racing" />
-                  Vercel-ready structure, live data, resilient fallbacks, future-safe integration seams.
+                  Vercel-ready structure, live data, explicit outage states, and isolated integration clients.
                 </div>
               </div>
             </article>

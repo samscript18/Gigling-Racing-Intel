@@ -31,6 +31,8 @@ import {
   shortenAddress
 } from "@/lib/utils/format";
 
+export const dynamic = "force-dynamic";
+
 type GiglingDetailPageProps = {
   params: Promise<{
     id: string;

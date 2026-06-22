@@ -56,7 +56,7 @@ export function ModulePreview({
 
       <div className="mt-6 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         <ChartCard
-          description="A live-connected intelligence view with resilient demo data when upstream services are unavailable."
+          description="A live-connected intelligence view that reports upstream availability without substituting synthetic records."
           title="Intel Module Online"
         >
           <div className="space-y-3">

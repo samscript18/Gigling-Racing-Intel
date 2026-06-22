@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { AlertTriangle, PlugZap, ShieldCheck, Wallet } from "lucide-react";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 import {
   Area,
   AreaChart,
@@ -25,7 +26,6 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { useRaces } from "@/hooks/use-races";
 import { useStable } from "@/hooks/use-stable";
 import { formatPercent, formatToken, shortenAddress } from "@/lib/utils/format";
-import { useAppStore } from "@/store/app-store";
 
 type TooltipPayload = {
   name: string;
@@ -61,13 +61,35 @@ function StableTooltip({ active, payload, label }: StableTooltipProps) {
 }
 
 export function StableManager() {
-  const {
-    mockWalletConnected,
-    selectedOwnerAddress,
-    setMockWalletConnected
-  } = useAppStore();
-  const { data: stable, isLoading, isError } = useStable(selectedOwnerAddress);
+  const { address, isConnected } = useAccount();
+  const { connect, connectors, error: connectError, isPending: isConnecting } = useConnect();
+  const { disconnect } = useDisconnect();
+  const { data: stable, error, isLoading, isError } = useStable(address);
   const { data: races } = useRaces();
+
+  if (!isConnected || !address) {
+    return (
+      <EmptyState
+        action={
+          <button
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-cyan-racing px-4 text-sm font-black text-[#031018] shadow-glow disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={connectors.length === 0 || isConnecting}
+            type="button"
+            onClick={() => connectors[0] && connect({ connector: connectors[0] })}
+          >
+            <PlugZap className="h-4 w-4" />
+            {isConnecting ? "Connecting..." : "Connect wallet"}
+          </button>
+        }
+        description={
+          connectError?.message ??
+          "Connect an injected wallet to load Giglings and race history owned by your live wallet address."
+        }
+        icon={Wallet}
+        title="Connect your racing wallet"
+      />
+    );
+  }
 
   if (isLoading) {
     return <LoadingState />;
@@ -76,7 +98,11 @@ export function StableManager() {
   if (isError) {
     return (
       <ErrorState
-        description="The stable query layer could not load the connected demo wallet or fallback stable."
+        description={
+          error instanceof Error
+            ? error.message
+            : "Gigaverse could not load live stable data for this wallet."
+        }
         title="Stable unavailable"
       />
     );
@@ -85,9 +111,28 @@ export function StableManager() {
   if (!stable) {
     return (
       <EmptyState
-        description="Connect a supported wallet or switch to the demo stable owner to load Gigling holdings."
+        description="Gigaverse returned no stable record for this connected wallet."
         icon={Wallet}
         title="No stable found"
+      />
+    );
+  }
+
+  if (stable.giglings.length === 0) {
+    return (
+      <EmptyState
+        action={
+          <button
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-white/15 bg-white/[0.04] px-4 text-sm font-bold text-white/70"
+            type="button"
+            onClick={() => disconnect()}
+          >
+            Disconnect wallet
+          </button>
+        }
+        description={`Gigaverse returned no indexed Giglings or race entries for ${shortenAddress(address)}. Try a wallet that has participated in Gigling Racing.`}
+        icon={Wallet}
+        title="No live stable data found"
       />
     );
   }
@@ -128,28 +173,24 @@ export function StableManager() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-racing">
-                Wallet-ready stable
+                Connected racing wallet
               </p>
               <h2 className="mt-2 text-2xl font-black text-white">
-                {`${stable.ownerName}'s Stable`}
+                {`${stable.ownerName ?? shortenAddress(stable.ownerAddress)}'s Stable`}
               </h2>
               <p className="mt-2 text-sm leading-6 text-white/58">
-                Demo wallet: {shortenAddress(stable.ownerAddress)}. Live ownership reads are
-                prepared through the Gigaverse API and PetRacingSystem client.
+                Live ownership and race history for {shortenAddress(stable.ownerAddress)} from
+                the Gigaverse Racing API.
               </p>
             </div>
           </div>
           <button
-            className={`inline-flex h-11 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-black transition ${
-              mockWalletConnected
-                ? "border-emerald-racing/35 bg-emerald-racing/10 text-emerald-racing"
-                : "border-white/10 bg-white/[0.04] text-white/64 hover:border-cyan-racing/35 hover:text-cyan-racing"
-            }`}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-emerald-racing/35 bg-emerald-racing/10 px-4 text-sm font-black text-emerald-racing transition hover:border-orange-racing/35 hover:text-orange-racing"
             type="button"
-            onClick={() => setMockWalletConnected(!mockWalletConnected)}
+            onClick={() => disconnect()}
           >
             <PlugZap className="h-4 w-4" />
-            {mockWalletConnected ? "Demo wallet connected" : "Connect demo wallet"}
+            Disconnect
           </button>
         </div>
       </section>
@@ -319,15 +360,21 @@ export function StableManager() {
                 title="Risk Alerts"
               />
               <div className="space-y-3">
-                {stable.alerts.map((alert) => (
-                  <div key={alert.id} className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-racing/70">
-                      {alert.type}
-                    </p>
-                    <p className="mt-2 text-sm font-bold text-white">{alert.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-white/54">{alert.description}</p>
-                  </div>
-                ))}
+                {stable.alerts.length > 0 ? (
+                  stable.alerts.map((alert) => (
+                    <div key={alert.id} className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-racing/70">
+                        {alert.type}
+                      </p>
+                      <p className="mt-2 text-sm font-bold text-white">{alert.title}</p>
+                      <p className="mt-2 text-sm leading-6 text-white/54">{alert.description}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="rounded-lg border border-white/10 bg-white/[0.035] p-4 text-sm leading-6 text-white/54">
+                    No live risk alerts are available for this stable yet.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -339,11 +386,17 @@ export function StableManager() {
           description="Races that match stable opportunities, condition fit, or risk alerts."
           title="Suggested Races"
         />
-        <div className="grid gap-4 lg:grid-cols-3">
-          {suggestedRaces.map((race) => (
-            <RaceCard key={race.id} race={race} />
-          ))}
-        </div>
+        {suggestedRaces.length > 0 ? (
+          <div className="grid gap-4 lg:grid-cols-3">
+            {suggestedRaces.map((race) => (
+              <RaceCard key={race.id} race={race} />
+            ))}
+          </div>
+        ) : (
+          <p className="premium-panel rounded-lg p-5 text-sm leading-6 text-white/54">
+            Gigaverse has not returned a live or scheduled race recommendation for this stable.
+          </p>
+        )}
       </section>
     </div>
   );

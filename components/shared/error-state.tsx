@@ -9,7 +9,7 @@ type ErrorStateProps = {
 
 export function ErrorState({
   title = "Intel feed unavailable",
-  description = "The live feed could not resolve this request, and the fallback layer did not have a matching record.",
+  description = "Live Gigaverse racing data is currently unavailable. Please retry shortly.",
   action
 }: ErrorStateProps) {
   return (

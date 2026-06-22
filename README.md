@@ -11,9 +11,9 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - Race dashboard and race detail pages with placements, item timelines, winner explanations, and "Why Did I Lose?" analysis.
 - Meta insights for faction, rarity, weather, distance, and track condition performance.
 - Race Intelligence Engine with weighted scoring, probabilities, confidence, risk, warnings, and plain-English reasoning.
-- Stable manager with a connected demo wallet state, owned Giglings, race suggestions, and risk alerts.
+- Stable manager with injected wallet connection, live owned Giglings, race suggestions, and risk alerts.
 - Rivalry intelligence, leaderboards, and shareable report cards.
-- Live Gigaverse REST integration with resilient centralized demo fallback and isolated contract reads.
+- Live-only Gigaverse REST integration with isolated Abstract contract reads and explicit outage states.
 
 ## Tech Stack
 
@@ -62,7 +62,7 @@ NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS=0xF6Ed2a53F311352c869e268601AAe5B78B9a9650
 NEXT_PUBLIC_CHAIN_ID=2741
 ```
 
-The app uses the Abstract mainnet public RPC and the verified PetRacingSystem deployment by default. Override these values only for another network or provider. If the REST API or RPC is unreachable, the app falls back to the centralized demo dataset.
+The app uses the Abstract mainnet public RPC and the verified PetRacingSystem deployment by default. Override these values only for another network or provider. The app never substitutes local records when the REST API or RPC is unreachable.
 
 ## Data Architecture
 
@@ -73,15 +73,14 @@ UI Page
   -> Feature Component
     -> Hook
       -> Query function
-        -> Gigaverse API/contract client or demo fallback
+        -> Gigaverse API/contract client
           -> Adapter
             -> App types
 ```
 
 Important files:
 
-- `lib/gigaverse/mock-data.ts` - centralized realistic demo/fallback data.
-- `lib/gigaverse/api-client.ts` - REST fetch functions with demo fallback.
+- `lib/gigaverse/api-client.ts` - live REST fetch functions and typed availability errors.
 - `lib/gigaverse/contract-client.ts` - viem public client and PetRacingSystem read helpers.
 - `lib/gigaverse/adapters.ts` - normalization from API/contract payloads into app types.
 - `lib/gigaverse/query-keys.ts` - centralized TanStack Query keys.
@@ -94,7 +93,7 @@ Important files:
 The current integration layer is live-connected and safe by default:
 
 - Public race, race detail, pet, leaderboard, stats, and player race-history reads target the Gigaverse Racing REST API.
-- If the API responds with an error, malformed payload, or empty result, the app falls back to demo data.
+- API errors and malformed payloads produce user-readable retry states; valid empty responses produce feature-specific empty states.
 - Contract reads default to Abstract mainnet and return typed status results when unavailable.
 - API and contract responses are adapted before reaching components.
 
@@ -123,11 +122,9 @@ Prepared contract reads include:
 
 Gigaverse racing exposes Pusher-compatible realtime channels such as `race-{raceId}`, `racing.lobby`, and `global.chat.racing`; the current dashboard uses resilient REST refreshes and is structured for realtime subscriptions.
 
-## Demo Fallback Data
+## Live Data Policy
 
-The fallback dataset includes 24 Giglings, 20 races, 12 players, all 8 official factions, multiple rarities, weather conditions, track conditions, item usage examples, stable summaries, meta insights, rivalry records, leaderboards, and prediction examples.
-
-Live Gigaverse REST data is the primary path. The fallback dataset keeps every route demo-ready during upstream outages.
+Every Gigling, race, player, stable, rivalry, leaderboard, and meta record comes from the live Gigaverse Racing API or Abstract contract reads. Missing categorical fields are labeled `unknown`; unavailable services and valid empty responses are never replaced with synthetic records.
 
 ## Hackathon Demo Flow
 

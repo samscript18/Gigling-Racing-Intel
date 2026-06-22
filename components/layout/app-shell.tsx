@@ -5,6 +5,7 @@ import { Bell, Search, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { useAccount } from "wagmi";
 
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { primaryNavItems } from "@/components/layout/nav-items";
@@ -19,7 +20,8 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
-  const { sidebarCollapsed, selectedOwnerAddress } = useAppStore();
+  const { address } = useAccount();
+  const { sidebarCollapsed } = useAppStore();
 
   if (pathname === "/") {
     return <>{children}</>;
@@ -75,13 +77,13 @@ export function AppShell({ children }: AppShellProps) {
               >
                 <Bell className="h-5 w-5" />
               </button>
-              <button
+              <Link
                 className="hidden items-center gap-2 rounded-lg border border-emerald-racing/25 bg-emerald-racing/10 px-3 py-2 text-sm font-semibold text-emerald-racing sm:flex"
-                type="button"
+                href="/stable"
               >
                 <Wallet className="h-4 w-4" />
-                {shortenAddress(selectedOwnerAddress)}
-              </button>
+                {address ? shortenAddress(address) : "Connect wallet"}
+              </Link>
             </div>
           </div>
         </header>

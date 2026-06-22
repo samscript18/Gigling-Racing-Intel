@@ -1,10 +1,15 @@
 import { appEnv, hasGigaverseApiConfig } from "@/lib/config/env";
-import type { Gigling, MetaInsight, Race, StableSummary } from "@/types";
+import type {
+  Gigling,
+  MetaInsight,
+  Race,
+  RivalryRecord,
+  StableSummary
+} from "@/types";
 
 import {
   adaptApiGigling,
   adaptApiGiglings,
-  adaptApiPlayer,
   adaptApiPlayers,
   adaptApiRace,
   adaptApiRaces,
@@ -15,31 +20,23 @@ import {
 } from "./adapters";
 import { getFactionPerformanceFromRaces } from "./analytics";
 import { readRaceContract } from "./contract-client";
-import {
-  activeRaces,
-  leaderboardPlayers,
-  mockFactionPerformance,
-  mockGiglings,
-  mockMetaInsights,
-  mockPlayers,
-  mockRaces,
-  mockRivalryRecords,
-  mockStableSummaries
-} from "./mock-data";
 
-const REQUEST_TIMEOUT_MS = 4_000;
+const REQUEST_TIMEOUT_MS = 8_000;
 
 type RequestOptions = {
+  allowNotFound?: boolean;
   authToken?: string;
   searchParams?: Record<string, string | number | boolean | undefined>;
 };
 
-function mockGiglingList() {
-  return mockGiglings.map((gigling) => adaptApiGigling(gigling));
-}
+export class GigaverseDataError extends Error {
+  status?: number;
 
-function mockRaceList() {
-  return mockRaces.map((race) => adaptApiRace(race));
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "GigaverseDataError";
+    this.status = status;
+  }
 }
 
 function toRemotePetId(id: string) {
@@ -70,13 +67,15 @@ function buildGigaverseUrl(path: string, searchParams?: RequestOptions["searchPa
 
 async function requestGigaverseJson(path: string, options: RequestOptions = {}) {
   if (!hasGigaverseApiConfig()) {
-    return undefined;
+    throw new GigaverseDataError(
+      "The Gigaverse Racing API is not configured. Add NEXT_PUBLIC_GIGAVERSE_API_BASE_URL and try again."
+    );
   }
 
   const url = buildGigaverseUrl(path, options.searchParams);
 
   if (!url) {
-    return undefined;
+    throw new GigaverseDataError("The Gigaverse Racing API URL is invalid.");
   }
 
   const controller = new AbortController();
@@ -92,13 +91,39 @@ async function requestGigaverseJson(path: string, options: RequestOptions = {}) 
       signal: controller.signal
     });
 
-    if (!response.ok) {
+    if (response.status === 404 && options.allowNotFound) {
       return undefined;
     }
 
-    return (await response.json()) as unknown;
-  } catch {
-    return undefined;
+    if (!response.ok) {
+      const reason =
+        response.status === 401 || response.status === 403
+          ? "This live Gigaverse endpoint requires an authenticated Gigaverse session."
+          : `Gigaverse returned HTTP ${response.status} for this live request.`;
+      throw new GigaverseDataError(reason, response.status);
+    }
+
+    try {
+      return (await response.json()) as unknown;
+    } catch {
+      throw new GigaverseDataError(
+        "Gigaverse returned a response that could not be read as racing data."
+      );
+    }
+  } catch (error) {
+    if (error instanceof GigaverseDataError) {
+      throw error;
+    }
+
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new GigaverseDataError(
+        "The live Gigaverse request timed out. The service may be busy; please retry shortly."
+      );
+    }
+
+    throw new GigaverseDataError(
+      "Live Gigaverse racing data is currently unreachable. Check your connection and try again."
+    );
   } finally {
     globalThis.clearTimeout(timeout);
   }
@@ -146,9 +171,7 @@ function extractOwnedGiglingIds(ownerAddress: string, races: Race[]) {
 
 function getRaceGiglingIds(races: Race[]) {
   return Array.from(
-    new Set(
-      races.flatMap((race) => race.participants.map((participant) => participant.giglingId))
-    )
+    new Set(races.flatMap((race) => race.participants.map((participant) => participant.giglingId)))
   );
 }
 
@@ -159,9 +182,11 @@ async function enrichRacesWithGiglings(races: Race[]) {
     return races;
   }
 
-  const giglings = await fetchGiglingsByIds(giglingIds);
+  let giglings: Gigling[] = [];
 
-  if (giglings.length === 0) {
+  try {
+    giglings = await fetchGiglingsByIds(giglingIds);
+  } catch {
     return races;
   }
 
@@ -209,12 +234,33 @@ function buildGlobalStatsInsight(payload: unknown): MetaInsight | undefined {
 
   return {
     id: "live-global-racing-stats",
-    title: "Live Gigling Racing volume is connected",
-    description: `${Intl.NumberFormat("en").format(totalEntries)} entries from ${Intl.NumberFormat("en").format(uniqueRacers)} unique racers are indexed from the public Gigaverse racing API.`,
+    title: "Live Gigling Racing volume",
+    description: `${Intl.NumberFormat("en").format(totalEntries)} entries from ${Intl.NumberFormat("en").format(uniqueRacers)} unique racers are indexed by Gigaverse.`,
     severity: "info",
     metricLabel: "Total races created",
     metricValue: Intl.NumberFormat("en").format(totalRacesCreated),
-    trendDirection: "up",
+    trendDirection: "flat",
+    createdAt: new Date().toISOString()
+  };
+}
+
+function buildFactionInsight(races: Race[]): MetaInsight | undefined {
+  const topFaction = getFactionPerformanceFromRaces(races)
+    .filter((entry) => entry.races > 0)
+    .sort((first, second) => second.winRate - first.winRate)[0];
+
+  if (!topFaction) {
+    return undefined;
+  }
+
+  return {
+    id: "live-faction-performance",
+    title: `${topFaction.faction} leads the indexed faction field`,
+    description: `${topFaction.faction} has a ${topFaction.winRate}% win rate across ${topFaction.races} live-indexed entries with final placements.`,
+    severity: "positive",
+    metricLabel: "Faction win rate",
+    metricValue: `${topFaction.winRate}%`,
+    trendDirection: "flat",
     createdAt: new Date().toISOString()
   };
 }
@@ -224,8 +270,9 @@ function buildStableFromGiglings(
   giglings: Gigling[],
   races: Race[]
 ): StableSummary {
+  const normalizedOwner = normalizeAddress(ownerAddress);
   const ownerGiglings = giglings.filter(
-    (gigling) => normalizeAddress(gigling.ownerAddress) === normalizeAddress(ownerAddress)
+    (gigling) => normalizeAddress(gigling.ownerAddress) === normalizedOwner
   );
   const totalRaces = ownerGiglings.reduce((total, gigling) => total + gigling.totalRaces, 0);
   const totalWins = ownerGiglings.reduce((total, gigling) => total + gigling.wins, 0);
@@ -234,7 +281,7 @@ function buildStableFromGiglings(
   )[0];
 
   return {
-    ownerAddress: normalizeAddress(ownerAddress),
+    ownerAddress: normalizedOwner,
     ownerName: bestGigling?.ownerName,
     giglings: ownerGiglings,
     totalRaces,
@@ -257,52 +304,152 @@ function buildStableFromGiglings(
   };
 }
 
+function buildRivalries(ownerAddress: string, races: Race[]): RivalryRecord[] {
+  const owner = normalizeAddress(ownerAddress);
+  const opponents = new Map<
+    string,
+    { encounters: number; losses: number; mostRecentRaceId: string; name?: string; wins: number }
+  >();
+
+  for (const race of races) {
+    const ownerPositions = race.participants
+      .filter((participant) => normalizeAddress(participant.ownerAddress) === owner)
+      .map((participant) => participant.finalPosition)
+      .filter((position): position is number => typeof position === "number");
+
+    if (ownerPositions.length === 0) {
+      continue;
+    }
+
+    const ownerBest = Math.min(...ownerPositions);
+    const raceOpponents = new Map<string, { name?: string; position: number }>();
+
+    for (const participant of race.participants) {
+      const rivalAddress = normalizeAddress(participant.ownerAddress);
+
+      if (
+        rivalAddress === owner ||
+        rivalAddress === "0x0000000000000000000000000000000000000000" ||
+        typeof participant.finalPosition !== "number"
+      ) {
+        continue;
+      }
+
+      const existing = raceOpponents.get(rivalAddress);
+      if (!existing || participant.finalPosition < existing.position) {
+        raceOpponents.set(rivalAddress, {
+          name: participant.ownerName,
+          position: participant.finalPosition
+        });
+      }
+    }
+
+    for (const [rivalAddress, rival] of raceOpponents) {
+      const current = opponents.get(rivalAddress) ?? {
+        encounters: 0,
+        losses: 0,
+        mostRecentRaceId: race.id,
+        name: rival.name,
+        wins: 0
+      };
+      current.encounters += 1;
+      current.name = current.name ?? rival.name;
+      current.mostRecentRaceId = race.id;
+
+      if (ownerBest < rival.position) {
+        current.wins += 1;
+      } else if (ownerBest > rival.position) {
+        current.losses += 1;
+      }
+
+      opponents.set(rivalAddress, current);
+    }
+  }
+
+  return [...opponents.entries()]
+    .filter(([, record]) => record.encounters >= 2)
+    .map(([rivalAddress, record]) => {
+      const decided = record.wins + record.losses;
+      const winRate = decided > 0 ? Number(((record.wins / decided) * 100).toFixed(1)) : 0;
+      const relationshipType = winRate <= 35 ? "nemesis" : "rival";
+
+      return {
+        id: `rivalry-${owner}-${rivalAddress}`,
+        playerAddress: owner,
+        rivalAddress,
+        rivalName: record.name,
+        totalEncounters: record.encounters,
+        winsAgainstRival: record.wins,
+        lossesAgainstRival: record.losses,
+        winRateAgainstRival: winRate,
+        mostRecentRaceId: record.mostRecentRaceId,
+        relationshipType,
+        notes: [
+          `${record.encounters} shared races found in the live player history.`,
+          `${record.wins} head-to-head wins and ${record.losses} losses were calculated from final placements.`
+        ]
+      } satisfies RivalryRecord;
+    })
+    .sort(
+      (first, second) =>
+        second.totalEncounters - first.totalEncounters ||
+        first.winRateAgainstRival - second.winRateAgainstRival
+    );
+}
+
 export async function fetchGiglings() {
   const payload = await requestGigaverseJson("/leaderboard/elo", {
     searchParams: { limit: 50, offset: 0 }
   });
-  const remoteGiglings = adaptApiGiglings(payload);
-
-  return remoteGiglings.length > 0 ? remoteGiglings : mockGiglingList();
+  return adaptApiGiglings(payload);
 }
 
 export async function fetchGiglingById(id: string) {
   const remoteId = toRemotePetId(id);
-  const [petPayload, statsPayload] = await Promise.all([
-    requestGigaverseJson("/pets", { searchParams: { ids: remoteId } }),
-    requestGigaverseJson(`/pets/${remoteId}/stats`)
+  const [petResult, statsResult] = await Promise.allSettled([
+    requestGigaverseJson("/pets", {
+      allowNotFound: true,
+      searchParams: { ids: remoteId }
+    }),
+    requestGigaverseJson(`/pets/${remoteId}/stats`, { allowNotFound: true })
   ]);
-  const rawPet =
-    extractRecordList(petPayload, ["pets", "giglings", "entries"])[0] ?? petPayload;
-  const remotePet = adaptApiGigling(
-    mergeRecordPayloads(rawPet, pickStatsRecord(statsPayload, remoteId))
-  );
+  const petPayload = petResult.status === "fulfilled" ? petResult.value : undefined;
+  const statsPayload = statsResult.status === "fulfilled" ? statsResult.value : undefined;
 
-  if (remotePet) {
-    const merged = adaptApiGigling(mergeRecordPayloads(remotePet, statsPayload));
-    return merged ?? remotePet;
+  if (petPayload === undefined && statsPayload === undefined) {
+    const error = petResult.status === "rejected" ? petResult.reason : statsResult.status === "rejected" ? statsResult.reason : undefined;
+    if (error) {
+      throw error;
+    }
+    return undefined;
   }
 
-  const gigling = mockGiglings.find((entry) => entry.id === id);
-  return gigling ? adaptApiGigling(gigling) : undefined;
+  const rawPet = extractRecordList(petPayload, ["pets", "giglings", "entries"])[0] ?? petPayload;
+  return adaptApiGigling(mergeRecordPayloads(rawPet, pickStatsRecord(statsPayload, remoteId)));
 }
 
 export async function fetchRaces() {
   const payload = await requestGigaverseJson("/races", {
     searchParams: { limit: 50 }
   });
-  const remoteRaces = adaptApiRaces(payload);
-
-  return remoteRaces.length > 0 ? enrichRacesWithGiglings(remoteRaces) : mockRaceList();
+  return enrichRacesWithGiglings(adaptApiRaces(payload));
 }
 
 export async function fetchRaceById(id: string) {
   const remoteId = toRemoteRaceId(id);
-  const payload = await requestGigaverseJson(`/race/${remoteId}`);
-  const remoteRace = adaptApiRace(payload);
+  let apiError: unknown;
 
-  if (remoteRace) {
-    return (await enrichRacesWithGiglings([remoteRace]))[0] ?? remoteRace;
+  try {
+    const payload = await requestGigaverseJson(`/race/${remoteId}`, {
+      allowNotFound: true
+    });
+    const remoteRace = adaptApiRace(payload);
+
+    if (remoteRace) {
+      return (await enrichRacesWithGiglings([remoteRace]))[0] ?? remoteRace;
+    }
+  } catch (error) {
+    apiError = error;
   }
 
   const contractRace = await readRaceContract(id);
@@ -311,8 +458,11 @@ export async function fetchRaceById(id: string) {
     return contractRace.data;
   }
 
-  const race = mockRaces.find((entry) => entry.id === id);
-  return race ? adaptApiRace(race) : undefined;
+  if (apiError) {
+    throw apiError;
+  }
+
+  return undefined;
 }
 
 export async function fetchGiglingsByIds(ids: string[]) {
@@ -322,23 +472,25 @@ export async function fetchGiglingsByIds(ids: string[]) {
     return [];
   }
 
-  const [petsPayload, statsPayload] = await Promise.all([
+  const [petsResult, statsResult] = await Promise.allSettled([
     requestGigaverseJson("/pets", { searchParams: { ids: remoteIds.join(",") } }),
     requestGigaverseJson("/pets/stats", { searchParams: { ids: remoteIds.join(",") } })
   ]);
-  const rawPets = extractRecordList(petsPayload, ["pets", "giglings", "entries"]);
-  const remoteGiglings = rawPets.flatMap((rawPet) => {
+
+  if (petsResult.status === "rejected") {
+    throw petsResult.reason;
+  }
+
+  const statsPayload = statsResult.status === "fulfilled" ? statsResult.value : undefined;
+  const rawPets = extractRecordList(petsResult.value, ["pets", "giglings", "entries"]);
+
+  return rawPets.flatMap((rawPet) => {
     const petId = String(rawPet.id ?? rawPet.petId ?? "");
     const adapted = adaptApiGigling(
       mergeRecordPayloads(rawPet, pickStatsRecord(statsPayload, petId))
     );
-
     return adapted ? [adapted] : [];
   });
-
-  return remoteGiglings.length > 0
-    ? remoteGiglings
-    : mockGiglings.filter((gigling) => ids.includes(gigling.id));
 }
 
 export async function fetchRaceState(id: string) {
@@ -351,65 +503,50 @@ export async function fetchPlayers() {
   const payload = await requestGigaverseJson("/leaderboard/elo", {
     searchParams: { limit: 50, offset: 0 }
   });
-  const remotePlayers = adaptApiPlayers(payload);
-
-  return remotePlayers.length > 0
-    ? remotePlayers
-    : mockPlayers.map((player) => adaptApiPlayer(player));
+  return adaptApiPlayers(payload);
 }
 
-export async function fetchLeaderboardPlayers() {
-  const payload = await requestGigaverseJson("/leaderboard/elo", {
-    searchParams: { limit: 50, offset: 0 }
-  });
-  const remotePlayers = adaptApiPlayers(payload);
-
-  return remotePlayers.length > 0
-    ? remotePlayers
-    : leaderboardPlayers.map((player) => adaptApiPlayer(player));
-}
+export const fetchLeaderboardPlayers = fetchPlayers;
 
 export async function fetchStable(ownerAddress: string) {
   const normalizedOwner = normalizeAddress(ownerAddress);
-  const remoteStablePayload = await requestGigaverseJson("/pets", {
-    searchParams: { owner: normalizedOwner }
-  });
-  const adaptedStable = adaptApiStable(remoteStablePayload);
+  const [petsResult, historyResult, racesResult] = await Promise.allSettled([
+    requestGigaverseJson("/pets", { searchParams: { owner: normalizedOwner } }),
+    requestGigaverseJson(`/races/${normalizedOwner}`, { searchParams: { limit: 50 } }),
+    fetchRaces()
+  ]);
 
-  if (adaptedStable && adaptedStable.giglings.length > 0) {
-    return adaptedStable;
+  if (petsResult.status === "rejected" && historyResult.status === "rejected") {
+    throw petsResult.reason;
   }
 
-  const remoteGiglings = adaptApiGiglings(remoteStablePayload);
+  const petsPayload = petsResult.status === "fulfilled" ? petsResult.value : undefined;
+  const adaptedStable = adaptApiStable(petsPayload);
+  const directGiglings = adaptApiGiglings(petsPayload);
+  const playerRaces =
+    historyResult.status === "fulfilled" ? adaptApiRaces(historyResult.value) : [];
+  const indexedRaces = racesResult.status === "fulfilled" ? racesResult.value : playerRaces;
 
-  if (remoteGiglings.length > 0) {
-    const races = await fetchRaces();
-    return buildStableFromGiglings(normalizedOwner, remoteGiglings, races);
+  if (adaptedStable?.giglings.length) {
+    return buildStableFromGiglings(normalizedOwner, adaptedStable.giglings, indexedRaces);
   }
 
-  const playerRacePayload = await requestGigaverseJson(`/races/${normalizedOwner}`, {
-    searchParams: { limit: 50 }
-  });
-  const playerRaces = adaptApiRaces(playerRacePayload);
+  if (directGiglings.length > 0) {
+    return buildStableFromGiglings(normalizedOwner, directGiglings, indexedRaces);
+  }
+
   const ownedGiglingIds = extractOwnedGiglingIds(normalizedOwner, playerRaces);
+  const ownedGiglings =
+    ownedGiglingIds.length > 0 ? await fetchGiglingsByIds(ownedGiglingIds) : [];
 
-  if (ownedGiglingIds.length > 0) {
-    const ownedGiglings = await fetchGiglingsByIds(ownedGiglingIds);
-    return buildStableFromGiglings(normalizedOwner, ownedGiglings, playerRaces);
-  }
-
-  return mockStableSummaries.find(
-    (summary) => normalizeAddress(summary.ownerAddress) === normalizedOwner
-  );
+  return buildStableFromGiglings(normalizedOwner, ownedGiglings, indexedRaces);
 }
 
 export async function fetchPlayerRaceHistory(ownerAddress: string) {
   const payload = await requestGigaverseJson(`/races/${normalizeAddress(ownerAddress)}`, {
     searchParams: { limit: 50 }
   });
-  const remoteRaces = adaptApiRaces(payload);
-
-  return remoteRaces.length > 0 ? enrichRacesWithGiglings(remoteRaces) : mockRaceList();
+  return enrichRacesWithGiglings(adaptApiRaces(payload));
 }
 
 export async function fetchPayouts(ownerAddress: string) {
@@ -421,34 +558,34 @@ export async function fetchHostEligibility(ownerAddress: string) {
 }
 
 export async function fetchMetaData() {
-  const [statsPayload, races] = await Promise.all([
+  const [statsResult, racesResult] = await Promise.allSettled([
     requestGigaverseJson("/stats"),
     fetchRaces()
   ]);
-  const liveInsight = buildGlobalStatsInsight(statsPayload);
-  const factionPerformance = getFactionPerformanceFromRaces(races);
-  const hasIndexedFactionResults = factionPerformance.some((entry) => entry.races > 0);
+
+  if (statsResult.status === "rejected" && racesResult.status === "rejected") {
+    throw racesResult.reason;
+  }
+
+  const races = racesResult.status === "fulfilled" ? racesResult.value : [];
+  const insights = [
+    statsResult.status === "fulfilled" ? buildGlobalStatsInsight(statsResult.value) : undefined,
+    buildFactionInsight(races)
+  ].filter((insight): insight is MetaInsight => Boolean(insight));
 
   return {
-    insights: liveInsight ? [liveInsight, ...mockMetaInsights] : mockMetaInsights,
-    factionPerformance: hasIndexedFactionResults
-      ? factionPerformance
-      : mockFactionPerformance
+    insights,
+    factionPerformance: getFactionPerformanceFromRaces(races).filter(
+      (entry) => entry.races > 0
+    )
   };
 }
 
 export async function fetchRivalries(ownerAddress: string) {
-  const normalizedOwner = normalizeAddress(ownerAddress);
-  return mockRivalryRecords.filter(
-    (record) => normalizeAddress(record.playerAddress) === normalizedOwner
-  );
+  return buildRivalries(ownerAddress, await fetchPlayerRaceHistory(ownerAddress));
 }
 
 export async function fetchActiveRaces() {
   const races = await fetchRaces();
-  const remoteActiveRaces = races.filter(
-    (race) => race.status === "live" || race.status === "scheduled"
-  );
-
-  return remoteActiveRaces.length > 0 ? remoteActiveRaces : activeRaces.map(adaptApiRace);
+  return races.filter((race) => race.status === "live" || race.status === "scheduled");
 }

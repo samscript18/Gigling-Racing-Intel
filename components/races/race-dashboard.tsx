@@ -147,7 +147,7 @@ function matchesSearch(race: Race, search: string) {
 }
 
 export function RaceDashboard() {
-  const { data: races, isLoading, isError } = useRaces();
+  const { data: races, error, isLoading, isError } = useRaces();
   const [activeTab, setActiveTab] = useState<RaceTab>("live");
   const [search, setSearch] = useState("");
   const [distance, setDistance] = useState<RaceDistance | "all">("all");
@@ -255,8 +255,21 @@ export function RaceDashboard() {
   if (isError || !races) {
     return (
       <ErrorState
-        description="The race query layer could not load the live feed or fallback race dataset."
+        description={
+          error instanceof Error
+            ? error.message
+            : "Gigaverse could not load the live race feed."
+        }
         title="Race feed unavailable"
+      />
+    );
+  }
+
+  if (races.length === 0) {
+    return (
+      <EmptyState
+        description="The Gigaverse Racing API responded successfully but currently has no races in its recent feed."
+        title="No live races returned"
       />
     );
   }
