@@ -135,8 +135,8 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
         <div className="relative z-10 grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="relative min-h-72 overflow-hidden rounded-lg border border-white/10 bg-track-radial">
             <div className="absolute inset-0 bg-racing-grid opacity-55" />
-            <div className="absolute left-8 top-8 h-24 w-24 rounded-full border border-cyan-racing/20 bg-cyan-racing/8 blur-sm" />
-            <div className="absolute bottom-8 right-8 h-32 w-32 rounded-full border border-orange-racing/20 bg-orange-racing/8 blur-sm" />
+            <div className="absolute inset-x-8 top-8 h-px bg-gradient-to-r from-transparent via-cyan-racing/55 to-transparent" />
+            <div className="absolute inset-x-8 bottom-8 h-px bg-gradient-to-r from-transparent via-orange-racing/45 to-transparent" />
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <p className="text-xs font-bold uppercase tracking-[0.26em] text-cyan-racing">
                 Race Intelligence
@@ -309,7 +309,7 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
 
       <section className="mt-6">
         <SectionHeader description="Similar distance, weather, or track condition races." title="Similar Races" />
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="mobile-card-rail grid gap-4 lg:grid-cols-3">
           {similarRaces.map((entry) => (
             <RaceCard key={entry.id} race={entry} />
           ))}

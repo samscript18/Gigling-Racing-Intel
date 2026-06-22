@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bell, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -64,17 +63,6 @@ export function AppShell({ children }: AppShellProps) {
             </div>
 
             <div className="ml-auto flex items-center gap-2">
-              <div className="hidden h-10 min-w-[260px] items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-white/44 lg:flex">
-                <Search className="h-4 w-4" />
-                <span className="text-sm">Search Giglings, races, rivals</span>
-              </div>
-              <button
-                aria-label="Notifications"
-                className="hidden rounded-lg border border-white/10 bg-white/[0.04] p-2.5 text-white/62 transition hover:border-orange-racing/40 hover:text-orange-racing sm:block"
-                type="button"
-              >
-                <Bell className="h-5 w-5" />
-              </button>
               <div>
                 <WalletConnectButton />
               </div>

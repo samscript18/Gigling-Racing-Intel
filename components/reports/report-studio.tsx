@@ -441,7 +441,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
           description="Shareable cards for community posts, match recaps, and meta alerts."
           title="Report Cards"
         />
-        <div className="grid gap-5 lg:grid-cols-3">
+        <div className="mobile-card-rail grid gap-5 lg:grid-cols-3">
           <ReportShell accent="cyan" eyebrow="Gigling Report" title={gigling.name}>
             <div className="mt-4 flex flex-wrap gap-2">
               <FactionBadge faction={gigling.faction} />

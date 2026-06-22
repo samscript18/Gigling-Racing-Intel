@@ -42,7 +42,7 @@ export function Sidebar() {
           </button>
         </div>
 
-        <nav className="space-y-2">
+        <nav aria-label="Primary navigation" className="space-y-2">
           {primaryNavItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -50,6 +50,8 @@ export function Sidebar() {
             return (
               <Link
                 key={item.href}
+                aria-current={active ? "page" : undefined}
+                aria-label={sidebarCollapsed ? item.label : undefined}
                 className={cn(
                   "group flex items-center gap-3 rounded-lg border px-3 py-3 transition",
                   active
@@ -57,6 +59,7 @@ export function Sidebar() {
                     : "border-transparent text-white/64 hover:border-white/12 hover:bg-white/6 hover:text-white"
                 )}
                 href={item.href}
+                title={sidebarCollapsed ? item.label : undefined}
               >
                 <Icon
                   className={cn(

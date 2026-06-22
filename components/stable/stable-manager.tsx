@@ -461,7 +461,7 @@ export function StableManager() {
           title="Suggested Races"
         />
         {suggestedRaces.length > 0 ? (
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="mobile-card-rail grid gap-4 lg:grid-cols-3">
             {suggestedRaces.map((race) => (
               <RaceCard key={race.id} race={race} />
             ))}

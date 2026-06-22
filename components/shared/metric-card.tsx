@@ -1,6 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  useTransform
+} from "framer-motion";
 import {
   Activity,
   AlertTriangle,
@@ -25,6 +31,7 @@ import {
   WalletCards,
   Zap
 } from "lucide-react";
+import { useEffect, useMemo } from "react";
 
 import { MechanicTooltip } from "@/components/shared/mechanic-tooltip";
 import type { RacingMechanic } from "@/lib/gigaverse/mechanics";
@@ -74,6 +81,60 @@ const toneStyles = {
   emerald: "from-emerald-racing/18 to-emerald-racing/4 text-emerald-racing"
 };
 
+function AnimatedMetricValue({ value }: { value: string }) {
+  const reduceMotion = useReducedMotion();
+  const parsed = useMemo(() => {
+    const match = value.match(/^([^0-9-]{0,3})(-?\d[\d,]*(?:\.\d+)?)(\/100|[^0-9]{0,10})$/);
+
+    if (!match) {
+      return undefined;
+    }
+
+    const numericText = match[2].replaceAll(",", "");
+    const numericValue = Number(numericText);
+
+    if (!Number.isFinite(numericValue)) {
+      return undefined;
+    }
+
+    return {
+      decimals: numericText.includes(".") ? numericText.split(".")[1].length : 0,
+      prefix: match[1],
+      suffix: match[3],
+      value: numericValue
+    };
+  }, [value]);
+  const target = parsed?.value ?? 0;
+  const counter = useMotionValue(reduceMotion ? target : 0);
+  const spring = useSpring(counter, { damping: 28, stiffness: 110 });
+  const display = useTransform(spring, (current) => {
+    if (!parsed) {
+      return value;
+    }
+
+    const formatted = new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: parsed.decimals,
+      minimumFractionDigits: parsed.decimals
+    }).format(current);
+
+    return `${parsed.prefix}${formatted}${parsed.suffix}`;
+  });
+
+  useEffect(() => {
+    counter.set(target);
+  }, [counter, target]);
+
+  if (!parsed) {
+    return value;
+  }
+
+  return (
+    <span aria-label={value}>
+      <motion.span aria-hidden="true">{display}</motion.span>
+    </span>
+  );
+}
+
 export function MetricCard({
   label,
   value,
@@ -99,7 +160,9 @@ export function MetricCard({
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/42">{label}</p>
             {mechanic ? <MechanicTooltip mechanic={mechanic} /> : null}
           </div>
-          <p className="mt-3 text-2xl font-black text-white sm:text-3xl">{value}</p>
+          <p className="mt-3 text-2xl font-black text-white sm:text-3xl">
+            <AnimatedMetricValue value={value} />
+          </p>
           {detail ? <p className="mt-2 text-sm text-white/52">{detail}</p> : null}
         </div>
         {IconComponent ? (

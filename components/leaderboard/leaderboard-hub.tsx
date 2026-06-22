@@ -435,7 +435,7 @@ export function LeaderboardHub({
           description="Latest winners as race cards for quick community context."
           title="Recent Winners"
         />
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="mobile-card-rail grid gap-4 lg:grid-cols-3">
           {recentWinners.slice(0, 3).map((race) => (
             <RaceCard key={race.id} race={race} />
           ))}

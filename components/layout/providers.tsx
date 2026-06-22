@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { MotionConfig } from "framer-motion";
 import { useState, type ReactNode } from "react";
 import { defineChain } from "viem";
 import { createConfig, http, injected, WagmiProvider } from "wagmi";
@@ -56,7 +57,7 @@ export function Providers({ children }: ProvidersProps) {
             overlayBlur: "small"
           })}
         >
-          {children}
+          <MotionConfig reducedMotion="user">{children}</MotionConfig>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
