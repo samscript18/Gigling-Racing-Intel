@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { SectionHeader } from "@/components/shared/section-header";
 import {
   getDistanceImpactData,
+  getFactionPerformanceFromRaces,
   getFactionDashboardData,
   getRarityPerformanceData,
   getTopEmergingGiglings,
@@ -15,23 +16,28 @@ import {
   getWeeklyTrendSummary
 } from "@/lib/gigaverse/analytics";
 import {
-  mockFactionPerformance,
-  mockGiglings,
-  mockMetaInsights,
-  mockRaces
-} from "@/lib/gigaverse/mock-data";
+  fetchGiglings,
+  fetchMetaData,
+  fetchRaces
+} from "@/lib/gigaverse/api-client";
 import { formatPercent } from "@/lib/utils/format";
 
-export default function MetaPage() {
-  const topFaction = getTopFaction(mockFactionPerformance);
-  const emerging = getTopEmergingGiglings(mockGiglings);
-  const completedRaces = mockRaces.filter((race) => race.status === "completed");
-  const factionData = getFactionDashboardData(mockFactionPerformance);
-  const rarityData = getRarityPerformanceData(mockRaces);
-  const weatherData = getWeatherImpactData(mockRaces);
-  const distanceData = getDistanceImpactData(mockRaces);
-  const trackData = getTrackConditionTrendData(mockRaces);
-  const weeklySummary = getWeeklyTrendSummary(mockRaces, mockFactionPerformance);
+export default async function MetaPage() {
+  const [races, giglings, metaData] = await Promise.all([
+    fetchRaces(),
+    fetchGiglings(),
+    fetchMetaData()
+  ]);
+  const factionPerformance = getFactionPerformanceFromRaces(races);
+  const topFaction = getTopFaction(factionPerformance);
+  const emerging = getTopEmergingGiglings(giglings);
+  const completedRaces = races.filter((race) => race.status === "completed");
+  const factionData = getFactionDashboardData(factionPerformance);
+  const rarityData = getRarityPerformanceData(races);
+  const weatherData = getWeatherImpactData(races);
+  const distanceData = getDistanceImpactData(races);
+  const trackData = getTrackConditionTrendData(races);
+  const weeklySummary = getWeeklyTrendSummary(races, factionPerformance);
   const highestVolatility = [...weatherData].sort(
     (first, second) => second.volatility - first.volatility
   )[0];
@@ -121,7 +127,7 @@ export default function MetaPage() {
             title="Meta Shift Cards"
           />
           <div className="grid gap-4 md:grid-cols-2">
-            {mockMetaInsights.map((insight) => (
+            {metaData.insights.map((insight) => (
               <InsightCard key={insight.id} insight={insight} />
             ))}
           </div>

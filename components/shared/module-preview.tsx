@@ -56,7 +56,7 @@ export function ModulePreview({
 
       <div className="mt-6 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         <ChartCard
-          description="A foundation view with live mock data. Dedicated feature controls arrive in the matching roadmap task."
+          description="A live-connected intelligence view with resilient demo data when upstream services are unavailable."
           title="Intel Module Online"
         >
           <div className="space-y-3">
@@ -77,12 +77,12 @@ export function ModulePreview({
         <div className="premium-panel rounded-lg p-5">
           <div className="relative z-10">
             <SectionHeader
-              description="Navigation is wired across desktop sidebar and mobile bottom nav."
-              title="Task 01 Status"
+              description="Core navigation and typed data architecture are active across the product."
+              title="Platform Status"
             />
             <div className="space-y-3 text-sm text-white/58">
               <p>Core route exists and renders in the shared shell.</p>
-              <p>Mock data is centralized and typed for replacement by Gigaverse APIs later.</p>
+              <p>Gigaverse API and contract payloads are normalized before reaching the UI.</p>
               <p>Loading, empty, and error states are available to feature screens.</p>
             </div>
           </div>

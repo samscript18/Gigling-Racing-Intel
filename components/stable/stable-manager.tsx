@@ -76,7 +76,7 @@ export function StableManager() {
   if (isError) {
     return (
       <ErrorState
-        description="The stable query layer could not load the mock connected wallet state."
+        description="The stable query layer could not load the connected demo wallet or fallback stable."
         title="Stable unavailable"
       />
     );
@@ -85,7 +85,7 @@ export function StableManager() {
   if (!stable) {
     return (
       <EmptyState
-        description="Connect a supported wallet or switch to the mock stable owner to load Gigling holdings."
+        description="Connect a supported wallet or switch to the demo stable owner to load Gigling holdings."
         icon={Wallet}
         title="No stable found"
       />
@@ -128,14 +128,14 @@ export function StableManager() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-racing">
-                Wallet-ready placeholder
+                Wallet-ready stable
               </p>
               <h2 className="mt-2 text-2xl font-black text-white">
                 {`${stable.ownerName}'s Stable`}
               </h2>
               <p className="mt-2 text-sm leading-6 text-white/58">
-                Mock connected wallet: {shortenAddress(stable.ownerAddress)}. Real ownership reads
-                will plug into the contract client when official docs are available.
+                Demo wallet: {shortenAddress(stable.ownerAddress)}. Live ownership reads are
+                prepared through the Gigaverse API and PetRacingSystem client.
               </p>
             </div>
           </div>
@@ -149,7 +149,7 @@ export function StableManager() {
             onClick={() => setMockWalletConnected(!mockWalletConnected)}
           >
             <PlugZap className="h-4 w-4" />
-            {mockWalletConnected ? "Mock wallet connected" : "Connect mock wallet"}
+            {mockWalletConnected ? "Demo wallet connected" : "Connect demo wallet"}
           </button>
         </div>
       </section>
@@ -264,7 +264,7 @@ export function StableManager() {
       <div className="grid gap-5 xl:grid-cols-[1fr_0.82fr]">
         <section>
           <SectionHeader
-            description="Owned Giglings from the mock wallet state."
+            description="Owned Giglings from the connected stable state."
             title="Owned Giglings"
           />
           <div className="grid gap-4 md:grid-cols-2">

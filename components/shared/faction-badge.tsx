@@ -2,12 +2,14 @@ import type { GiglingFaction } from "@/types";
 import { cn } from "@/lib/utils/cn";
 
 const factionStyles: Record<GiglingFaction, string> = {
-  ember: "border-orange-racing/35 bg-orange-racing/12 text-orange-200",
-  aqua: "border-cyan-racing/35 bg-cyan-racing/12 text-cyan-100",
-  terra: "border-emerald-racing/35 bg-emerald-racing/12 text-emerald-100",
-  volt: "border-yellow-300/35 bg-yellow-300/12 text-yellow-100",
-  shadow: "border-violet-racing/35 bg-violet-racing/12 text-violet-100",
-  neutral: "border-white/20 bg-white/8 text-white/80"
+  crusader: "border-orange-racing/35 bg-orange-racing/12 text-orange-200",
+  overseer: "border-red-300/35 bg-red-300/12 text-red-100",
+  athena: "border-cyan-racing/35 bg-cyan-racing/12 text-cyan-100",
+  archon: "border-violet-racing/35 bg-violet-racing/12 text-violet-100",
+  foxglove: "border-emerald-racing/35 bg-emerald-racing/12 text-emerald-100",
+  summoner: "border-fuchsia-300/35 bg-fuchsia-300/12 text-fuchsia-100",
+  chobo: "border-yellow-300/35 bg-yellow-300/12 text-yellow-100",
+  gigus: "border-white/20 bg-white/8 text-white/80"
 };
 
 type FactionBadgeProps = {

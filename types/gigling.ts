@@ -3,12 +3,14 @@ import type { RaceDistance, RaceWeather } from "./race";
 export type GiglingRarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
 export type GiglingFaction =
-  | "ember"
-  | "aqua"
-  | "terra"
-  | "volt"
-  | "shadow"
-  | "neutral";
+  | "crusader"
+  | "overseer"
+  | "athena"
+  | "archon"
+  | "foxglove"
+  | "summoner"
+  | "chobo"
+  | "gigus";
 
 export type GiglingTrait = {
   id: string;

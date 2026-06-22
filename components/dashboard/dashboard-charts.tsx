@@ -83,7 +83,7 @@ export function DashboardCharts({ factionData, raceTrendData }: DashboardChartsP
   return (
     <div className="grid gap-5 xl:grid-cols-2">
       <ChartCard
-        description="Win and podium conversion by faction, calculated from mock race placements."
+        description="Win and podium conversion by faction, calculated from indexed race placements."
         title="Faction Performance Chart"
       >
         <div className="h-[320px]">

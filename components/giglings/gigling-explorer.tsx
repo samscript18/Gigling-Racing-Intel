@@ -18,12 +18,14 @@ type SortKey = "winRate" | "podiumRate" | "earnings" | "totalRaces" | "level";
 
 const factionOptions: Array<GiglingFaction | "all"> = [
   "all",
-  "ember",
-  "aqua",
-  "terra",
-  "volt",
-  "shadow",
-  "neutral"
+  "crusader",
+  "overseer",
+  "athena",
+  "archon",
+  "foxglove",
+  "summoner",
+  "chobo",
+  "gigus"
 ];
 
 const rarityOptions: Array<GiglingRarity | "all"> = [
@@ -159,7 +161,7 @@ export function GiglingExplorer() {
   if (isError || !giglings) {
     return (
       <ErrorState
-        description="The Gigling query layer could not load the centralized mock roster."
+        description="The Gigling query layer could not load the live roster or fallback dataset."
         title="Gigling explorer unavailable"
       />
     );

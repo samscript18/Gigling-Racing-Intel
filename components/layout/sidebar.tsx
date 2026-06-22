@@ -81,7 +81,7 @@ export function Sidebar() {
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-racing">
                 Meta Ping
               </p>
-              <p className="mt-2 text-sm font-semibold text-white">Volt sprint pressure is live.</p>
+              <p className="mt-2 text-sm font-semibold text-white">Chobo sprint pressure is live.</p>
               <p className="mt-1 text-xs leading-5 text-white/54">
                 Watch windy sprint lobbies before committing lower-acceleration Giglings.
               </p>

@@ -3,6 +3,9 @@ import { createPublicClient, defineChain, formatEther, http, type Address } from
 import { appEnv, hasGigaverseContractConfig } from "@/lib/config/env";
 import { adaptContractRace, normalizeAddress, normalizeNumber } from "@/lib/gigaverse/adapters";
 
+const ABSTRACT_MAINNET_CHAIN_ID = 2741;
+const ABSTRACT_MAINNET_RPC_URL = "https://api.mainnet.abs.xyz";
+
 const PET_RACING_VIEW_ABI = [
   {
     type: "function",
@@ -123,7 +126,7 @@ export const gigaverseChain = defineChain({
   },
   rpcUrls: {
     default: {
-      http: [appEnv.abstractRpcUrl ?? "http://localhost:8545"]
+      http: [appEnv.abstractRpcUrl ?? ABSTRACT_MAINNET_RPC_URL]
     }
   }
 });
@@ -132,7 +135,7 @@ function notConfigured<T>(): ContractReadResult<T> {
   return {
     status: "not-configured",
     message:
-      "Set NEXT_PUBLIC_ABSTRACT_RPC_URL and NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS to enable Gigaverse contract reads."
+      "Set NEXT_PUBLIC_ABSTRACT_RPC_URL for a custom network, or use the default Abstract mainnet configuration."
   };
 }
 
@@ -201,7 +204,7 @@ function raceStructToRecord(value: unknown): RaceStructRecord {
 }
 
 export function createGigaversePublicClient() {
-  if (!appEnv.abstractRpcUrl) {
+  if (appEnv.chainId !== ABSTRACT_MAINNET_CHAIN_ID && !appEnv.abstractRpcUrl) {
     return undefined;
   }
 

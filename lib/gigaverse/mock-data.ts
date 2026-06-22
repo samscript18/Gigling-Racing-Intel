@@ -22,12 +22,14 @@ export const GIGAVERSE_OWNER_ADDRESS =
   "0x9f3a1b8c2d4e5f60718293abcd0ef123456789ab";
 
 export const factions: GiglingFaction[] = [
-  "ember",
-  "aqua",
-  "terra",
-  "volt",
-  "shadow",
-  "neutral"
+  "crusader",
+  "overseer",
+  "athena",
+  "archon",
+  "foxglove",
+  "summoner",
+  "chobo",
+  "gigus"
 ];
 
 export const rarities: GiglingRarity[] = [
@@ -71,7 +73,7 @@ export const mockPlayers: Player[] = [
     wins: 21,
     winRate: 26.9,
     totalEarnings: 8420,
-    favoriteFaction: "volt",
+    favoriteFaction: "chobo",
     stableSize: 5
   },
   {
@@ -83,7 +85,7 @@ export const mockPlayers: Player[] = [
     wins: 18,
     winRate: 26.1,
     totalEarnings: 7110,
-    favoriteFaction: "shadow",
+    favoriteFaction: "archon",
     stableSize: 4
   },
   {
@@ -95,7 +97,7 @@ export const mockPlayers: Player[] = [
     wins: 17,
     winRate: 26.6,
     totalEarnings: 6935,
-    favoriteFaction: "terra",
+    favoriteFaction: "foxglove",
     stableSize: 3
   },
   {
@@ -107,7 +109,7 @@ export const mockPlayers: Player[] = [
     wins: 14,
     winRate: 24.1,
     totalEarnings: 6120,
-    favoriteFaction: "ember",
+    favoriteFaction: "crusader",
     stableSize: 3
   },
   {
@@ -119,7 +121,7 @@ export const mockPlayers: Player[] = [
     wins: 11,
     winRate: 23.4,
     totalEarnings: 4385,
-    favoriteFaction: "aqua",
+    favoriteFaction: "athena",
     stableSize: 2
   },
   {
@@ -131,7 +133,7 @@ export const mockPlayers: Player[] = [
     wins: 10,
     winRate: 19.6,
     totalEarnings: 3970,
-    favoriteFaction: "terra",
+    favoriteFaction: "foxglove",
     stableSize: 2
   },
   {
@@ -143,7 +145,7 @@ export const mockPlayers: Player[] = [
     wins: 9,
     winRate: 21.4,
     totalEarnings: 3620,
-    favoriteFaction: "ember",
+    favoriteFaction: "crusader",
     stableSize: 2
   },
   {
@@ -155,7 +157,7 @@ export const mockPlayers: Player[] = [
     wins: 8,
     winRate: 20.5,
     totalEarnings: 3290,
-    favoriteFaction: "volt",
+    favoriteFaction: "chobo",
     stableSize: 2
   },
   {
@@ -167,7 +169,7 @@ export const mockPlayers: Player[] = [
     wins: 7,
     winRate: 19.4,
     totalEarnings: 3015,
-    favoriteFaction: "neutral",
+    favoriteFaction: "summoner",
     stableSize: 1
   },
   {
@@ -179,7 +181,7 @@ export const mockPlayers: Player[] = [
     wins: 6,
     winRate: 19.4,
     totalEarnings: 2680,
-    favoriteFaction: "aqua",
+    favoriteFaction: "athena",
     stableSize: 1
   },
   {
@@ -191,7 +193,7 @@ export const mockPlayers: Player[] = [
     wins: 5,
     winRate: 17.2,
     totalEarnings: 2325,
-    favoriteFaction: "shadow",
+    favoriteFaction: "overseer",
     stableSize: 1
   },
   {
@@ -203,18 +205,20 @@ export const mockPlayers: Player[] = [
     wins: 4,
     winRate: 16.7,
     totalEarnings: 1895,
-    favoriteFaction: "neutral",
+    favoriteFaction: "gigus",
     stableSize: 1
   }
 ];
 
 const traitTemplates: Record<GiglingFaction, string[]> = {
-  ember: ["Flare Launch", "Heat-Hardened Paws", "Apex Temper"],
-  aqua: ["Rainline Read", "Slipstream Gill", "Deep Focus"],
-  terra: ["Mud Grip", "Stone Calm", "Rooted Stride"],
-  volt: ["Spark Reflex", "Turbo Whisker", "Static Surge"],
-  shadow: ["Night Draft", "Corner Vanish", "Pressure Mask"],
-  neutral: ["Balanced Gait", "Lucky Charm", "Clean Split"]
+  crusader: ["Flare Launch", "Heat-Hardened Paws", "Apex Temper"],
+  overseer: ["Pressure Read", "Command Line", "Calculated Finish"],
+  athena: ["Rainline Read", "Slipstream Gill", "Deep Focus"],
+  archon: ["Night Draft", "Corner Vanish", "Pressure Mask"],
+  foxglove: ["Mud Grip", "Stone Calm", "Rooted Stride"],
+  summoner: ["Arcane Gait", "Tempo Charm", "Field Sense"],
+  chobo: ["Spark Reflex", "Turbo Whisker", "Static Surge"],
+  gigus: ["Balanced Gait", "Lucky Charm", "Clean Split"]
 };
 
 function player(index: number) {
@@ -300,30 +304,30 @@ function gigling(
 }
 
 export const mockGiglings: Gigling[] = [
-  gigling(1, "Volt Vandal", "volt", "legendary", { speed: 94, stamina: 80, handling: 86, acceleration: 96, luck: 72, consistency: 84 }, 28, 9, 17, 2480, 4, "sprint", "windy", 0),
-  gigling(2, "Mossline Prime", "terra", "epic", { speed: 76, stamina: 93, handling: 88, acceleration: 68, luck: 63, consistency: 91 }, 25, 7, 16, 2115, 2, "marathon", "rainy", 2),
-  gigling(3, "Ember Echo", "ember", "rare", { speed: 88, stamina: 75, handling: 72, acceleration: 90, luck: 68, consistency: 76 }, 23, 6, 13, 1710, 1, "sprint", "sunny", 3),
-  gigling(4, "Aqua Comet", "aqua", "epic", { speed: 82, stamina: 86, handling: 92, acceleration: 77, luck: 71, consistency: 88 }, 24, 7, 15, 2050, 3, "long", "rainy", 4),
-  gigling(5, "Shadow Spindle", "shadow", "legendary", { speed: 90, stamina: 78, handling: 87, acceleration: 89, luck: 84, consistency: 79 }, 27, 8, 16, 2325, -1, "medium", "foggy", 1),
-  gigling(6, "Neutral Nova", "neutral", "rare", { speed: 80, stamina: 82, handling: 81, acceleration: 78, luck: 78, consistency: 85 }, 22, 5, 12, 1495, 1, "medium", "sunny", 8),
-  gigling(7, "Cinder Dash", "ember", "uncommon", { speed: 84, stamina: 70, handling: 66, acceleration: 88, luck: 60, consistency: 70 }, 18, 4, 9, 1030, -2, "sprint", "sunny", 6),
-  gigling(8, "Tidewise", "aqua", "rare", { speed: 74, stamina: 85, handling: 90, acceleration: 72, luck: 74, consistency: 86 }, 20, 5, 11, 1285, 2, "long", "stormy", 9),
-  gigling(9, "Quartz Rover", "terra", "uncommon", { speed: 68, stamina: 88, handling: 84, acceleration: 64, luck: 66, consistency: 89 }, 19, 4, 10, 1120, 1, "marathon", "rainy", 5),
-  gigling(10, "Static Peach", "volt", "rare", { speed: 86, stamina: 77, handling: 79, acceleration: 91, luck: 82, consistency: 75 }, 21, 5, 12, 1375, 0, "sprint", "windy", 7),
-  gigling(11, "Nocturne Nib", "shadow", "epic", { speed: 85, stamina: 83, handling: 84, acceleration: 83, luck: 86, consistency: 82 }, 22, 6, 14, 1785, 2, "medium", "foggy", 10),
-  gigling(12, "Pace Biscuit", "neutral", "common", { speed: 72, stamina: 76, handling: 74, acceleration: 70, luck: 77, consistency: 78 }, 16, 2, 7, 620, -1, "medium", "sunny", 11),
-  gigling(13, "Flame Ferry", "ember", "epic", { speed: 89, stamina: 79, handling: 75, acceleration: 87, luck: 69, consistency: 80 }, 20, 5, 12, 1525, 1, "medium", "sunny", 0),
-  gigling(14, "Brine Button", "aqua", "uncommon", { speed: 70, stamina: 82, handling: 85, acceleration: 67, luck: 75, consistency: 82 }, 17, 3, 8, 845, -2, "long", "rainy", 4),
-  gigling(15, "Canyon Byte", "terra", "rare", { speed: 78, stamina: 89, handling: 82, acceleration: 73, luck: 62, consistency: 87 }, 18, 4, 10, 1160, 0, "long", "windy", 2),
-  gigling(16, "Voltage Velvet", "volt", "epic", { speed: 91, stamina: 74, handling: 80, acceleration: 94, luck: 80, consistency: 77 }, 19, 5, 11, 1435, 3, "sprint", "stormy", 0),
-  gigling(17, "Umbra Uplink", "shadow", "rare", { speed: 83, stamina: 80, handling: 89, acceleration: 81, luck: 88, consistency: 78 }, 18, 4, 10, 1275, -1, "medium", "foggy", 1),
-  gigling(18, "Lucky Lattice", "neutral", "uncommon", { speed: 73, stamina: 80, handling: 76, acceleration: 72, luck: 91, consistency: 74 }, 15, 3, 7, 790, 2, "medium", "chaotic" as RaceWeather, 8),
-  gigling(19, "Ashen Orbit", "ember", "rare", { speed: 86, stamina: 81, handling: 71, acceleration: 85, luck: 65, consistency: 83 }, 18, 4, 9, 1125, 1, "long", "sunny", 3),
-  gigling(20, "Pearl Pivot", "aqua", "legendary", { speed: 84, stamina: 88, handling: 95, acceleration: 78, luck: 79, consistency: 90 }, 23, 8, 17, 2390, 5, "long", "rainy", 9),
-  gigling(21, "Root Rocket", "terra", "common", { speed: 66, stamina: 84, handling: 79, acceleration: 63, luck: 70, consistency: 80 }, 14, 2, 6, 540, -3, "marathon", "rainy", 5),
-  gigling(22, "Arc Lantern", "volt", "uncommon", { speed: 82, stamina: 73, handling: 77, acceleration: 86, luck: 81, consistency: 72 }, 16, 3, 8, 870, 1, "sprint", "stormy", 7),
-  gigling(23, "Midnight Mote", "shadow", "common", { speed: 76, stamina: 75, handling: 83, acceleration: 74, luck: 85, consistency: 73 }, 15, 2, 6, 610, -1, "medium", "foggy", 10),
-  gigling(24, "Clean Corner", "neutral", "rare", { speed: 79, stamina: 81, handling: 82, acceleration: 77, luck: 76, consistency: 88 }, 17, 4, 10, 1090, 2, "medium", "windy", 11)
+  gigling(1, "Volt Vandal", "chobo", "legendary", { speed: 94, stamina: 80, handling: 86, acceleration: 96, luck: 72, consistency: 84 }, 28, 9, 17, 2480, 4, "sprint", "windy", 0),
+  gigling(2, "Mossline Prime", "foxglove", "epic", { speed: 76, stamina: 93, handling: 88, acceleration: 68, luck: 63, consistency: 91 }, 25, 7, 16, 2115, 2, "marathon", "rainy", 2),
+  gigling(3, "Ember Echo", "crusader", "rare", { speed: 88, stamina: 75, handling: 72, acceleration: 90, luck: 68, consistency: 76 }, 23, 6, 13, 1710, 1, "sprint", "sunny", 3),
+  gigling(4, "Aqua Comet", "athena", "epic", { speed: 82, stamina: 86, handling: 92, acceleration: 77, luck: 71, consistency: 88 }, 24, 7, 15, 2050, 3, "long", "rainy", 4),
+  gigling(5, "Shadow Spindle", "archon", "legendary", { speed: 90, stamina: 78, handling: 87, acceleration: 89, luck: 84, consistency: 79 }, 27, 8, 16, 2325, -1, "medium", "foggy", 1),
+  gigling(6, "Neutral Nova", "summoner", "rare", { speed: 80, stamina: 82, handling: 81, acceleration: 78, luck: 78, consistency: 85 }, 22, 5, 12, 1495, 1, "medium", "sunny", 8),
+  gigling(7, "Cinder Dash", "crusader", "uncommon", { speed: 84, stamina: 70, handling: 66, acceleration: 88, luck: 60, consistency: 70 }, 18, 4, 9, 1030, -2, "sprint", "sunny", 6),
+  gigling(8, "Tidewise", "athena", "rare", { speed: 74, stamina: 85, handling: 90, acceleration: 72, luck: 74, consistency: 86 }, 20, 5, 11, 1285, 2, "long", "stormy", 9),
+  gigling(9, "Quartz Rover", "foxglove", "uncommon", { speed: 68, stamina: 88, handling: 84, acceleration: 64, luck: 66, consistency: 89 }, 19, 4, 10, 1120, 1, "marathon", "rainy", 5),
+  gigling(10, "Static Peach", "chobo", "rare", { speed: 86, stamina: 77, handling: 79, acceleration: 91, luck: 82, consistency: 75 }, 21, 5, 12, 1375, 0, "sprint", "windy", 7),
+  gigling(11, "Nocturne Nib", "archon", "epic", { speed: 85, stamina: 83, handling: 84, acceleration: 83, luck: 86, consistency: 82 }, 22, 6, 14, 1785, 2, "medium", "foggy", 10),
+  gigling(12, "Pace Biscuit", "overseer", "common", { speed: 72, stamina: 76, handling: 74, acceleration: 70, luck: 77, consistency: 78 }, 16, 2, 7, 620, -1, "medium", "sunny", 11),
+  gigling(13, "Flame Ferry", "crusader", "epic", { speed: 89, stamina: 79, handling: 75, acceleration: 87, luck: 69, consistency: 80 }, 20, 5, 12, 1525, 1, "medium", "sunny", 0),
+  gigling(14, "Brine Button", "athena", "uncommon", { speed: 70, stamina: 82, handling: 85, acceleration: 67, luck: 75, consistency: 82 }, 17, 3, 8, 845, -2, "long", "rainy", 4),
+  gigling(15, "Canyon Byte", "foxglove", "rare", { speed: 78, stamina: 89, handling: 82, acceleration: 73, luck: 62, consistency: 87 }, 18, 4, 10, 1160, 0, "long", "windy", 2),
+  gigling(16, "Voltage Velvet", "chobo", "epic", { speed: 91, stamina: 74, handling: 80, acceleration: 94, luck: 80, consistency: 77 }, 19, 5, 11, 1435, 3, "sprint", "stormy", 0),
+  gigling(17, "Umbra Uplink", "archon", "rare", { speed: 83, stamina: 80, handling: 89, acceleration: 81, luck: 88, consistency: 78 }, 18, 4, 10, 1275, -1, "medium", "foggy", 1),
+  gigling(18, "Lucky Lattice", "gigus", "uncommon", { speed: 73, stamina: 80, handling: 76, acceleration: 72, luck: 91, consistency: 74 }, 15, 3, 7, 790, 2, "medium", "chaotic" as RaceWeather, 8),
+  gigling(19, "Ashen Orbit", "crusader", "rare", { speed: 86, stamina: 81, handling: 71, acceleration: 85, luck: 65, consistency: 83 }, 18, 4, 9, 1125, 1, "long", "sunny", 3),
+  gigling(20, "Pearl Pivot", "athena", "legendary", { speed: 84, stamina: 88, handling: 95, acceleration: 78, luck: 79, consistency: 90 }, 23, 8, 17, 2390, 5, "long", "rainy", 9),
+  gigling(21, "Root Rocket", "foxglove", "common", { speed: 66, stamina: 84, handling: 79, acceleration: 63, luck: 70, consistency: 80 }, 14, 2, 6, 540, -3, "marathon", "rainy", 5),
+  gigling(22, "Arc Lantern", "chobo", "uncommon", { speed: 82, stamina: 73, handling: 77, acceleration: 86, luck: 81, consistency: 72 }, 16, 3, 8, 870, 1, "sprint", "stormy", 7),
+  gigling(23, "Midnight Mote", "overseer", "common", { speed: 76, stamina: 75, handling: 83, acceleration: 74, luck: 85, consistency: 73 }, 15, 2, 6, 610, -1, "medium", "foggy", 10),
+  gigling(24, "Clean Corner", "summoner", "rare", { speed: 79, stamina: 81, handling: 82, acceleration: 77, luck: 76, consistency: 88 }, 17, 4, 10, 1090, 2, "medium", "windy", 11)
 ].map((entry) =>
   entry.id === "gigling-18"
     ? {
@@ -583,9 +587,9 @@ export const mockRaces: Race[] = [
 export const mockMetaInsights: MetaInsight[] = [
   {
     id: "meta-01",
-    title: "Volt sprint pressure is rising",
+    title: "Chobo sprint pressure is rising",
     description:
-      "Volt Giglings are converting windy sprint starts into early lane control, especially when acceleration clears 90.",
+      "Chobo Giglings are converting windy sprint starts into early lane control, especially when acceleration clears 90.",
     severity: "positive",
     metricLabel: "7-day sprint win rate",
     metricValue: "38.4%",
@@ -594,11 +598,11 @@ export const mockMetaInsights: MetaInsight[] = [
   },
   {
     id: "meta-02",
-    title: "Rainy long tracks favor Aqua again",
+    title: "Rainy long tracks favor Athena again",
     description:
-      "Aqua handlers regained wet-track dominance after a run of Hydro Bloom and Storm Fin item timings.",
+      "Athena handlers regained wet-track dominance after a run of Hydro Bloom and Storm Fin item timings.",
     severity: "info",
-    metricLabel: "Aqua wet podium rate",
+    metricLabel: "Athena wet podium rate",
     metricValue: "71.8%",
     trendDirection: "up",
     createdAt: "2026-06-21T22:15:00.000Z"
@@ -616,20 +620,20 @@ export const mockMetaInsights: MetaInsight[] = [
   },
   {
     id: "meta-04",
-    title: "Terra marathon floor remains elite",
+    title: "Foxglove marathon floor remains elite",
     description:
-      "Terra Giglings keep outperforming projections in muddy marathons because stamina and consistency stay stable late.",
+      "Foxglove Giglings keep outperforming projections in muddy marathons because stamina and consistency stay stable late.",
     severity: "positive",
-    metricLabel: "Terra average placement",
+    metricLabel: "Foxglove average placement",
     metricValue: "2.8",
     trendDirection: "flat",
     createdAt: "2026-06-20T14:40:00.000Z"
   },
   {
     id: "meta-05",
-    title: "Shadow fog setups are volatile",
+    title: "Archon fog setups are volatile",
     description:
-      "Shadow Giglings still create upsets in fog, but recent item defense counters lowered their conversion rate.",
+      "Archon Giglings still create upsets in fog, but recent item defense counters lowered their conversion rate.",
     severity: "warning",
     metricLabel: "Fog upset delta",
     metricValue: "-8.7%",
@@ -638,11 +642,11 @@ export const mockMetaInsights: MetaInsight[] = [
   },
   {
     id: "meta-06",
-    title: "Neutral consistency is underrated",
+    title: "Summoner consistency is underrated",
     description:
-      "Balanced Neutral Giglings are quietly gaining podium equity in medium-distance races with dry or windy tracks.",
+      "Balanced Summoner Giglings are quietly gaining podium equity in medium-distance races with dry or windy tracks.",
     severity: "info",
-    metricLabel: "Neutral medium podiums",
+    metricLabel: "Summoner medium podiums",
     metricValue: "52.9%",
     trendDirection: "up",
     createdAt: "2026-06-19T10:20:00.000Z"
@@ -718,9 +722,9 @@ export const mockStableSummaries: StableSummary[] = [
       {
         id: "stable-alert-03",
         type: "meta",
-        title: "Volt acceleration meta is live",
+        title: "Chobo acceleration meta is live",
         description:
-          "High-acceleration Volt Giglings are outpacing the field in the first split this week."
+          "High-acceleration Chobo Giglings are outpacing the field in the first split this week."
       }
     ]
   }
@@ -740,7 +744,7 @@ export const mockRivalryRecords: RivalryRecord[] = [
     relationshipType: "nemesis",
     notes: [
       "Lane Witch often saves defensive items for the finish split.",
-      "Shadow Spindle has beaten Volt Vandal twice in fog-heavy medium races."
+      "Archon racer Shadow Spindle has beaten Volt Vandal twice in fog-heavy medium races."
     ]
   },
   {
@@ -771,7 +775,7 @@ export const mockRivalryRecords: RivalryRecord[] = [
     mostRecentRaceId: "race-019",
     relationshipType: "ally",
     notes: [
-      "Rainline shares Aqua-heavy race reads and rarely targets ByteBender with sabotage.",
+      "Rainline shares Athena-heavy race reads and rarely targets ByteBender with sabotage.",
       "Both stables benefit when wet-track fields are loaded with low-handling entrants."
     ]
   },

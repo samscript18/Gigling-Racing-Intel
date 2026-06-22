@@ -17,19 +17,19 @@ Finally, I would open a race detail page and show the "Why Winner Won" and "Why 
    Search or filter by faction, rarity, weather, or distance. Open a Gigling detail page and show stats, career summary, race history, performance by weather and distance, traits, recommended conditions, and risk warnings.
 
 3. Open `/races`.
-   Switch between live, recent, and historical tabs. Open a race detail page. Show final placements, item timeline, payout transaction placeholder, winner highlight, similar races, and the explanation panels.
+   Switch between live, recent, and historical tabs. Open a race detail page. Show final placements, item timeline, payout transaction reference, winner highlight, similar races, and the explanation panels.
 
 4. Open `/predictor`.
    Select conditions and entrants, run the prediction, and explain that the model is intentionally transparent rather than claiming guaranteed accuracy.
 
 5. Open `/stable`.
-   Show the mock connected wallet state, owned Giglings, best and weakest Gigling, suggested races, risk alerts, and stable performance chart.
+   Show the connected demo wallet state, owned Giglings, best and weakest Gigling, suggested races, risk alerts, and stable performance chart.
 
 6. Open `/rivals`, `/leaderboard`, and `/reports`.
    Show community utility: rivals/allies/nemesis, ranked Giglings and players, and shareable report cards for social posts.
 
 7. Close with integration readiness.
-   The app reads the public Gigaverse Racing REST API, prepares PetRacingSystem contract reads through viem, and falls back to realistic centralized mock data if external services fail.
+   The app reads the public Gigaverse Racing REST API, prepares PetRacingSystem contract reads through viem, and falls back to a realistic centralized demo dataset if external services fail.
 
 ## One Sentence Close
 

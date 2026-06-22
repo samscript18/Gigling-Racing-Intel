@@ -178,10 +178,25 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
               </div>
               <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
                 <p className="text-xs uppercase tracking-[0.2em] text-white/38">Payout Tx</p>
-                <p className="mt-2 truncate text-sm font-black text-cyan-racing">
-                  {race.payoutTxHash ?? "Pending settlement"}
+                {race.payoutTxHash ? (
+                  <a
+                    className="mt-2 block truncate text-sm font-black text-cyan-racing transition hover:text-white"
+                    href={`https://abscan.org/tx/${race.payoutTxHash}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {race.payoutTxHash}
+                  </a>
+                ) : (
+                  <p className="mt-2 truncate text-sm font-black text-white/56">
+                    Pending settlement
+                  </p>
+                )}
+                <p className="mt-1 text-sm text-white/46">
+                  {race.payoutTxHash
+                    ? "Open transaction on Abstract Explorer"
+                    : "Explorer link appears after settlement"}
                 </p>
-                <p className="mt-1 text-sm text-white/46">Explorer link placeholder</p>
               </div>
             </div>
           </div>

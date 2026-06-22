@@ -1,13 +1,32 @@
 import { LeaderboardHub } from "@/components/leaderboard/leaderboard-hub";
 import { PageHeader } from "@/components/shared/page-header";
 import {
-  leaderboardGiglings,
-  leaderboardPlayers,
-  mockFactionPerformance,
-  recentCompletedRaces
-} from "@/lib/gigaverse/mock-data";
+  getFactionPerformanceFromRaces
+} from "@/lib/gigaverse/analytics";
+import {
+  fetchGiglings,
+  fetchLeaderboardPlayers,
+  fetchRaces
+} from "@/lib/gigaverse/api-client";
 
-export default function LeaderboardPage() {
+export default async function LeaderboardPage() {
+  const [giglings, players, races] = await Promise.all([
+    fetchGiglings(),
+    fetchLeaderboardPlayers(),
+    fetchRaces()
+  ]);
+  const leaderboardGiglings = [...giglings].sort(
+    (first, second) => second.winRate - first.winRate
+  );
+  const recentCompletedRaces = races
+    .filter((race) => race.status === "completed")
+    .sort(
+      (first, second) =>
+        new Date(second.endedAt ?? second.startedAt ?? 0).getTime() -
+        new Date(first.endedAt ?? first.startedAt ?? 0).getTime()
+    );
+  const factionPerformance = getFactionPerformanceFromRaces(races);
+
   return (
     <div>
       <PageHeader
@@ -16,9 +35,9 @@ export default function LeaderboardPage() {
         title="Leaderboard"
       />
       <LeaderboardHub
-        factions={mockFactionPerformance}
+        factions={factionPerformance}
         giglings={leaderboardGiglings}
-        players={leaderboardPlayers}
+        players={players}
         races={recentCompletedRaces}
       />
     </div>

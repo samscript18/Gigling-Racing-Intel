@@ -13,6 +13,7 @@ import {
   isRecord,
   normalizeAddress
 } from "./adapters";
+import { getFactionPerformanceFromRaces } from "./analytics";
 import { readRaceContract } from "./contract-client";
 import {
   activeRaces,
@@ -143,6 +144,54 @@ function extractOwnedGiglingIds(ownerAddress: string, races: Race[]) {
   return Array.from(new Set(ids));
 }
 
+function getRaceGiglingIds(races: Race[]) {
+  return Array.from(
+    new Set(
+      races.flatMap((race) => race.participants.map((participant) => participant.giglingId))
+    )
+  );
+}
+
+async function enrichRacesWithGiglings(races: Race[]) {
+  const giglingIds = getRaceGiglingIds(races);
+
+  if (giglingIds.length === 0) {
+    return races;
+  }
+
+  const giglings = await fetchGiglingsByIds(giglingIds);
+
+  if (giglings.length === 0) {
+    return races;
+  }
+
+  return races.map((race) => ({
+    ...race,
+    participants: race.participants.map((participant) => {
+      const gigling = giglings.find((entry) => entry.id === participant.giglingId);
+
+      return {
+        ...participant,
+        giglingName: gigling?.name ?? participant.giglingName,
+        ownerName: gigling?.ownerName ?? participant.ownerName,
+        faction: gigling?.faction ?? participant.faction,
+        rarity: gigling?.rarity ?? participant.rarity,
+        performanceScore:
+          participant.performanceScore ??
+          (gigling
+            ? Math.round(
+                (gigling.stats.speed +
+                  gigling.stats.stamina +
+                  gigling.stats.handling +
+                  gigling.stats.consistency) /
+                  4
+              )
+            : undefined)
+      };
+    })
+  }));
+}
+
 function buildGlobalStatsInsight(payload: unknown): MetaInsight | undefined {
   const data = isRecord(payload) && isRecord(payload.data) ? payload.data : undefined;
 
@@ -244,7 +293,7 @@ export async function fetchRaces() {
   });
   const remoteRaces = adaptApiRaces(payload);
 
-  return remoteRaces.length > 0 ? remoteRaces : mockRaceList();
+  return remoteRaces.length > 0 ? enrichRacesWithGiglings(remoteRaces) : mockRaceList();
 }
 
 export async function fetchRaceById(id: string) {
@@ -253,7 +302,7 @@ export async function fetchRaceById(id: string) {
   const remoteRace = adaptApiRace(payload);
 
   if (remoteRace) {
-    return remoteRace;
+    return (await enrichRacesWithGiglings([remoteRace]))[0] ?? remoteRace;
   }
 
   const contractRace = await readRaceContract(id);
@@ -360,7 +409,7 @@ export async function fetchPlayerRaceHistory(ownerAddress: string) {
   });
   const remoteRaces = adaptApiRaces(payload);
 
-  return remoteRaces.length > 0 ? remoteRaces : mockRaceList();
+  return remoteRaces.length > 0 ? enrichRacesWithGiglings(remoteRaces) : mockRaceList();
 }
 
 export async function fetchPayouts(ownerAddress: string) {
@@ -372,12 +421,19 @@ export async function fetchHostEligibility(ownerAddress: string) {
 }
 
 export async function fetchMetaData() {
-  const statsPayload = await requestGigaverseJson("/stats");
+  const [statsPayload, races] = await Promise.all([
+    requestGigaverseJson("/stats"),
+    fetchRaces()
+  ]);
   const liveInsight = buildGlobalStatsInsight(statsPayload);
+  const factionPerformance = getFactionPerformanceFromRaces(races);
+  const hasIndexedFactionResults = factionPerformance.some((entry) => entry.races > 0);
 
   return {
     insights: liveInsight ? [liveInsight, ...mockMetaInsights] : mockMetaInsights,
-    factionPerformance: mockFactionPerformance
+    factionPerformance: hasIndexedFactionResults
+      ? factionPerformance
+      : mockFactionPerformance
   };
 }
 

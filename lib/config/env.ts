@@ -4,6 +4,8 @@ import { isAddress } from "viem";
 const DEFAULT_APP_NAME = "Gigling Racing Intel";
 const DEFAULT_CHAIN_ID = 2741;
 const DEFAULT_GIGAVERSE_API_BASE_URL = "https://gigaverse.io/api/racing";
+const DEFAULT_PET_RACING_SYSTEM_ADDRESS =
+  "0xF6Ed2a53F311352c869e268601AAe5B78B9a9650" as Address;
 const DEFAULT_SITE_URL = "https://gigling-racing-intel.vercel.app";
 
 function cleanEnvValue(value: string | undefined) {
@@ -42,9 +44,9 @@ export const appEnv = {
     readPublicUrl(process.env.NEXT_PUBLIC_GIGAVERSE_API_BASE_URL) ??
     DEFAULT_GIGAVERSE_API_BASE_URL,
   abstractRpcUrl: readPublicUrl(process.env.NEXT_PUBLIC_ABSTRACT_RPC_URL),
-  petRacingSystemAddress: readPublicAddress(
-    process.env.NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS
-  ),
+  petRacingSystemAddress:
+    readPublicAddress(process.env.NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS) ??
+    DEFAULT_PET_RACING_SYSTEM_ADDRESS,
   chainId: readPublicNumber(process.env.NEXT_PUBLIC_CHAIN_ID, DEFAULT_CHAIN_ID)
 } as const;
 
@@ -53,5 +55,8 @@ export function hasGigaverseApiConfig() {
 }
 
 export function hasGigaverseContractConfig() {
-  return Boolean(appEnv.abstractRpcUrl && appEnv.petRacingSystemAddress);
+  return Boolean(
+    appEnv.petRacingSystemAddress &&
+      (appEnv.chainId === DEFAULT_CHAIN_ID || appEnv.abstractRpcUrl)
+  );
 }

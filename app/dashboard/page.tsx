@@ -10,28 +10,47 @@ import { RaceCard } from "@/components/shared/race-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import {
   getDashboardRaceMix,
+  getFactionPerformanceFromRaces,
   getFactionDashboardData,
   getHighestWinRateGigling,
   getRaceConditionTrend,
   getTopFaction
 } from "@/lib/gigaverse/analytics";
 import {
-  activeRaces,
-  leaderboardGiglings,
-  mockFactionPerformance,
-  mockGiglings,
-  mockMetaInsights,
-  mockRaces,
-  recentCompletedRaces
-} from "@/lib/gigaverse/mock-data";
+  fetchGiglings,
+  fetchMetaData,
+  fetchRaces
+} from "@/lib/gigaverse/api-client";
 import { formatPercent, formatToken } from "@/lib/utils/format";
 
-export default function DashboardPage() {
-  const topGigling = getHighestWinRateGigling(mockGiglings);
-  const topFaction = getTopFaction(mockFactionPerformance);
-  const raceMix = getDashboardRaceMix(mockRaces);
-  const factionChartData = getFactionDashboardData(mockFactionPerformance);
-  const raceTrendData = getRaceConditionTrend(mockRaces);
+export default async function DashboardPage() {
+  const [races, giglings, metaData] = await Promise.all([
+    fetchRaces(),
+    fetchGiglings(),
+    fetchMetaData()
+  ]);
+  const activeRaces = races.filter(
+    (race) => race.status === "live" || race.status === "scheduled"
+  );
+  const recentCompletedRaces = races
+    .filter((race) => race.status === "completed")
+    .sort(
+      (first, second) =>
+        new Date(second.endedAt ?? second.startedAt ?? 0).getTime() -
+        new Date(first.endedAt ?? first.startedAt ?? 0).getTime()
+    );
+  const leaderboardGiglings = [...giglings].sort(
+    (first, second) => second.winRate - first.winRate
+  );
+  const factionPerformance = getFactionPerformanceFromRaces(races);
+  const topGigling = getHighestWinRateGigling(giglings);
+  const topFaction = getTopFaction(factionPerformance);
+  const raceMix = getDashboardRaceMix(races);
+  const factionChartData = getFactionDashboardData(factionPerformance);
+  const raceTrendData = getRaceConditionTrend(races);
+  const averageConditionScore =
+    raceTrendData.reduce((total, entry) => total + entry.conditionScore, 0) /
+    Math.max(raceTrendData.length, 1);
 
   return (
     <div>
@@ -56,10 +75,10 @@ export default function DashboardPage() {
           detail={`${raceMix.statusCounts.live} live / ${raceMix.statusCounts.scheduled} scheduled`}
           icon="flag"
           label="Races Tracked"
-          value={`${mockRaces.length}`}
+          value={`${races.length}`}
         />
         <MetricCard
-          detail={`${topFaction.faction} faction leads this mock week`}
+          detail={`${topFaction.faction} faction leads indexed races`}
           icon="barChart"
           label="Top Faction"
           tone="emerald"
@@ -124,7 +143,7 @@ export default function DashboardPage() {
         <section>
           <SectionHeader description="The highest-signal meta cards for the current race week." title="Meta Shift Alerts" />
           <div className="space-y-4">
-            {mockMetaInsights.slice(0, 2).map((insight) => (
+            {metaData.insights.slice(0, 2).map((insight) => (
               <InsightCard key={insight.id} insight={insight} />
             ))}
           </div>
@@ -133,7 +152,7 @@ export default function DashboardPage() {
 
       <div className="mt-6 grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
         <section>
-          <SectionHeader description="Top mock Giglings by win rate and recent form." title="Top Giglings" />
+          <SectionHeader description="Top Giglings by win rate and recent form." title="Top Giglings" />
           <div className="space-y-4">
             {leaderboardGiglings.slice(0, 3).map((gigling) => (
               <GiglingCard key={gigling.id} compact gigling={gigling} />
@@ -153,17 +172,14 @@ export default function DashboardPage() {
                   Completed
                 </p>
                 <p className="mt-2 text-3xl font-black text-white">{raceMix.completedCount}</p>
-                <p className="mt-1 text-sm text-white/48">sample races analyzed</p>
+                <p className="mt-1 text-sm text-white/48">indexed races analyzed</p>
               </div>
               <div className="rounded-lg border border-orange-racing/22 bg-orange-racing/8 p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-orange-racing">
                   Volatility
                 </p>
                 <p className="mt-2 text-3xl font-black text-white">
-                  {Math.round(
-                    raceTrendData.reduce((total, entry) => total + entry.conditionScore, 0) /
-                      raceTrendData.length
-                  )}
+                  {Math.round(averageConditionScore)}
                 </p>
                 <p className="mt-1 text-sm text-white/48">avg condition score</p>
               </div>

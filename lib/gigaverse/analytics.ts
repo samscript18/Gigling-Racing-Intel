@@ -19,6 +19,47 @@ export function getTopFaction(performance: FactionPerformance[]) {
   return [...performance].sort((first, second) => second.winRate - first.winRate)[0];
 }
 
+export function getFactionPerformanceFromRaces(races: Race[]): FactionPerformance[] {
+  const factions: GiglingFaction[] = [
+    "crusader",
+    "overseer",
+    "athena",
+    "archon",
+    "foxglove",
+    "summoner",
+    "chobo",
+    "gigus"
+  ];
+  const completedParticipants = races
+    .filter((race) => race.status === "completed")
+    .flatMap((race) => race.participants)
+    .filter((participant) => typeof participant.finalPosition === "number");
+
+  return factions.map((faction) => {
+    const entries = completedParticipants.filter(
+      (participant) => participant.faction === faction
+    );
+    const wins = entries.filter((participant) => participant.finalPosition === 1).length;
+    const podiums = entries.filter(
+      (participant) =>
+        typeof participant.finalPosition === "number" && participant.finalPosition <= 3
+    ).length;
+    const placementTotal = entries.reduce(
+      (total, participant) => total + (participant.finalPosition ?? 0),
+      0
+    );
+
+    return {
+      faction,
+      races: entries.length,
+      wins,
+      winRate: Number(((wins / Math.max(entries.length, 1)) * 100).toFixed(1)),
+      podiumRate: Number(((podiums / Math.max(entries.length, 1)) * 100).toFixed(1)),
+      averagePlacement: Number((placementTotal / Math.max(entries.length, 1)).toFixed(2))
+    };
+  });
+}
+
 export function getGiglingRaceHistory(giglingId: string, races: Race[]) {
   return races
     .filter((race) =>
@@ -176,7 +217,7 @@ export function getRecommendedRaceConditions(gigling: Gigling) {
     },
     {
       label: `${getConditionLabel(gigling.bestWeather)} weather`,
-      description: `Best weather signal from its mock career profile.`
+      description: "Best weather signal from its indexed career profile."
     }
   ];
 
@@ -226,7 +267,7 @@ export function getGiglingRiskWarnings(gigling: Gigling) {
   }
 
   if (warnings.length === 0) {
-    warnings.push("No severe red flags from the current mock profile; still account for item timing and live field strength.");
+    warnings.push("No severe red flags from the current indexed profile; still account for item timing and live field strength.");
   }
 
   return warnings;

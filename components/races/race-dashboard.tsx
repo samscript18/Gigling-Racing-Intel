@@ -255,7 +255,7 @@ export function RaceDashboard() {
   if (isError || !races) {
     return (
       <ErrorState
-        description="The race query layer could not load the centralized mock race feed."
+        description="The race query layer could not load the live feed or fallback race dataset."
         title="Race feed unavailable"
       />
     );

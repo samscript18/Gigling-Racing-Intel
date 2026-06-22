@@ -11,9 +11,9 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - Race dashboard and race detail pages with placements, item timelines, winner explanations, and "Why Did I Lose?" analysis.
 - Meta insights for faction, rarity, weather, distance, and track condition performance.
 - Race Intelligence Engine with weighted scoring, probabilities, confidence, risk, warnings, and plain-English reasoning.
-- Stable manager with mock wallet state, owned Giglings, race suggestions, and risk alerts.
+- Stable manager with a connected demo wallet state, owned Giglings, race suggestions, and risk alerts.
 - Rivalry intelligence, leaderboards, and shareable report cards.
-- Mock-first data layer that can be replaced by Gigaverse REST and contract reads without rewriting UI components.
+- Live Gigaverse REST integration with resilient centralized demo fallback and isolated contract reads.
 
 ## Tech Stack
 
@@ -52,24 +52,17 @@ npm run build
 
 ## Environment
 
-Copy `.env.example` to `.env.local` for local integration work. The public REST client defaults to `https://gigaverse.io/api/racing`; leave the other values blank until contract reads are configured.
+Copy `.env.example` to `.env.local` only when overriding the verified public defaults.
 
 ```txt
 NEXT_PUBLIC_APP_NAME=Gigling Racing Intel
-NEXT_PUBLIC_GIGAVERSE_API_BASE_URL=
-NEXT_PUBLIC_ABSTRACT_RPC_URL=
-NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS=
-NEXT_PUBLIC_CHAIN_ID=
-```
-
-Recommended Gigaverse values for real integration:
-
-```txt
 NEXT_PUBLIC_GIGAVERSE_API_BASE_URL=https://gigaverse.io/api/racing
+NEXT_PUBLIC_ABSTRACT_RPC_URL=https://api.mainnet.abs.xyz
+NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS=0xF6Ed2a53F311352c869e268601AAe5B78B9a9650
 NEXT_PUBLIC_CHAIN_ID=2741
 ```
 
-Set `NEXT_PUBLIC_ABSTRACT_RPC_URL` to an Abstract RPC endpoint and `NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS` to the deployed PetRacingSystem contract address when enabling viem reads. If the REST API is unreachable or returns an unexpected payload, the app falls back to the centralized mock dataset.
+The app uses the Abstract mainnet public RPC and the verified PetRacingSystem deployment by default. Override these values only for another network or provider. If the REST API or RPC is unreachable, the app falls back to the centralized demo dataset.
 
 ## Data Architecture
 
@@ -80,15 +73,15 @@ UI Page
   -> Feature Component
     -> Hook
       -> Query function
-        -> Mock data or Gigaverse API/contract client
+        -> Gigaverse API/contract client or demo fallback
           -> Adapter
             -> App types
 ```
 
 Important files:
 
-- `lib/gigaverse/mock-data.ts` - centralized realistic mock data.
-- `lib/gigaverse/api-client.ts` - REST fetch functions with mock fallback.
+- `lib/gigaverse/mock-data.ts` - centralized realistic demo/fallback data.
+- `lib/gigaverse/api-client.ts` - REST fetch functions with demo fallback.
 - `lib/gigaverse/contract-client.ts` - viem public client and PetRacingSystem read helpers.
 - `lib/gigaverse/adapters.ts` - normalization from API/contract payloads into app types.
 - `lib/gigaverse/query-keys.ts` - centralized TanStack Query keys.
@@ -101,8 +94,8 @@ Important files:
 The current integration layer is live-connected and safe by default:
 
 - Public race, race detail, pet, leaderboard, stats, and player race-history reads target the Gigaverse Racing REST API.
-- If the API responds with an error, malformed payload, or empty result, the app falls back to mock data.
-- If contract env vars are missing, contract helpers return a typed `not-configured` result.
+- If the API responds with an error, malformed payload, or empty result, the app falls back to demo data.
+- Contract reads default to Abstract mainnet and return typed status results when unavailable.
 - API and contract responses are adapted before reaching components.
 
 Prepared REST paths include:
@@ -128,13 +121,13 @@ Prepared contract reads include:
 - `getPetPayout`
 - `canPetRace`
 
-Realtime can be added after the REST and contract reads are verified. Gigaverse racing uses Pusher-compatible channels such as `race-{raceId}`, `racing.lobby`, and `global.chat.racing`.
+Gigaverse racing exposes Pusher-compatible realtime channels such as `race-{raceId}`, `racing.lobby`, and `global.chat.racing`; the current dashboard uses resilient REST refreshes and is structured for realtime subscriptions.
 
-## Mock Data
+## Demo Fallback Data
 
-The mock dataset includes 24 Giglings, 20 races, 12 players, 6 factions, multiple rarities, weather conditions, track conditions, item usage examples, stable summaries, meta insights, rivalry records, leaderboards, and prediction examples.
+The fallback dataset includes 24 Giglings, 20 races, 12 players, all 8 official factions, multiple rarities, weather conditions, track conditions, item usage examples, stable summaries, meta insights, rivalry records, leaderboards, and prediction examples.
 
-Mock data remains the reliable demo path until live API and contract responses are verified.
+Live Gigaverse REST data is the primary path. The fallback dataset keeps every route demo-ready during upstream outages.
 
 ## Hackathon Demo Flow
 
@@ -145,7 +138,7 @@ Mock data remains the reliable demo path until live API and contract responses a
 5. Open `/predictor` and run the Race Intelligence Engine.
 6. Open `/stable`, `/rivals`, `/leaderboard`, and `/reports` to show player utility and community sharing.
 
-Submission-ready copy lives in `docs/SUBMISSION.md`, and the 30-90 second demo script lives in `docs/DEMO-WALKTHROUGH.md`.
+Submission-ready copy lives in `docs/SUBMISSION.md`, the 30-90 second demo script lives in `docs/DEMO-WALKTHROUGH.md`, and the judging review lives in `docs/ALIGNMENT-AUDIT.md`.
 
 ## Scripts
 

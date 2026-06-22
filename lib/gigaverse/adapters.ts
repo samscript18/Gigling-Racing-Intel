@@ -19,12 +19,14 @@ type UnknownRecord = Record<string, unknown>;
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const factionValues: GiglingFaction[] = [
-  "ember",
-  "aqua",
-  "terra",
-  "volt",
-  "shadow",
-  "neutral"
+  "crusader",
+  "overseer",
+  "athena",
+  "archon",
+  "foxglove",
+  "summoner",
+  "chobo",
+  "gigus"
 ];
 const rarityValues: GiglingRarity[] = [
   "common",
@@ -142,37 +144,35 @@ function normalizeTokenId(value: unknown, fallback: string) {
 }
 
 function normalizeFaction(value: unknown): GiglingFaction {
-  const raw = normalizeText(value, "neutral").toLowerCase();
+  const raw = normalizeText(value, "gigus").toLowerCase();
 
   if (factionValues.includes(raw as GiglingFaction)) {
     return raw as GiglingFaction;
   }
 
   const mapped: Record<string, GiglingFaction> = {
-    "1": "ember",
-    "2": "shadow",
-    "3": "aqua",
-    "4": "shadow",
-    "5": "terra",
-    "6": "neutral",
-    "7": "volt",
-    "8": "neutral",
-    archon: "shadow",
-    athena: "aqua",
-    chobo: "volt",
-    crusader: "ember",
-    earth: "terra",
-    fire: "ember",
-    foxglove: "terra",
-    gigus: "neutral",
-    lightning: "volt",
-    none: "neutral",
-    overseer: "shadow",
-    summoner: "neutral",
-    water: "aqua"
+    "1": "crusader",
+    "2": "overseer",
+    "3": "athena",
+    "4": "archon",
+    "5": "foxglove",
+    "6": "summoner",
+    "7": "chobo",
+    "8": "gigus",
+    aqua: "athena",
+    earth: "foxglove",
+    ember: "crusader",
+    fire: "crusader",
+    lightning: "chobo",
+    neutral: "gigus",
+    none: "gigus",
+    shadow: "archon",
+    terra: "foxglove",
+    volt: "chobo",
+    water: "athena"
   };
 
-  return mapped[raw] ?? "neutral";
+  return mapped[raw] ?? "gigus";
 }
 
 function normalizeRarity(value: unknown): GiglingRarity {

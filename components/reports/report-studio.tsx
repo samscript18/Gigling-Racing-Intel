@@ -26,6 +26,22 @@ function winnerName(race: Race) {
   );
 }
 
+async function copyText(value: string) {
+  if (navigator.clipboard) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
+}
+
 function ActionButton({
   action,
   activeAction,
@@ -42,6 +58,11 @@ function ActionButton({
   };
   const Icon = icons[action];
   const active = activeAction === action;
+  const activeLabels: Record<ShareAction, string> = {
+    copy: "Copied",
+    share: "Shared",
+    download: "Downloaded"
+  };
 
   return (
     <button
@@ -54,7 +75,7 @@ function ActionButton({
       onClick={() => onAction(action)}
     >
       {active ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-      {active ? "Queued" : action}
+      {active ? activeLabels[action] : action}
     </button>
   );
 }
@@ -113,15 +134,60 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
   );
   const socialCopy = `${gigling.name} watchlist: ${formatPercent(gigling.winRate)} win rate, ${formatPercent(gigling.podiumRate)} podium rate, best fit ${gigling.bestDistance}/${gigling.bestWeather}. Race #${race.raceNumber} winner: ${winnerName(race)}. Meta signal: ${insight.title} (${insight.metricValue}). Powered by Gigling Racing Intel.`;
 
-  function handleAction(action: ShareAction) {
-    setActiveAction(action);
+  async function handleAction(action: ShareAction) {
+    try {
+      if (action === "copy") {
+        await copyText(socialCopy);
+      }
+
+      if (action === "share") {
+        if (navigator.share) {
+          await navigator.share({
+            title: "Gigling Racing Intel Report",
+            text: socialCopy,
+            url: window.location.href
+          });
+        } else {
+          await copyText(socialCopy);
+        }
+      }
+
+      if (action === "download") {
+        const report = [
+          "Gigling Racing Intel Report",
+          "",
+          socialCopy,
+          "",
+          `Gigling: ${gigling.name} (${gigling.tokenId})`,
+          `Win rate: ${formatPercent(gigling.winRate)}`,
+          `Podium rate: ${formatPercent(gigling.podiumRate)}`,
+          `Race: #${race.raceNumber}`,
+          `Winner: ${winnerName(race)}`,
+          `Meta signal: ${insight.title} - ${insight.metricValue}`
+        ].join("\n");
+        const blob = new Blob([report], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `gigling-racing-intel-${gigling.id}-race-${race.raceNumber}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      setActiveAction(action);
+      window.setTimeout(() => setActiveAction(undefined), 2200);
+    } catch {
+      setActiveAction(undefined);
+    }
   }
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard detail="Gigling, race, meta" icon="fileStack" label="Report Types" value="3" />
-        <MetricCard detail="Copy/share/download placeholders" icon="share" label="Share Actions" tone="violet" value="Ready" />
+        <MetricCard detail="Copy/share/download actions" icon="share" label="Share Actions" tone="violet" value="Ready" />
         <MetricCard detail={gigling.name} icon="trophy" label="Feature Gigling" tone="orange" value={formatPercent(gigling.winRate)} />
         <MetricCard detail={insight.title} icon="sparkles" label="Meta Alert" tone="emerald" value={insight.metricValue} />
       </div>

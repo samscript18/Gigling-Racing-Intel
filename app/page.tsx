@@ -11,11 +11,12 @@ import Link from "next/link";
 import { InsightCard } from "@/components/shared/insight-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import {
-  leaderboardGiglings,
-  mockMetaInsights,
-  mockRaces,
-  mockStableSummaries
-} from "@/lib/gigaverse/mock-data";
+  fetchGiglings,
+  fetchMetaData,
+  fetchRaces,
+  fetchStable
+} from "@/lib/gigaverse/api-client";
+import { GIGAVERSE_OWNER_ADDRESS } from "@/lib/gigaverse/mock-data";
 import { formatPercent } from "@/lib/utils/format";
 
 const features = [
@@ -45,9 +46,16 @@ const features = [
   }
 ];
 
-export default function LandingPage() {
-  const topGigling = leaderboardGiglings[0];
-  const stable = mockStableSummaries[0];
+export default async function LandingPage() {
+  const [giglings, races, metaData, stable] = await Promise.all([
+    fetchGiglings(),
+    fetchRaces(),
+    fetchMetaData(),
+    fetchStable(GIGAVERSE_OWNER_ADDRESS)
+  ]);
+  const topGigling = [...giglings].sort(
+    (first, second) => second.winRate - first.winRate
+  )[0];
 
   return (
     <main className="min-h-screen overflow-hidden">
@@ -117,32 +125,32 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              detail="Mock races with participants, placements, items, and payouts"
+              detail="Indexed races with participants, placements, items, and payouts"
               icon="flag"
               label="Races Tracked"
               tone="cyan"
-              value={`${mockRaces.length}`}
+              value={`${races.length}`}
             />
             <MetricCard
-              detail={`${topGigling.name} leads the current mock field`}
+              detail={`${topGigling.name} leads the current indexed field`}
               icon="bot"
               label="Top Win Rate"
               tone="orange"
               value={formatPercent(topGigling.winRate)}
             />
             <MetricCard
-              detail="Wallet-ready mock connected stable"
+              detail="Wallet-ready connected stable"
               icon="wallet"
               label="Stable Wins"
               tone="emerald"
-              value={`${stable.totalWins}`}
+              value={`${stable?.totalWins ?? 0}`}
             />
             <MetricCard
               detail="Faction, rarity, weather, distance, and track reads"
               icon="barChart"
               label="Meta Signals"
               tone="violet"
-              value={`${mockMetaInsights.length}`}
+              value={`${metaData.insights.length}`}
             />
           </div>
 
@@ -165,21 +173,21 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-14 grid gap-5 lg:grid-cols-3">
-            <InsightCard insight={mockMetaInsights[0]} />
+            <InsightCard insight={metaData.insights[0]} />
             <article className="premium-panel rounded-lg p-5">
               <div className="relative z-10">
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-racing">
                   Stable Manager
                 </p>
                 <h2 className="mt-3 text-2xl font-black text-white">
-                  {`${stable.ownerName}'s Stable`}
+                  {`${stable?.ownerName ?? "Connected"} Stable`}
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-white/56">
                   Owned Giglings, best race suggestions, alerts, and wallet-ready ownership structure
-                  are modeled before real contract reads are connected.
+                  are ready for live ownership and contract reads.
                 </p>
                 <div className="mt-5 rounded-lg border border-emerald-racing/25 bg-emerald-racing/10 p-4 text-emerald-racing">
-                  {stable.giglings.length} Giglings / {formatPercent(stable.averageWinRate)} average win rate
+                  {stable?.giglings.length ?? 0} Giglings / {formatPercent(stable?.averageWinRate ?? 0)} average win rate
                 </div>
               </div>
             </article>
@@ -190,12 +198,12 @@ export default function LandingPage() {
                 </p>
                 <h2 className="mt-3 text-2xl font-black text-white">Built for Gigling Racing</h2>
                 <p className="mt-3 text-sm leading-6 text-white/56">
-                  Every route, type, mock record, and UI label is centered on Giglings, stables,
+                  Every route, type, data record, and UI label is centered on Giglings, stables,
                   race conditions, items, rivals, and meta shifts.
                 </p>
                 <div className="mt-5 flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-white/62">
                   <ShieldCheck className="h-5 w-5 text-emerald-racing" />
-                  Vercel-ready structure, mock-first data, future-safe integration seams.
+                  Vercel-ready structure, live data, resilient fallbacks, future-safe integration seams.
                 </div>
               </div>
             </article>

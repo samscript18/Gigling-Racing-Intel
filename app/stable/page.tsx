@@ -5,7 +5,7 @@ export default function StablePage() {
   return (
     <div>
       <PageHeader
-        description="Use the mock connected wallet state to inspect owned Giglings, stable strength, suggested races, and risk alerts before real ownership reads are connected."
+        description="Use the connected demo wallet to inspect owned Giglings, stable strength, suggested races, and risk alerts through the wallet-ready ownership layer."
         eyebrow="Stable Manager"
         title="Stable"
       />
