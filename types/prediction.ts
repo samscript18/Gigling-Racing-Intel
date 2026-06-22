@@ -23,6 +23,9 @@ export type PredictionResult = {
   participants: PredictionParticipantResult[];
   topPickGiglingId: string;
   confidence: number;
+  fieldVolatility: number;
+  topPickEdge: number;
+  recommendation: string;
   summary: string;
   warnings: string[];
 };

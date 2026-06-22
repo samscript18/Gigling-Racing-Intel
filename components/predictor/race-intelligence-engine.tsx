@@ -440,6 +440,31 @@ export function RaceIntelligenceEngine() {
                 <p className="mt-4 text-sm leading-6 text-white/64">{prediction.summary}</p>
               </div>
 
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
+                  <p className="text-xs text-white/38">Edge</p>
+                  <p className="mt-1 text-lg font-black text-cyan-racing">
+                    +{prediction.topPickEdge}%
+                  </p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
+                  <p className="text-xs text-white/38">Volatility</p>
+                  <p className="mt-1 text-lg font-black text-orange-racing">
+                    {prediction.fieldVolatility}/100
+                  </p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
+                  <p className="text-xs text-white/38">Confidence</p>
+                  <p className="mt-1 text-lg font-black text-emerald-racing">
+                    {prediction.confidence}%
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-4 rounded-lg border border-cyan-racing/20 bg-cyan-racing/8 p-4 text-sm leading-6 text-white/68">
+                {prediction.recommendation}
+              </p>
+
               <div className="mt-4 space-y-3">
                 {prediction.warnings.map((warning) => (
                   <p key={warning} className="flex gap-2 rounded-lg border border-orange-racing/20 bg-orange-racing/8 p-3 text-sm leading-6 text-white/64">

@@ -185,6 +185,24 @@ function RivalryCard({ record, index }: { record: RivalryRecord; index: number }
   );
 }
 
+function getRelationshipStory(record: RivalryRecord) {
+  const name = record.rivalName ?? shortenAddress(record.rivalAddress);
+
+  if (record.relationshipType === "nemesis") {
+    return `${name} is controlling this matchup. Review the shared race conditions before taking the next rematch.`;
+  }
+
+  if (record.relationshipType === "ally") {
+    return `${name} repeatedly reaches the front with your stable, making this a useful co-podium benchmark.`;
+  }
+
+  if (record.winsAgainstRival > record.lossesAgainstRival) {
+    return `Your stable currently leads ${name}, but the repeat sample is still small enough to move quickly.`;
+  }
+
+  return `${name} holds a narrow edge. A condition-matched rematch is the cleanest test of the matchup.`;
+}
+
 export function RivalryIntelligence({ records, races }: RivalryIntelligenceProps) {
   const [activeFilter, setActiveFilter] = useState<RelationshipFilter>("all");
   const filteredRecords = useMemo(
@@ -275,6 +293,53 @@ export function RivalryIntelligence({ records, races }: RivalryIntelligenceProps
               <p className="mt-2 text-3xl font-black text-white">{allies.length}</p>
               <p className="mt-1 text-sm text-white/48">cooperative signals</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-panel rounded-lg p-5">
+        <div className="relative z-10">
+          <SectionHeader
+            description="Head-to-head pressure from final placements, with live encounter context."
+            title="Relationship Pressure Map"
+          />
+          <div className="space-y-4">
+            {records.slice(0, 5).map((record) => {
+              const decided = Math.max(
+                record.winsAgainstRival + record.lossesAgainstRival,
+                1
+              );
+              const winShare = (record.winsAgainstRival / decided) * 100;
+
+              return (
+                <div
+                  key={record.id}
+                  className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.035] p-4 lg:grid-cols-[0.7fr_1fr_1.3fr] lg:items-center"
+                >
+                  <div>
+                    <RelationshipBadge type={record.relationshipType} />
+                    <p className="mt-2 font-black text-white">
+                      {record.rivalName ?? shortenAddress(record.rivalAddress)}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs font-bold text-white/48">
+                      <span>{record.winsAgainstRival} wins</span>
+                      <span>{record.lossesAgainstRival} losses</span>
+                    </div>
+                    <div className="mt-2 flex h-2 overflow-hidden rounded-full bg-orange-racing/35">
+                      <span
+                        className="h-full bg-emerald-racing"
+                        style={{ width: `${winShare}%` }}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-sm leading-6 text-white/58">
+                    {getRelationshipStory(record)}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

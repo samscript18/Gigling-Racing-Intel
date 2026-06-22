@@ -153,6 +153,26 @@ export function runRacePrediction(
     );
 
   const topPick = results[0];
+  const secondPick = results[1];
+  const topPickEdge = topPick
+    ? Number(
+        (topPick.estimatedWinProbability - (secondPick?.estimatedWinProbability ?? 0)).toFixed(1)
+      )
+    : 0;
+  const riskPressure = results.reduce(
+    (total, result) =>
+      total + (result.riskLevel === "high" ? 90 : result.riskLevel === "medium" ? 58 : 28),
+    0
+  ) / Math.max(results.length, 1);
+  const conditionPressure =
+    input.trackCondition === "chaotic"
+      ? 92
+      : ["muddy", "icy"].includes(input.trackCondition)
+        ? 76
+        : ["stormy", "foggy"].includes(input.weather)
+          ? 68
+          : 38;
+  const fieldVolatility = Math.round((riskPressure + conditionPressure) / 2);
   const fieldWarning =
     input.trackCondition === "chaotic"
       ? "Chaotic tracks increase item and luck variance, so confidence should be treated carefully."
@@ -163,12 +183,19 @@ export function runRacePrediction(
     participants: results,
     topPickGiglingId: topPick?.giglingId ?? "",
     confidence: topPick?.confidence ?? 0,
+    fieldVolatility,
+    topPickEdge,
+    recommendation: topPick
+      ? topPick.confidence >= 72 && topPickEdge >= 3 && topPick.riskLevel !== "high"
+        ? `${topPick.giglingName} has a meaningful model edge, but confirm live eligibility and entry cost before entering.`
+        : `The field is tightly matched or volatile. Treat ${topPick.giglingName} as a watchlist leader rather than an automatic entry.`
+      : "Add a complete field before making an entry decision.",
     summary: topPick
       ? `${topPick.giglingName} is the model's current top pick with ${topPick.estimatedWinProbability}% estimated win probability.`
       : "Add at least one Gigling to generate a prediction.",
     warnings: [
       fieldWarning,
-      "Official Gigaverse race mechanics or live contract data may change this estimate when integrated."
+      "Resolver items, late field changes, and future Gigaverse mechanic updates can change the final outcome."
     ]
   };
 }

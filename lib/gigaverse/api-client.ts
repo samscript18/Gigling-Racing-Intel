@@ -305,7 +305,14 @@ function buildRivalries(ownerAddress: string, races: Race[]): RivalryRecord[] {
   const owner = normalizeAddress(ownerAddress);
   const opponents = new Map<
     string,
-    { encounters: number; losses: number; mostRecentRaceId: string; name?: string; wins: number }
+    {
+      encounters: number;
+      losses: number;
+      mostRecentRaceId: string;
+      name?: string;
+      sharedPodiums: number;
+      wins: number;
+    }
   >();
 
   for (const race of races) {
@@ -347,11 +354,16 @@ function buildRivalries(ownerAddress: string, races: Race[]): RivalryRecord[] {
         losses: 0,
         mostRecentRaceId: race.id,
         name: rival.name,
+        sharedPodiums: 0,
         wins: 0
       };
       current.encounters += 1;
       current.name = current.name ?? rival.name;
       current.mostRecentRaceId = race.id;
+
+      if (ownerBest <= 3 && rival.position <= 3) {
+        current.sharedPodiums += 1;
+      }
 
       if (ownerBest < rival.position) {
         current.wins += 1;
@@ -368,7 +380,14 @@ function buildRivalries(ownerAddress: string, races: Race[]): RivalryRecord[] {
     .map(([rivalAddress, record]) => {
       const decided = record.wins + record.losses;
       const winRate = decided > 0 ? Number(((record.wins / decided) * 100).toFixed(1)) : 0;
-      const relationshipType = winRate <= 35 ? "nemesis" : "rival";
+      const coPodiumRate = record.sharedPodiums / record.encounters;
+      const isBalanced = Math.abs(record.wins - record.losses) <= 1;
+      const relationshipType =
+        winRate <= 35 && record.losses >= 2
+          ? "nemesis"
+          : record.sharedPodiums >= 2 && coPodiumRate >= 0.5 && isBalanced
+            ? "ally"
+            : "rival";
 
       return {
         id: `rivalry-${owner}-${rivalAddress}`,
@@ -383,7 +402,8 @@ function buildRivalries(ownerAddress: string, races: Race[]): RivalryRecord[] {
         relationshipType,
         notes: [
           `${record.encounters} shared races found in the live player history.`,
-          `${record.wins} head-to-head wins and ${record.losses} losses were calculated from final placements.`
+          `${record.wins} head-to-head wins and ${record.losses} losses were calculated from final placements.`,
+          `${record.sharedPodiums} co-podium finish${record.sharedPodiums === 1 ? "" : "es"} shape the ${relationshipType} classification.`
         ]
       } satisfies RivalryRecord;
     })

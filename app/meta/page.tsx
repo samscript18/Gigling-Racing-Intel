@@ -9,6 +9,7 @@ import {
   getDistanceImpactData,
   getFactionPerformanceFromRaces,
   getFactionDashboardData,
+  getMetaActionPlan,
   getRarityPerformanceData,
   getTopEmergingGiglings,
   getTopFaction,
@@ -62,6 +63,7 @@ export default async function MetaPage() {
   const distanceData = getDistanceImpactData(races);
   const trackData = getTrackConditionTrendData(races);
   const weeklySummary = getWeeklyTrendSummary(races, factionPerformance);
+  const actionPlan = getMetaActionPlan(races, factionPerformance);
   const highestVolatility = [...weatherData].sort(
     (first, second) => second.volatility - first.volatility
   )[0];
@@ -134,6 +136,31 @@ export default async function MetaPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <SectionHeader
+          description="Live signals translated into cautious entry and stable-management decisions."
+          title="What To Do Next"
+        />
+        <div className="grid gap-4 lg:grid-cols-3">
+          {actionPlan.map((item, index) => (
+            <article key={item.title} className="premium-panel rounded-lg p-5">
+              <div className="relative z-10">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-lg font-black text-white">{item.title}</p>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-cyan-racing/25 bg-cyan-racing/10 text-sm font-black text-cyan-racing">
+                    {index + 1}
+                  </span>
+                </div>
+                <p className="mt-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-racing">
+                  {item.signal}
+                </p>
+                <p className="mt-3 text-sm leading-6 text-white/60">{item.action}</p>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 

@@ -453,6 +453,68 @@ export function explainLoss(race: Race, gigling: Gigling) {
   ];
 }
 
+export function getLossActionPlan(race: Race, gigling: Gigling, winner?: Gigling) {
+  const actions: string[] = [];
+  const relevantStats: Array<keyof Gigling["stats"]> =
+    race.distance === "sprint"
+      ? ["speed", "acceleration"]
+      : race.distance === "long" || race.distance === "marathon"
+        ? ["stamina", "consistency"]
+        : race.trackCondition === "wet" || race.trackCondition === "muddy" || race.trackCondition === "icy"
+          ? ["handling", "consistency"]
+          : ["speed", "handling"];
+  const weakestRelevantStat = [...relevantStats].sort(
+    (first, second) => gigling.stats[first] - gigling.stats[second]
+  )[0];
+  const targetedItemCount = race.participants.reduce(
+    (total, participant) =>
+      total +
+      participant.itemsUsed.filter((item) => item.targetGiglingId === gigling.id).length,
+    0
+  );
+
+  if (
+    race.distance !== "unknown" &&
+    gigling.bestDistance !== "unknown" &&
+    race.distance !== gigling.bestDistance
+  ) {
+    actions.push(
+      `Prioritize ${getConditionLabel(gigling.bestDistance)} entries; this ${getConditionLabel(race.distance)} race did not match the strongest indexed distance profile.`
+    );
+  }
+
+  if (
+    race.weather !== "unknown" &&
+    gigling.bestWeather !== "unknown" &&
+    race.weather !== gigling.bestWeather
+  ) {
+    actions.push(
+      `Wait for ${getConditionLabel(gigling.bestWeather)} weather when entry cost is meaningful, or lower confidence when racing in ${getConditionLabel(race.weather)} conditions.`
+    );
+  }
+
+  if (winner && gigling.stats[weakestRelevantStat] < winner.stats[weakestRelevantStat]) {
+    const gap = winner.stats[weakestRelevantStat] - gigling.stats[weakestRelevantStat];
+    actions.push(
+      `The winner held a ${gap}-point ${getConditionLabel(weakestRelevantStat)} edge in a race-relevant stat; compare that gap before entering a similar field.`
+    );
+  }
+
+  if (targetedItemCount > 0) {
+    actions.push(
+      `${targetedItemCount} recorded item action${targetedItemCount === 1 ? " was" : "s were"} aimed at this Gigling; favor defensive utility or a lower-item lobby when available.`
+    );
+  }
+
+  if (actions.length === 0) {
+    actions.push(
+      `The indexed profile shows no single dominant mismatch. Recheck live field strength, lane composition, and item rules before entering a similar race.`
+    );
+  }
+
+  return actions.slice(0, 4);
+}
+
 export function getRaceFieldSummary(race: Race, giglings: Gigling[]) {
   const fieldGiglings = race.participants
     .map((participant) => giglings.find((gigling) => gigling.id === participant.giglingId))
@@ -802,6 +864,40 @@ export function getWeeklyTrendSummary(races: Race[], performance: FactionPerform
       `Condition fit is most important when stormy, foggy, muddy, icy, or chaotic tags stack.`
     ]
   };
+}
+
+export function getMetaActionPlan(races: Race[], performance: FactionPerformance[]) {
+  const topFaction = getTopFaction(performance);
+  const weatherData = getWeatherImpactData(races).filter((entry) => entry.races > 0);
+  const distanceData = getDistanceImpactData(races).filter((entry) => entry.races > 0);
+  const trackData = getTrackConditionTrendData(races).filter((entry) => entry.races > 0);
+  const volatileWeather = [...weatherData].sort(
+    (first, second) => second.volatility - first.volatility
+  )[0];
+  const volatileTrack = [...trackData].sort(
+    (first, second) => second.upsetRate - first.upsetRate
+  )[0];
+  const prizeDistance = [...distanceData].sort(
+    (first, second) => second.averagePrize - first.averagePrize
+  )[0];
+
+  return [
+    {
+      title: `Scout ${getConditionLabel(topFaction.faction)} fields`,
+      signal: `${topFaction.winRate}% faction win rate across ${topFaction.races} completed entries`,
+      action: `Treat the leading faction as field-strength context, then compare individual condition fit before copying the trend.`
+    },
+    {
+      title: `Price in ${volatileWeather?.weather ?? "weather"} variance`,
+      signal: `${volatileWeather?.volatility ?? 0}/100 weather volatility and ${volatileTrack?.upsetRate ?? 0}% ${volatileTrack?.trackCondition ?? "track"} upset rate`,
+      action: `Reduce conviction in volatile combinations and prefer consistent, high-handling Giglings when those tags stack.`
+    },
+    {
+      title: `Review ${prizeDistance?.distance ?? "distance"} value`,
+      signal: `${(prizeDistance?.averagePrize ?? 0).toFixed(2)} average live prize pool across ${prizeDistance?.races ?? 0} samples`,
+      action: `Compare the larger prize opportunity with entry fee, field quality, and your stable's distance fit before committing.`
+    }
+  ];
 }
 
 export function getTopEmergingGiglings(giglings: Gigling[]) {

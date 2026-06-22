@@ -18,6 +18,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import {
   explainLoss,
   explainWinner,
+  getLossActionPlan,
   getRaceFieldSummary,
   getRaceLoserCandidate,
   getRaceWinner,
@@ -67,6 +68,9 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
   };
   const winner = getRaceWinner(race, fieldGiglings);
   const selectedLoss = getRaceLoserCandidate(race, fieldGiglings);
+  const lossActionPlan = selectedLoss
+    ? getLossActionPlan(race, selectedLoss.gigling, winner)
+    : [];
   const fieldSummary = getRaceFieldSummary(race, fieldGiglings);
   const participantColumns: DataTableColumn<RaceParticipant>[] = [
     {
@@ -257,6 +261,24 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
                 <p className="text-sm text-white/54">Winner is pending until the race completes.</p>
               )}
             </div>
+            {selectedLoss ? (
+              <div className="mt-5 border-t border-white/10 pt-5">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-racing">
+                  Next Race Adjustments
+                </p>
+                <ol className="mt-3 space-y-2">
+                  {lossActionPlan.map((action, index) => (
+                    <li
+                      key={action}
+                      className="flex gap-3 rounded-lg border border-cyan-racing/15 bg-cyan-racing/[0.06] p-3 text-sm leading-6 text-white/68"
+                    >
+                      <span className="font-black text-cyan-racing">{index + 1}</span>
+                      <span>{action}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
           </div>
         </section>
 
