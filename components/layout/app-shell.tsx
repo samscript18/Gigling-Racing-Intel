@@ -31,6 +31,12 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-transparent">
+      <a
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:border focus:border-cyan-racing/40 focus:bg-[#07111f] focus:px-4 focus:py-2 focus:text-sm focus:font-black focus:text-cyan-racing"
+        href="#main-content"
+      >
+        Skip to race intel
+      </a>
       <Sidebar />
       <div
         className={cn(
@@ -84,6 +90,7 @@ export function AppShell({ children }: AppShellProps) {
           key={pathname}
           animate={{ opacity: 1, y: 0 }}
           className="content-grid mx-auto max-w-7xl bg-racing-grid px-4 py-6 sm:px-6 lg:py-8"
+          id="main-content"
           initial={{ opacity: 0, y: 12 }}
           transition={{ duration: 0.26, ease: "easeOut" }}
         >

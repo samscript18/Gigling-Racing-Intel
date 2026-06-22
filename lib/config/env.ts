@@ -4,6 +4,7 @@ import { isAddress } from "viem";
 const DEFAULT_APP_NAME = "Gigling Racing Intel";
 const DEFAULT_CHAIN_ID = 2741;
 const DEFAULT_GIGAVERSE_API_BASE_URL = "https://gigaverse.io/api/racing";
+const DEFAULT_SITE_URL = "https://gigling-racing-intel.vercel.app";
 
 function cleanEnvValue(value: string | undefined) {
   const trimmed = value?.trim();
@@ -36,6 +37,7 @@ function readPublicAddress(value: string | undefined) {
 
 export const appEnv = {
   appName: cleanEnvValue(process.env.NEXT_PUBLIC_APP_NAME) ?? DEFAULT_APP_NAME,
+  siteUrl: readPublicUrl(process.env.NEXT_PUBLIC_SITE_URL) ?? DEFAULT_SITE_URL,
   gigaverseApiBaseUrl:
     readPublicUrl(process.env.NEXT_PUBLIC_GIGAVERSE_API_BASE_URL) ??
     DEFAULT_GIGAVERSE_API_BASE_URL,

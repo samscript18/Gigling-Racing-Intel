@@ -145,6 +145,8 @@ Mock data remains the reliable demo path until live API and contract responses a
 5. Open `/predictor` and run the Race Intelligence Engine.
 6. Open `/stable`, `/rivals`, `/leaderboard`, and `/reports` to show player utility and community sharing.
 
+Submission-ready copy lives in `docs/SUBMISSION.md`, and the 30-90 second demo script lives in `docs/DEMO-WALKTHROUGH.md`.
+
 ## Scripts
 
 ```bash

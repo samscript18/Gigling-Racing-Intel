@@ -39,6 +39,15 @@ a {
   text-decoration: none;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(32, 247, 255, 0.82);
+  outline-offset: 3px;
+}
+
 button,
 input,
 select,
@@ -80,5 +89,16 @@ textarea {
   .racing-divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(32, 247, 255, 0.65), rgba(255, 138, 31, 0.54), transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

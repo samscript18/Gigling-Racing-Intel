@@ -8,6 +8,7 @@ import { appEnv } from "@/lib/config/env";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(appEnv.siteUrl),
   title: {
     default: appEnv.appName,
     template: `%s | ${appEnv.appName}`
@@ -22,7 +23,25 @@ export const metadata: Metadata = {
     "Race Intelligence",
     "Web3 Gaming",
     "Hackathon"
-  ]
+  ],
+  openGraph: {
+    title: appEnv.appName,
+    description:
+      "A premium analytics and decision-making layer for Gigaverse Gigling Racing players.",
+    siteName: appEnv.appName,
+    type: "website",
+    url: appEnv.siteUrl
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: appEnv.appName,
+    description:
+      "Inspect Giglings, analyze races, predict outcomes, manage stables, track rivals, and share racing intel."
+  },
+  robots: {
+    index: true,
+    follow: true
+  }
 };
 
 export const viewport: Viewport = {
