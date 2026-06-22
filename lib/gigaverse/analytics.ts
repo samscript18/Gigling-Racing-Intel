@@ -5,6 +5,7 @@ import type {
   Race,
   RaceDistance,
   RaceWeather,
+  StableLeaderboardEntry,
   TrackCondition
 } from "@/types";
 
@@ -17,6 +18,58 @@ export function getHighestWinRateGigling(giglings: Gigling[]) {
 
 export function getTopFaction(performance: FactionPerformance[]) {
   return [...performance].sort((first, second) => second.winRate - first.winRate)[0];
+}
+
+export function getStableLeaderboard(giglings: Gigling[]): StableLeaderboardEntry[] {
+  const grouped = new Map<string, Gigling[]>();
+
+  for (const gigling of giglings) {
+    if (gigling.ownerAddress === "0x0000000000000000000000000000000000000000") {
+      continue;
+    }
+
+    grouped.set(gigling.ownerAddress, [
+      ...(grouped.get(gigling.ownerAddress) ?? []),
+      gigling
+    ]);
+  }
+
+  return [...grouped.entries()]
+    .map(([ownerAddress, stableGiglings]) => {
+      const totalRaces = stableGiglings.reduce(
+        (total, gigling) => total + gigling.totalRaces,
+        0
+      );
+      const totalWins = stableGiglings.reduce(
+        (total, gigling) => total + gigling.wins,
+        0
+      );
+      const bestGigling = [...stableGiglings].sort(
+        (first, second) => second.winRate - first.winRate
+      )[0];
+
+      return {
+        id: `stable-${ownerAddress}`,
+        ownerAddress,
+        ownerName: stableGiglings.find((gigling) => gigling.ownerName)?.ownerName,
+        stableSize: stableGiglings.length,
+        totalRaces,
+        totalWins,
+        winRate:
+          totalRaces > 0 ? Number(((totalWins / totalRaces) * 100).toFixed(1)) : 0,
+        totalEarnings: stableGiglings.reduce(
+          (total, gigling) => total + gigling.earnings,
+          0
+        ),
+        bestGiglingName: bestGigling?.name ?? "Unavailable"
+      } satisfies StableLeaderboardEntry;
+    })
+    .sort(
+      (first, second) =>
+        second.totalWins - first.totalWins ||
+        second.winRate - first.winRate ||
+        second.totalEarnings - first.totalEarnings
+    );
 }
 
 export function getFactionPerformanceFromRaces(races: Race[]): FactionPerformance[] {

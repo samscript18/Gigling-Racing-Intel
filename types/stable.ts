@@ -20,3 +20,15 @@ export type StableSummary = {
   recommendedRaceIds: string[];
   alerts: StableAlert[];
 };
+
+export type StableLeaderboardEntry = {
+  id: string;
+  ownerAddress: string;
+  ownerName?: string;
+  stableSize: number;
+  totalRaces: number;
+  totalWins: number;
+  winRate: number;
+  totalEarnings: number;
+  bestGiglingName: string;
+};

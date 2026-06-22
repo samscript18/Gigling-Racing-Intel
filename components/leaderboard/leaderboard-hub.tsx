@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Eye } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -21,11 +22,18 @@ import { RaceCard } from "@/components/shared/race-card";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
 import { formatPercent, formatToken, shortenAddress } from "@/lib/utils/format";
-import type { FactionPerformance, Gigling, Player, Race } from "@/types";
+import type {
+  FactionPerformance,
+  Gigling,
+  Player,
+  Race,
+  StableLeaderboardEntry
+} from "@/types";
 
 type LeaderboardTab =
   | "giglings"
   | "players"
+  | "stables"
   | "factions"
   | "streaks"
   | "earnings"
@@ -36,6 +44,7 @@ type LeaderboardHubProps = {
   players: Player[];
   factions: FactionPerformance[];
   races: Race[];
+  stables: StableLeaderboardEntry[];
 };
 
 type TooltipPayload = {
@@ -55,6 +64,7 @@ const tabs: Array<{
 }> = [
   { label: "Top Giglings", value: "giglings" },
   { label: "Top Players", value: "players" },
+  { label: "Top Stables", value: "stables" },
   { label: "Factions", value: "factions" },
   { label: "Streaks", value: "streaks" },
   { label: "Earnings", value: "earnings" },
@@ -94,9 +104,11 @@ export function LeaderboardHub({
   giglings,
   players,
   factions,
-  races
+  races,
+  stables
 }: LeaderboardHubProps) {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>("giglings");
+  const [selectedPlayerId, setSelectedPlayerId] = useState(players[0]?.id ?? "");
 
   const topStreaks = useMemo(
     () => [...giglings].sort((first, second) => second.currentStreak - first.currentStreak),
@@ -118,7 +130,12 @@ export function LeaderboardHub({
     [races]
   );
 
-  if (giglings.length === 0 || players.length === 0 || recentWinners.length === 0) {
+  if (
+    giglings.length === 0 ||
+    players.length === 0 ||
+    recentWinners.length === 0 ||
+    stables.length === 0
+  ) {
     return (
       <EmptyState
         description="Gigaverse responded, but one or more live leaderboard sources are empty. Community rankings need Giglings, players, and completed race results."
@@ -127,7 +144,8 @@ export function LeaderboardHub({
     );
   }
 
-  const highestStreak = topStreaks[0]?.currentStreak ?? 0;
+  const selectedPlayer =
+    players.find((player) => player.id === selectedPlayerId) ?? players[0];
   const chartData = giglings.slice(0, 8).map((gigling) => ({
     name: gigling.name,
     winRate: gigling.winRate,
@@ -156,7 +174,33 @@ export function LeaderboardHub({
     { header: "Wins", cell: (row) => row.wins },
     { header: "Win Rate", cell: (row) => formatPercent(row.winRate) },
     { header: "Stable", cell: (row) => row.stableSize },
-    { header: "Earnings", cell: (row) => formatToken(row.totalEarnings) }
+    { header: "Earnings", cell: (row) => formatToken(row.totalEarnings) },
+    {
+      header: "Scout",
+      cell: (row) => (
+        <button
+          aria-label={`Scout ${row.displayName ?? shortenAddress(row.walletAddress)}`}
+          className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-white/58 transition hover:border-cyan-racing/35 hover:text-cyan-racing"
+          title="Open player spotlight"
+          type="button"
+          onClick={() => setSelectedPlayerId(row.id)}
+        >
+          <Eye className="h-4 w-4" />
+        </button>
+      )
+    }
+  ];
+  const stableColumns: DataTableColumn<StableLeaderboardEntry>[] = [
+    {
+      header: "Stable",
+      cell: (row) => row.ownerName ?? shortenAddress(row.ownerAddress)
+    },
+    { header: "Wallet", cell: (row) => shortenAddress(row.ownerAddress) },
+    { header: "Giglings", cell: (row) => row.stableSize },
+    { header: "Wins", cell: (row) => row.totalWins },
+    { header: "Win Rate", cell: (row) => formatPercent(row.winRate) },
+    { header: "Earnings", cell: (row) => formatToken(row.totalEarnings) },
+    { header: "Ace", cell: (row) => row.bestGiglingName }
   ];
   const factionColumns: DataTableColumn<FactionPerformance>[] = [
     { header: "Faction", cell: (row) => <FactionBadge faction={row.faction} /> },
@@ -197,6 +241,14 @@ export function LeaderboardHub({
             columns={factionColumns}
             data={[...factions].sort((first, second) => second.winRate - first.winRate)}
             getRowKey={(row) => row.faction}
+          />
+        );
+      case "stables":
+        return (
+          <DataTable
+            columns={stableColumns}
+            data={stables.slice(0, 12)}
+            getRowKey={(row) => row.id}
           />
         );
       case "streaks":
@@ -252,11 +304,11 @@ export function LeaderboardHub({
           value={formatToken(players[0].totalEarnings)}
         />
         <MetricCard
-          detail="Highest current streak"
-          icon="medal"
-          label="Win Streak"
+          detail={stables[0].ownerName ?? shortenAddress(stables[0].ownerAddress)}
+          icon="shield"
+          label="Top Stable"
           tone="emerald"
-          value={`${highestStreak}`}
+          value={`${stables[0].totalWins} wins`}
         />
         <MetricCard
           detail={winnerName(recentWinners[0])}
@@ -311,7 +363,7 @@ export function LeaderboardHub({
         <div className="relative z-10">
           <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <SectionHeader
-              description="Switch between top Giglings, players, factions, streaks, earnings, and recent winners."
+              description="Compare Giglings, players, owner-grouped stables, factions, streaks, earnings, and recent winners."
               title="Community Boards"
             />
             <div className="flex flex-wrap gap-2">
@@ -339,6 +391,40 @@ export function LeaderboardHub({
           >
             {renderActiveTable()}
           </motion.div>
+        </div>
+      </section>
+
+      <section className="premium-panel rounded-lg p-5">
+        <div className="relative z-10 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-racing">
+              Player Spotlight
+            </p>
+            <h2 className="mt-3 text-2xl font-black text-white">
+              {selectedPlayer.displayName ?? shortenAddress(selectedPlayer.walletAddress)}
+            </h2>
+            <a
+              className="mt-2 inline-block text-sm text-white/48 transition hover:text-cyan-racing"
+              href={`https://abscan.org/address/${selectedPlayer.walletAddress}`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {selectedPlayer.walletAddress}
+            </a>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              ["Races", selectedPlayer.totalRaces],
+              ["Wins", selectedPlayer.wins],
+              ["Win rate", formatPercent(selectedPlayer.winRate)],
+              ["Stable", selectedPlayer.stableSize]
+            ].map(([label, value]) => (
+              <div key={label} className="min-w-24 border-l border-white/10 px-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-white/38">{label}</p>
+                <p className="mt-2 text-xl font-black text-white">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

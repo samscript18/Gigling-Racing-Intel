@@ -1,7 +1,8 @@
 import { LeaderboardHub } from "@/components/leaderboard/leaderboard-hub";
 import { PageHeader } from "@/components/shared/page-header";
 import {
-  getFactionPerformanceFromRaces
+  getFactionPerformanceFromRaces,
+  getStableLeaderboard
 } from "@/lib/gigaverse/analytics";
 import {
   fetchGiglings,
@@ -28,6 +29,7 @@ export default async function LeaderboardPage() {
         new Date(first.endedAt ?? first.startedAt ?? 0).getTime()
     );
   const factionPerformance = getFactionPerformanceFromRaces(races);
+  const stableLeaderboard = getStableLeaderboard(giglings);
 
   return (
     <div>
@@ -41,6 +43,7 @@ export default async function LeaderboardPage() {
         giglings={leaderboardGiglings}
         players={players}
         races={recentCompletedRaces}
+        stables={stableLeaderboard}
       />
     </div>
   );
