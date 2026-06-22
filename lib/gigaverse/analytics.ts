@@ -5,7 +5,9 @@ import type {
   Race,
   RaceDistance,
   RaceWeather,
+  StableBreedingRecommendation,
   StableLeaderboardEntry,
+  StableRetirementWarning,
   TrackCondition
 } from "@/types";
 
@@ -69,6 +71,95 @@ export function getStableLeaderboard(giglings: Gigling[]): StableLeaderboardEntr
         second.totalWins - first.totalWins ||
         second.winRate - first.winRate ||
         second.totalEarnings - first.totalEarnings
+    );
+}
+
+export function getStableBreedingRecommendations(
+  giglings: Gigling[]
+): StableBreedingRecommendation[] {
+  const pairs: StableBreedingRecommendation[] = [];
+
+  for (let firstIndex = 0; firstIndex < giglings.length; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < giglings.length; secondIndex += 1) {
+      const primary = giglings[firstIndex];
+      const partner = giglings[secondIndex];
+      const combinedCoverage = Object.keys(primary.stats).reduce((total, stat) => {
+        const statName = stat as keyof Gigling["stats"];
+        return total + Math.max(primary.stats[statName], partner.stats[statName]);
+      }, 0) / Object.keys(primary.stats).length;
+      const diversityBonus = primary.faction !== partner.faction ? 4 : 0;
+      const compatibilityScore = Math.min(
+        100,
+        Math.round(combinedCoverage + diversityBonus)
+      );
+      const primaryStrength = Object.entries(primary.stats).sort(
+        (first, second) => second[1] - first[1]
+      )[0];
+      const partnerStrength = Object.entries(partner.stats).sort(
+        (first, second) => second[1] - first[1]
+      )[0];
+
+      pairs.push({
+        id: `breeding-${primary.id}-${partner.id}`,
+        primaryGiglingId: primary.id,
+        partnerGiglingId: partner.id,
+        title: `${primary.name} + ${partner.name}`,
+        compatibilityScore,
+        description:
+          "Complementary racing-profile signal. Confirm live Gigaverse breeding availability and rules before acting.",
+        reasons: [
+          `${primary.name} contributes ${getConditionLabel(primaryStrength[0])} at ${primaryStrength[1]}.`,
+          `${partner.name} contributes ${getConditionLabel(partnerStrength[0])} at ${partnerStrength[1]}.`,
+          primary.faction === partner.faction
+            ? `Both carry the ${getConditionLabel(primary.faction)} faction profile.`
+            : `${getConditionLabel(primary.faction)} and ${getConditionLabel(partner.faction)} broaden condition coverage.`
+        ]
+      });
+    }
+  }
+
+  return pairs
+    .sort((first, second) => second.compatibilityScore - first.compatibilityScore)
+    .slice(0, 3);
+}
+
+export function getStableRetirementWarnings(
+  giglings: Gigling[]
+): StableRetirementWarning[] {
+  if (giglings.length < 2) {
+    return [];
+  }
+
+  const averageRaces =
+    giglings.reduce((total, gigling) => total + gigling.totalRaces, 0) /
+    giglings.length;
+  const averageWinRate =
+    giglings.reduce((total, gigling) => total + gigling.winRate, 0) /
+    giglings.length;
+
+  return giglings
+    .filter(
+      (gigling) =>
+        gigling.totalRaces >= averageRaces &&
+        gigling.winRate < averageWinRate &&
+        gigling.podiumRate < 35
+    )
+    .map(
+      (gigling) =>
+        ({
+          id: `retirement-${gigling.id}`,
+          giglingId: gigling.id,
+          giglingName: gigling.name,
+          severity: gigling.winRate < averageWinRate / 2 ? "high" : "monitor",
+          title:
+            gigling.winRate < averageWinRate / 2
+              ? "Consider a recovery rotation"
+              : "Monitor workload and race fit",
+          description: `${gigling.name} has ${gigling.totalRaces} indexed races with a ${gigling.winRate}% win rate and ${gigling.podiumRate}% podium rate. This is a performance watch, not a protocol retirement requirement.`
+        }) satisfies StableRetirementWarning
+    )
+    .sort((first, second) =>
+      first.severity === second.severity ? 0 : first.severity === "high" ? -1 : 1
     );
 }
 

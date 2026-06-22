@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import type { Address } from "viem";
 
 import {
   fetchHostEligibility,
@@ -10,6 +11,22 @@ import {
   fetchStable
 } from "@/lib/gigaverse/api-client";
 import { gigaverseQueryKeys } from "@/lib/gigaverse/query-keys";
+import { readGiglingRaceEligibility } from "@/lib/gigaverse/contract-client";
+import type { Gigling } from "@/types";
+
+export function useStableEligibility(giglings: Gigling[], ownerAddress?: Address) {
+  return useQueries({
+    queries: giglings.map((gigling) => ({
+      queryKey: gigaverseQueryKeys.giglingEligibility(
+        gigling.id,
+        ownerAddress ?? "disconnected"
+      ),
+      queryFn: () => readGiglingRaceEligibility(gigling.id, ownerAddress as Address),
+      enabled: Boolean(ownerAddress),
+      staleTime: 30_000
+    }))
+  });
+}
 
 export function useStable(ownerAddress?: string) {
   return useQuery({

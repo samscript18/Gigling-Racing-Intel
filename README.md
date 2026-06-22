@@ -11,7 +11,7 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - Race dashboard and race detail pages with placements, item timelines, winner explanations, and "Why Did I Lose?" analysis.
 - Meta insights for faction, rarity, weather, distance, and track condition performance.
 - Race Intelligence Engine with weighted scoring, probabilities, confidence, risk, warnings, and plain-English reasoning.
-- Stable manager with RainbowKit wallet connection, live owned Giglings, race suggestions, and risk alerts.
+- Stable manager with RainbowKit, contract-backed race eligibility, live breeding-profile research, rotation/retirement watches, and race suggestions.
 - Rivalry intelligence, player and live-derived stable leaderboards, profile scouting, and shareable report cards.
 - Live-only Gigaverse REST integration with isolated Abstract contract reads and explicit outage states.
 

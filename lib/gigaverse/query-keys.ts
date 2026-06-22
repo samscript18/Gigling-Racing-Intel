@@ -17,6 +17,8 @@ export const gigaverseQueryKeys = {
     [...gigaverseQueryKeys.all, "payouts", ownerAddress] as const,
   hostEligibility: (ownerAddress: string) =>
     [...gigaverseQueryKeys.all, "host-eligibility", ownerAddress] as const,
+  giglingEligibility: (giglingId: string, ownerAddress: string) =>
+    [...gigaverseQueryKeys.gigling(giglingId), "eligibility", ownerAddress] as const,
   metaInsights: () => [...gigaverseQueryKeys.all, "meta-insights"] as const,
   players: () => [...gigaverseQueryKeys.all, "players"] as const,
   leaderboardPlayers: () => [...gigaverseQueryKeys.players(), "leaderboard"] as const,

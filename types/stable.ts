@@ -32,3 +32,22 @@ export type StableLeaderboardEntry = {
   totalEarnings: number;
   bestGiglingName: string;
 };
+
+export type StableBreedingRecommendation = {
+  id: string;
+  primaryGiglingId: string;
+  partnerGiglingId: string;
+  title: string;
+  compatibilityScore: number;
+  description: string;
+  reasons: string[];
+};
+
+export type StableRetirementWarning = {
+  id: string;
+  giglingId: string;
+  giglingName: string;
+  severity: "monitor" | "high";
+  title: string;
+  description: string;
+};

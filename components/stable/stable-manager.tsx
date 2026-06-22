@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertTriangle, ShieldCheck, Wallet } from "lucide-react";
+import { AlertTriangle, Dna, ShieldAlert, ShieldCheck, Wallet } from "lucide-react";
 import { useAccount } from "wagmi";
 import {
   Area,
@@ -25,7 +25,11 @@ import { RaceCard } from "@/components/shared/race-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { WalletConnectButton } from "@/components/shared/wallet-connect-button";
 import { useRaces } from "@/hooks/use-races";
-import { useStable } from "@/hooks/use-stable";
+import { useStable, useStableEligibility } from "@/hooks/use-stable";
+import {
+  getStableBreedingRecommendations,
+  getStableRetirementWarnings
+} from "@/lib/gigaverse/analytics";
 import { formatPercent, formatToken, shortenAddress } from "@/lib/utils/format";
 
 type TooltipPayload = {
@@ -65,6 +69,7 @@ export function StableManager() {
   const { address, isConnected } = useAccount();
   const { data: stable, error, isLoading, isError } = useStable(address);
   const { data: races } = useRaces();
+  const eligibilityQueries = useStableEligibility(stable?.giglings ?? [], address);
 
   if (!isConnected || !address) {
     return (
@@ -140,6 +145,13 @@ export function StableManager() {
     wins: gigling.wins,
     podiums: gigling.podiums
   }));
+  const breedingRecommendations = getStableBreedingRecommendations(stable.giglings);
+  const retirementWarnings = getStableRetirementWarnings(stable.giglings);
+  const ineligibleGiglings = stable.giglings.filter(
+    (_, index) =>
+      eligibilityQueries[index]?.data?.status === "ok" &&
+      eligibilityQueries[index]?.data?.data === false
+  );
 
   return (
     <div className="space-y-6">
@@ -271,6 +283,93 @@ export function StableManager() {
             </ResponsiveContainer>
           </div>
         </ChartCard>
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-2">
+        <section className="premium-panel rounded-lg p-5">
+          <div className="relative z-10">
+            <SectionHeader
+              description="Profile compatibility derived from live stats; protocol breeding availability remains explicitly unverified."
+              title="Breeding Research"
+            />
+            {breedingRecommendations.length > 0 ? (
+              <div className="space-y-3">
+                {breedingRecommendations.map((recommendation) => (
+                  <div
+                    key={recommendation.id}
+                    className="rounded-lg border border-violet-racing/20 bg-violet-racing/8 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="flex items-center gap-2 font-black text-white">
+                          <Dna className="h-4 w-4 text-violet-200" />
+                          {recommendation.title}
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-white/52">
+                          {recommendation.description}
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-violet-racing/25 bg-violet-racing/10 px-2.5 py-1 text-xs font-black text-violet-100">
+                        {recommendation.compatibilityScore}/100
+                      </span>
+                    </div>
+                    <p className="mt-3 text-xs leading-5 text-white/42">
+                      {recommendation.reasons.join(" ")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm leading-6 text-white/52">
+                At least two live owned Giglings are required for compatibility research.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="premium-panel rounded-lg p-5">
+          <div className="relative z-10">
+            <SectionHeader
+              description="Performance rotation signals plus live PetRacingSystem eligibility checks."
+              title="Retirement & Eligibility Watch"
+            />
+            <div className="space-y-3">
+              {ineligibleGiglings.map((gigling) => (
+                <div
+                  key={`eligibility-${gigling.id}`}
+                  className="rounded-lg border border-red-400/24 bg-red-500/8 p-4"
+                >
+                  <p className="flex items-center gap-2 font-black text-red-100">
+                    <ShieldAlert className="h-4 w-4" />
+                    {gigling.name} cannot currently race
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-white/52">
+                    PetRacingSystem reports a lock, cooldown, or active race-limit condition.
+                  </p>
+                </div>
+              ))}
+              {retirementWarnings.map((warning) => (
+                <div
+                  key={warning.id}
+                  className="rounded-lg border border-orange-racing/22 bg-orange-racing/8 p-4"
+                >
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-racing">
+                    {warning.severity} / {warning.giglingName}
+                  </p>
+                  <p className="mt-2 font-black text-white">{warning.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-white/52">
+                    {warning.description}
+                  </p>
+                </div>
+              ))}
+              {ineligibleGiglings.length === 0 && retirementWarnings.length === 0 ? (
+                <p className="rounded-lg border border-emerald-racing/20 bg-emerald-racing/8 p-4 text-sm leading-6 text-white/58">
+                  No contract eligibility blocks or performance-based rotation warnings are active.
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </section>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[1fr_0.82fr]">
