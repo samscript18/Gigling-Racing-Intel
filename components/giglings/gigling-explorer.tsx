@@ -193,6 +193,7 @@ export function GiglingExplorer() {
           detail={topResult?.name ?? "No match"}
           icon="trophy"
           label="Best Visible"
+          mechanic="winRate"
           tone="orange"
           value={topResult ? formatPercent(topResult.winRate) : "0%"}
         />
@@ -200,6 +201,7 @@ export function GiglingExplorer() {
           detail="Across filtered results"
           icon="barChart"
           label="Avg Win Rate"
+          mechanic="winRate"
           tone="emerald"
           value={formatPercent(averageWinRate)}
         />

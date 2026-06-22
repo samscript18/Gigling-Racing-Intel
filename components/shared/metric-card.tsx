@@ -26,6 +26,8 @@ import {
   Zap
 } from "lucide-react";
 
+import { MechanicTooltip } from "@/components/shared/mechanic-tooltip";
+import type { RacingMechanic } from "@/lib/gigaverse/mechanics";
 import { cn } from "@/lib/utils/cn";
 
 const metricIcons = {
@@ -62,6 +64,7 @@ type MetricCardProps = {
   icon?: MetricIconName;
   tone?: "cyan" | "orange" | "violet" | "emerald";
   className?: string;
+  mechanic?: RacingMechanic;
 };
 
 const toneStyles = {
@@ -77,7 +80,8 @@ export function MetricCard({
   detail,
   icon: Icon,
   tone = "cyan",
-  className
+  className,
+  mechanic
 }: MetricCardProps) {
   const IconComponent = Icon ? metricIcons[Icon] : undefined;
 
@@ -91,7 +95,10 @@ export function MetricCard({
     >
       <div className="relative z-10 flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/42">{label}</p>
+          <div className="flex items-center gap-1">
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/42">{label}</p>
+            {mechanic ? <MechanicTooltip mechanic={mechanic} /> : null}
+          </div>
           <p className="mt-3 text-2xl font-black text-white sm:text-3xl">{value}</p>
           {detail ? <p className="mt-2 text-sm text-white/52">{detail}</p> : null}
         </div>

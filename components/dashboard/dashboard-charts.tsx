@@ -84,6 +84,7 @@ export function DashboardCharts({ factionData, raceTrendData }: DashboardChartsP
     <div className="grid gap-5 xl:grid-cols-2">
       <ChartCard
         description="Win and podium conversion by faction, calculated from indexed race placements."
+        mechanic="faction"
         title="Faction Performance Chart"
       >
         <div className="h-[320px]">
@@ -133,6 +134,7 @@ export function DashboardCharts({ factionData, raceTrendData }: DashboardChartsP
 
       <ChartCard
         description="Condition volatility rises when harsh weather, difficult tracks, and item pressure stack together."
+        mechanic="trackCondition"
         title="Race Condition Trend"
       >
         <div className="h-[320px]">

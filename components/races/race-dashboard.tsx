@@ -309,12 +309,14 @@ export function RaceDashboard() {
           detail={`${raceBuckets.live.length} live or scheduled`}
           icon="flag"
           label="Races In View"
+          mechanic="raceStatus"
           value={`${visibleRaces.length}`}
         />
         <MetricCard
           detail="Visible race pools"
           icon="trophy"
           label="Prize Pool"
+          mechanic="prizePool"
           tone="emerald"
           value={formatToken(totalPrizePool)}
         />
@@ -329,6 +331,7 @@ export function RaceDashboard() {
           detail={`${itemCount} item actions visible`}
           icon="radar"
           label="Avg Prize"
+          mechanic="items"
           tone="orange"
           value={formatToken(averagePrizePool)}
         />

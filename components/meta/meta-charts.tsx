@@ -111,6 +111,7 @@ export function MetaCharts({
     <div className="grid gap-5 xl:grid-cols-2">
       <ChartCard
         description="Win and podium conversion by faction, calculated from completed race placements."
+        mechanic="faction"
         title="Faction Win-Rate Chart"
       >
         <div className="h-[300px]">
@@ -139,6 +140,7 @@ export function MetaCharts({
 
       <ChartCard
         description="Rarity performance reveals whether scarce Giglings are actually converting."
+        mechanic="rarity"
         title="Rarity Performance Chart"
       >
         <div className="h-[300px]">
@@ -157,6 +159,7 @@ export function MetaCharts({
 
       <ChartCard
         description="Weather volatility combines harsh weather weight and observed item pressure."
+        mechanic="weather"
         title="Weather Impact Chart"
       >
         <div className="h-[300px]">
@@ -195,6 +198,7 @@ export function MetaCharts({
 
       <ChartCard
         description="Distance impact compares winning performance with prize pressure by race length."
+        mechanic="distance"
         title="Distance Impact Chart"
       >
         <div className="h-[300px]">
@@ -228,6 +232,7 @@ export function MetaCharts({
       <ChartCard
         className="xl:col-span-2"
         description="Track condition trends show technical pressure and upset rates for route planning."
+        mechanic="trackCondition"
         title="Track Condition Trends"
       >
         <div className="h-[320px]">

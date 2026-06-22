@@ -14,6 +14,7 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - Stable manager with RainbowKit, contract-backed race eligibility, live breeding-profile research, rotation/retirement watches, and race suggestions.
 - Rivalry intelligence, player and live-derived stable leaderboards, profile scouting, and shareable report cards.
 - Live-only Gigaverse REST integration with isolated Abstract contract reads and explicit outage states.
+- Keyboard-accessible mechanic tooltips with plain-English explanations and cautious strategy guidance.
 
 ## Tech Stack
 

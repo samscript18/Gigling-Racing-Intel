@@ -160,8 +160,8 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <MetricCard icon="flag" label="Total Races" value={`${gigling.totalRaces}`} />
-        <MetricCard icon="trophy" label="Win Rate" tone="orange" value={formatPercent(gigling.winRate)} />
-        <MetricCard icon="medal" label="Podium Rate" tone="emerald" value={formatPercent(gigling.podiumRate)} />
+        <MetricCard icon="trophy" label="Win Rate" mechanic="winRate" tone="orange" value={formatPercent(gigling.winRate)} />
+        <MetricCard icon="medal" label="Podium Rate" mechanic="podiumRate" tone="emerald" value={formatPercent(gigling.podiumRate)} />
         <MetricCard icon="coins" label="Earnings" tone="violet" value={formatToken(gigling.earnings)} />
         <MetricCard
           detail={`${completedHistory.length} indexed races`}
@@ -214,7 +214,8 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
           <section className="premium-panel rounded-lg p-5">
             <div className="relative z-10">
               <SectionHeader
-                description="Entry patterns that should favor this Gigling."
+              description="Entry patterns that should favor this Gigling."
+              mechanic="distance"
                 title="Recommended Race Conditions"
               />
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">

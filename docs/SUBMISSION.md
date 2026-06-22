@@ -44,6 +44,7 @@ The app turns raw racing, pet, owner, item, condition, and onchain data into dec
 - Rivalry Intelligence: rival, ally, and nemesis tracking with notes.
 - Leaderboards: top Giglings, players, factions, streaks, earnings, and recent winners.
 - Reports: shareable Gigling, race, and meta report cards with copy, native share, and download actions.
+- Educational layer: accessible mechanic explanations and strategy guidance across metrics, charts, race conditions, and predictions.
 
 ## Why It Fits Gigaverse
 

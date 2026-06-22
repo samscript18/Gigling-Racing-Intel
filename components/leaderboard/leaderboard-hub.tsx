@@ -294,6 +294,7 @@ export function LeaderboardHub({
           detail={giglings[0].name}
           icon="trophy"
           label="Top Gigling"
+          mechanic="winRate"
           tone="orange"
           value={formatPercent(giglings[0].winRate)}
         />
@@ -307,6 +308,7 @@ export function LeaderboardHub({
           detail={stables[0].ownerName ?? shortenAddress(stables[0].ownerAddress)}
           icon="shield"
           label="Top Stable"
+          mechanic="winRate"
           tone="emerald"
           value={`${stables[0].totalWins} wins`}
         />

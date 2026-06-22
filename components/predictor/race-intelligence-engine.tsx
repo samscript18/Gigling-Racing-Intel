@@ -255,6 +255,7 @@ export function RaceIntelligenceEngine() {
           detail={topPick?.giglingName ?? "Run model"}
           icon="trophy"
           label="Suggested Pick"
+          mechanic="confidence"
           tone="orange"
           value={topPick ? formatPercent(topPick.estimatedWinProbability) : "--"}
         />
@@ -262,6 +263,7 @@ export function RaceIntelligenceEngine() {
           detail={`${distance} / ${weather}`}
           icon="radar"
           label="Race Conditions"
+          mechanic="trackCondition"
           value={trackCondition}
         />
         <MetricCard
@@ -275,6 +277,7 @@ export function RaceIntelligenceEngine() {
           detail="Directional, explainable estimate"
           icon="alert"
           label="Model Safety"
+          mechanic="risk"
           tone="violet"
           value="No guarantees"
         />
@@ -403,6 +406,7 @@ export function RaceIntelligenceEngine() {
           <section>
             <SectionHeader
               description="Ranked by estimated win probability with podium chance, confidence, and risk."
+              mechanic="confidence"
               title="Ranked Prediction Results"
             />
             <div className="grid gap-4 lg:grid-cols-2">
@@ -420,6 +424,7 @@ export function RaceIntelligenceEngine() {
             <div className="relative z-10">
               <SectionHeader
                 description="Plain-English explanation and model warnings."
+                mechanic="risk"
                 title="Suggested Best Pick"
               />
               <div className="rounded-lg border border-orange-racing/25 bg-orange-racing/10 p-4">

@@ -94,12 +94,14 @@ export default async function DashboardPage() {
           detail={`${raceMix.statusCounts.live} live / ${raceMix.statusCounts.scheduled} scheduled`}
           icon="flag"
           label="Races Tracked"
+          mechanic="raceStatus"
           value={`${races.length}`}
         />
         <MetricCard
           detail={`${topFaction.faction} faction leads indexed races`}
           icon="barChart"
           label="Top Faction"
+          mechanic="faction"
           tone="emerald"
           value={formatPercent(topFaction.winRate)}
         />
@@ -107,6 +109,7 @@ export default async function DashboardPage() {
           detail={topGigling.name}
           icon="trophy"
           label="Highest Win Rate"
+          mechanic="winRate"
           tone="orange"
           value={formatPercent(topGigling.winRate)}
         />
@@ -114,6 +117,7 @@ export default async function DashboardPage() {
           detail={`${raceMix.itemPressure} item actions detected`}
           icon="radar"
           label="Prize Flow"
+          mechanic="prizePool"
           tone="violet"
           value={formatToken(raceMix.totalPrizePool)}
         />

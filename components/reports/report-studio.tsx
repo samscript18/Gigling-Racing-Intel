@@ -199,8 +199,8 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard detail="Gigling, race, meta" icon="fileStack" label="Report Types" value="3" />
         <MetricCard detail="Copy/share/download actions" icon="share" label="Share Actions" tone="violet" value="Ready" />
-        <MetricCard detail={gigling.name} icon="trophy" label="Feature Gigling" tone="orange" value={formatPercent(gigling.winRate)} />
-        <MetricCard detail={insight.title} icon="sparkles" label="Meta Alert" tone="emerald" value={insight.metricValue} />
+        <MetricCard detail={gigling.name} icon="trophy" label="Feature Gigling" mechanic="winRate" tone="orange" value={formatPercent(gigling.winRate)} />
+        <MetricCard detail={insight.title} icon="sparkles" label="Meta Alert" mechanic="faction" tone="emerald" value={insight.metricValue} />
       </div>
 
       <section className="premium-panel rounded-lg p-5">

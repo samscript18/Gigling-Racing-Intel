@@ -229,7 +229,7 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
 
         <section className="premium-panel rounded-lg p-5">
           <div className="relative z-10">
-            <SectionHeader description="Boosts, sabotages, defenses, and utility items used during the race." title="Items Used Timeline" />
+            <SectionHeader description="Boosts, sabotages, defenses, and utility items used during the race." mechanic="items" title="Items Used Timeline" />
             <ItemTimeline items={itemTimeline} />
           </div>
         </section>
@@ -237,7 +237,7 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
 
       <section className="mt-6 premium-panel rounded-lg p-5">
         <div className="relative z-10">
-          <SectionHeader description="Dense table view for lane, final placement, faction, rarity, and performance score." title="Participants Table" />
+          <SectionHeader description="Dense table view for lane, final placement, faction, rarity, and performance score." mechanic="raceStatus" title="Participants Table" />
             <DataTable columns={participantColumns} data={race.participants} getRowKey={(participant) => participant.giglingId} />
         </div>
       </section>

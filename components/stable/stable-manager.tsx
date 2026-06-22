@@ -189,6 +189,7 @@ export function StableManager() {
           detail={`${stable.totalWins} wins / ${stable.totalRaces} races`}
           icon="trophy"
           label="Average Win"
+          mechanic="winRate"
           tone="emerald"
           value={formatPercent(stable.averageWinRate)}
         />
@@ -196,6 +197,7 @@ export function StableManager() {
           detail={bestGigling.name}
           icon="medal"
           label="Best Gigling"
+          mechanic="podiumRate"
           tone="orange"
           value={formatPercent(bestGigling.winRate)}
         />
@@ -211,6 +213,7 @@ export function StableManager() {
       <div className="grid gap-5 xl:grid-cols-2">
         <ChartCard
           description="Owned Giglings by win and podium rate, useful for entry selection."
+          mechanic="podiumRate"
           title="Stable Performance Chart"
         >
           <div className="h-[320px]">
@@ -331,6 +334,7 @@ export function StableManager() {
           <div className="relative z-10">
             <SectionHeader
               description="Performance rotation signals plus live PetRacingSystem eligibility checks."
+              mechanic="eligibility"
               title="Retirement & Eligibility Watch"
             />
             <div className="space-y-3">

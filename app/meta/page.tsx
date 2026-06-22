@@ -79,6 +79,7 @@ export default async function MetaPage() {
           detail={`${topFaction.faction} leading`}
           icon="barChart"
           label="Top Faction"
+          mechanic="faction"
           value={formatPercent(topFaction.winRate)}
         />
         <MetricCard
@@ -92,6 +93,7 @@ export default async function MetaPage() {
           detail={`${highestVolatility.weather} weather pressure`}
           icon="lineChart"
           label="Volatility"
+          mechanic="weather"
           tone="violet"
           value={`${highestVolatility.volatility}/100`}
         />
@@ -99,6 +101,7 @@ export default async function MetaPage() {
           detail={emerging[0]?.name ?? "Pending"}
           icon="zap"
           label="Emerging Pick"
+          mechanic="podiumRate"
           tone="orange"
           value={formatPercent(emerging[0]?.podiumRate ?? 0)}
         />
