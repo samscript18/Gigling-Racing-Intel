@@ -3,17 +3,18 @@ import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { Providers } from "@/components/layout/providers";
+import { appEnv } from "@/lib/config/env";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Gigling Racing Intel",
-    template: "%s | Gigling Racing Intel"
+    default: appEnv.appName,
+    template: `%s | ${appEnv.appName}`
   },
   description:
     "The intelligence layer for Gigaverse Gigling Racing: race analysis, meta reads, predictor, stable management, rivalries, and shareable reports.",
-  applicationName: "Gigling Racing Intel",
+  applicationName: appEnv.appName,
   keywords: [
     "Gigaverse",
     "Gigling Racing",
