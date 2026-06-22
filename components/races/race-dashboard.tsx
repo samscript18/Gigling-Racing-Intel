@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Flag, Search, SlidersHorizontal, X } from "lucide-react";
+import { Flag, Radio, Search, SlidersHorizontal, WifiOff, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -13,7 +13,7 @@ import { MetricCard } from "@/components/shared/metric-card";
 import { RaceCard } from "@/components/shared/race-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { useRaces } from "@/hooks/use-races";
+import { useRaceRealtime, useRaces } from "@/hooks/use-races";
 import { formatToken } from "@/lib/utils/format";
 import type { Race, RaceDistance, RaceWeather, TrackCondition } from "@/types";
 
@@ -148,6 +148,7 @@ function matchesSearch(race: Race, search: string) {
 
 export function RaceDashboard() {
   const { data: races, error, isLoading, isError } = useRaces();
+  const realtime = useRaceRealtime();
   const [activeTab, setActiveTab] = useState<RaceTab>("live");
   const [search, setSearch] = useState("");
   const [distance, setDistance] = useState<RaceDistance | "all">("all");
@@ -276,6 +277,33 @@ export function RaceDashboard() {
 
   return (
     <div className="space-y-6">
+      <div
+        className={`flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm ${
+          realtime.status === "live"
+            ? "border-emerald-racing/25 bg-emerald-racing/8 text-emerald-racing"
+            : "border-orange-racing/25 bg-orange-racing/8 text-orange-racing"
+        }`}
+        role="status"
+      >
+        <span className="flex items-center gap-2 font-bold">
+          {realtime.status === "live" ? (
+            <Radio className="h-4 w-4" />
+          ) : (
+            <WifiOff className="h-4 w-4" />
+          )}
+          {realtime.status === "live"
+            ? "Abstract race events connected"
+            : realtime.status === "connecting"
+              ? "Connecting to Abstract race events"
+              : "Realtime events unavailable; live REST data remains visible"}
+        </span>
+        <span className="hidden text-xs text-white/48 sm:block">
+          {realtime.lastEventAt
+            ? `Last event ${new Date(realtime.lastEventAt).toLocaleTimeString()}`
+            : "Race feed refreshes when contract events arrive"}
+        </span>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           detail={`${raceBuckets.live.length} live or scheduled`}

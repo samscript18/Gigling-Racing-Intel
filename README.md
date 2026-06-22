@@ -123,7 +123,7 @@ Prepared contract reads include:
 - `getPetPayout`
 - `canPetRace`
 
-Gigaverse racing exposes Pusher-compatible realtime channels such as `race-{raceId}`, `racing.lobby`, and `global.chat.racing`; the current dashboard uses resilient REST refreshes and is structured for realtime subscriptions.
+The race dashboard watches PetRacingSystem lifecycle events over Abstract RPC and invalidates its TanStack Query race cache when races are created, joined, advanced, resolved, claimed, or cancelled. Gigaverse also exposes Pusher-compatible offchain channels for a future tick-level enhancement.
 
 ## Live Data Policy
 

@@ -60,7 +60,7 @@ The entire product is centered on Gigling Racing language and decisions. It does
 ## Future Potential
 
 - Add authenticated item inventory and race chat.
-- Add realtime race updates through GigaSocket/Pusher.
+- Add tick-level GigaSocket/Pusher updates alongside the implemented Abstract contract-event refresh.
 - Add authenticated Gigaverse sessions for protected item, chat, and inventory endpoints.
 - Add richer statistical models after more live race history is indexed.
 - Add player-facing public report URLs and social card image export.

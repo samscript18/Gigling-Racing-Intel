@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 import {
   fetchActiveRaces,
@@ -9,6 +10,39 @@ import {
   fetchRaceState
 } from "@/lib/gigaverse/api-client";
 import { gigaverseQueryKeys } from "@/lib/gigaverse/query-keys";
+import { watchRaceContractEvents } from "@/lib/gigaverse/contract-client";
+
+export type RaceRealtimeStatus = "connecting" | "live" | "unavailable" | "error";
+
+export function useRaceRealtime() {
+  const queryClient = useQueryClient();
+  const [status, setStatus] = useState<RaceRealtimeStatus>("connecting");
+  const [lastEventAt, setLastEventAt] = useState<string>();
+
+  useEffect(() => {
+    setStatus("connecting");
+    const unwatch = watchRaceContractEvents({
+      onEvent: () => {
+        setStatus("live");
+        setLastEventAt(new Date().toISOString());
+        void queryClient.invalidateQueries({ queryKey: gigaverseQueryKeys.races() });
+      },
+      onError: () => {
+        setStatus("error");
+      }
+    });
+
+    if (!unwatch) {
+      setStatus("unavailable");
+      return;
+    }
+
+    setStatus("live");
+    return unwatch;
+  }, [queryClient]);
+
+  return { lastEventAt, status };
+}
 
 export function useRaces() {
   return useQuery({

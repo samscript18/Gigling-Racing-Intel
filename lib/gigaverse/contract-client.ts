@@ -95,6 +95,77 @@ const PET_RACING_VIEW_ABI = [
   }
 ] as const;
 
+const PET_RACING_EVENT_ABI = [
+  {
+    type: "event",
+    name: "RaceCreated",
+    inputs: [
+      { indexed: true, name: "raceId", type: "uint256" },
+      { indexed: true, name: "creator", type: "address" },
+      { indexed: false, name: "fieldSize", type: "uint256" },
+      { indexed: false, name: "trackLength", type: "uint256" },
+      { indexed: false, name: "entryFee", type: "uint256" },
+      { indexed: false, name: "seedPool", type: "uint256" },
+      { indexed: false, name: "creatorFeeBps", type: "uint256" }
+    ]
+  },
+  {
+    type: "event",
+    name: "PetJoined",
+    inputs: [
+      { indexed: true, name: "raceId", type: "uint256" },
+      { indexed: true, name: "petId", type: "uint256" },
+      { indexed: true, name: "owner", type: "address" }
+    ]
+  },
+  {
+    type: "event",
+    name: "PetLeft",
+    inputs: [
+      { indexed: true, name: "raceId", type: "uint256" },
+      { indexed: true, name: "petId", type: "uint256" },
+      { indexed: true, name: "owner", type: "address" }
+    ]
+  },
+  {
+    type: "event",
+    name: "PhaseAdvanced",
+    inputs: [
+      { indexed: true, name: "raceId", type: "uint256" },
+      { indexed: false, name: "newPhase", type: "uint8" }
+    ]
+  },
+  {
+    type: "event",
+    name: "RaceResolved",
+    inputs: [
+      { indexed: true, name: "raceId", type: "uint256" },
+      { indexed: false, name: "finalRanking", type: "uint256[]" },
+      { indexed: false, name: "msFinishTimes", type: "uint256[]" },
+      { indexed: false, name: "extraParamIds", type: "uint256[]" },
+      { indexed: false, name: "extraParamVals", type: "uint256[]" }
+    ]
+  },
+  {
+    type: "event",
+    name: "RewardClaimed",
+    inputs: [
+      { indexed: true, name: "raceId", type: "uint256" },
+      { indexed: true, name: "petId", type: "uint256" },
+      { indexed: true, name: "claimer", type: "address" },
+      { indexed: false, name: "amount", type: "uint256" }
+    ]
+  },
+  {
+    type: "event",
+    name: "RaceCancelled",
+    inputs: [
+      { indexed: true, name: "raceId", type: "uint256" },
+      { indexed: true, name: "cancelledBy", type: "address" }
+    ]
+  }
+] as const;
+
 type ContractReadStatus = "ok" | "not-configured" | "invalid-input" | "error";
 
 type ContractReadResult<T> = {
@@ -211,6 +282,32 @@ export function createGigaversePublicClient() {
   return createPublicClient({
     chain: gigaverseChain,
     transport: http(appEnv.abstractRpcUrl)
+  });
+}
+
+export function watchRaceContractEvents({
+  onEvent,
+  onError
+}: {
+  onEvent: () => void;
+  onError: (error: Error) => void;
+}) {
+  const config = getContractConfig();
+
+  if (!config) {
+    return undefined;
+  }
+
+  return config.client.watchContractEvent({
+    address: config.address,
+    abi: PET_RACING_EVENT_ABI,
+    onError,
+    onLogs: (logs) => {
+      if (logs.length > 0) {
+        onEvent();
+      }
+    },
+    pollingInterval: 4_000
   });
 }
 
