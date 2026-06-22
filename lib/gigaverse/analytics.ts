@@ -8,6 +8,9 @@ import type {
   TrackCondition
 } from "@/types";
 
+const weatherOrder: RaceWeather[] = ["sunny", "rainy", "stormy", "foggy", "windy"];
+const distanceOrder: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
+
 export function getHighestWinRateGigling(giglings: Gigling[]) {
   return [...giglings].sort((first, second) => second.winRate - first.winRate)[0];
 }
@@ -61,6 +64,172 @@ export function summarizeConditionFit(gigling: Gigling, race: Race) {
   }
 
   return matches;
+}
+
+export function getGiglingStatRadarData(gigling: Gigling) {
+  return Object.entries(gigling.stats).map(([stat, value]) => ({
+    stat: getConditionLabel(stat),
+    value
+  }));
+}
+
+export function getGiglingPerformanceByWeather(giglingId: string, races: Race[]) {
+  const history = getGiglingRaceHistory(giglingId, races).filter(
+    ({ participant }) => typeof participant.finalPosition === "number"
+  );
+
+  return weatherOrder.map((weather) => {
+    const entries = history.filter(({ race }) => race.weather === weather);
+    const wins = entries.filter(({ participant }) => participant.finalPosition === 1).length;
+    const podiums = entries.filter(
+      ({ participant }) =>
+        typeof participant.finalPosition === "number" && participant.finalPosition <= 3
+    ).length;
+    const scoreTotal = entries.reduce(
+      (total, { participant }) => total + (participant.performanceScore ?? 0),
+      0
+    );
+
+    return {
+      label: getConditionLabel(weather),
+      races: entries.length,
+      wins,
+      podiums,
+      winRate: Number(((wins / Math.max(entries.length, 1)) * 100).toFixed(1)),
+      podiumRate: Number(((podiums / Math.max(entries.length, 1)) * 100).toFixed(1)),
+      averageScore: Number((scoreTotal / Math.max(entries.length, 1)).toFixed(1))
+    };
+  });
+}
+
+export function getGiglingPerformanceByDistance(giglingId: string, races: Race[]) {
+  const history = getGiglingRaceHistory(giglingId, races).filter(
+    ({ participant }) => typeof participant.finalPosition === "number"
+  );
+
+  return distanceOrder.map((distance) => {
+    const entries = history.filter(({ race }) => race.distance === distance);
+    const wins = entries.filter(({ participant }) => participant.finalPosition === 1).length;
+    const podiums = entries.filter(
+      ({ participant }) =>
+        typeof participant.finalPosition === "number" && participant.finalPosition <= 3
+    ).length;
+    const placementTotal = entries.reduce(
+      (total, { participant }) => total + (participant.finalPosition ?? 0),
+      0
+    );
+
+    return {
+      label: getConditionLabel(distance),
+      races: entries.length,
+      wins,
+      podiums,
+      winRate: Number(((wins / Math.max(entries.length, 1)) * 100).toFixed(1)),
+      podiumRate: Number(((podiums / Math.max(entries.length, 1)) * 100).toFixed(1)),
+      averagePlacement: Number(
+        (placementTotal / Math.max(entries.length, 1)).toFixed(2)
+      )
+    };
+  });
+}
+
+export function getGiglingIntelligenceSummary(gigling: Gigling, races: Race[]) {
+  const history = getGiglingRaceHistory(gigling.id, races);
+  const completedHistory = history.filter(
+    ({ participant }) => typeof participant.finalPosition === "number"
+  );
+  const bestStat = Object.entries(gigling.stats).sort(
+    ([, first], [, second]) => second - first
+  )[0];
+  const averagePlacement =
+    completedHistory.reduce(
+      (total, { participant }) => total + (participant.finalPosition ?? 0),
+      0
+    ) / Math.max(completedHistory.length, 1);
+  const itemExposure = completedHistory.reduce(
+    (total, { race }) =>
+      total +
+      race.participants.reduce(
+        (raceTotal, participant) => raceTotal + participant.itemsUsed.length,
+        0
+      ),
+    0
+  );
+
+  return {
+    headline: `${gigling.name} profiles as a ${gigling.bestDistance} specialist with its clearest edge in ${gigling.bestWeather} weather.`,
+    bullets: [
+      `${getConditionLabel(bestStat[0])} is the peak stat at ${bestStat[1]}/100.`,
+      `Average completed placement in indexed races is P${averagePlacement.toFixed(2)}.`,
+      itemExposure > 0
+        ? `It has raced through ${itemExposure} recorded item actions, so variance history is meaningful.`
+        : "Item exposure is limited, so current projections lean more heavily on stats."
+    ]
+  };
+}
+
+export function getRecommendedRaceConditions(gigling: Gigling) {
+  const recommendations = [
+    {
+      label: `${getConditionLabel(gigling.bestDistance)} races`,
+      description: `Primary distance fit based on historical performance and stat shape.`
+    },
+    {
+      label: `${getConditionLabel(gigling.bestWeather)} weather`,
+      description: `Best weather signal from its mock career profile.`
+    }
+  ];
+
+  if (gigling.stats.handling >= 85) {
+    recommendations.push({
+      label: "Wet or technical tracks",
+      description: "High handling should protect placement on wet, muddy, or icy tracks."
+    });
+  }
+
+  if (gigling.stats.acceleration >= 88) {
+    recommendations.push({
+      label: "High-pressure sprint lobbies",
+      description: "Launch speed can create early lane control before item pressure spikes."
+    });
+  }
+
+  if (gigling.stats.consistency >= 86) {
+    recommendations.push({
+      label: "Low-variance prize races",
+      description: "Consistency makes the Gigling more reliable when the field is evenly matched."
+    });
+  }
+
+  return recommendations.slice(0, 4);
+}
+
+export function getGiglingRiskWarnings(gigling: Gigling) {
+  const warnings: string[] = [];
+
+  if (gigling.currentStreak < 0) {
+    warnings.push(
+      `Recent form is negative (${gigling.currentStreak}), so avoid overpaying entry fees until it stabilizes.`
+    );
+  }
+
+  if (gigling.stats.handling < 75) {
+    warnings.push("Handling is below 75, making wet, muddy, or icy tracks a riskier entry.");
+  }
+
+  if (gigling.stats.luck < 70) {
+    warnings.push("Luck is below 70, so chaotic tracks and sabotage-heavy fields can swing against it.");
+  }
+
+  if (gigling.bestDistance === "sprint" && gigling.stats.stamina < 76) {
+    warnings.push("Sprint profile is strong, but longer races can expose stamina late.");
+  }
+
+  if (warnings.length === 0) {
+    warnings.push("No severe red flags from the current mock profile; still account for item timing and live field strength.");
+  }
+
+  return warnings;
 }
 
 export function explainWinner(race: Race, winner: Gigling) {
@@ -210,7 +379,7 @@ export function getTopEmergingGiglings(giglings: Gigling[]) {
 }
 
 export function getConditionLabel(
-  value: GiglingFaction | RaceDistance | RaceWeather | TrackCondition
+  value: GiglingFaction | RaceDistance | RaceWeather | TrackCondition | string
 ) {
   return value
     .split("-")
