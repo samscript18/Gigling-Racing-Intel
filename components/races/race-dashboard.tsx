@@ -389,7 +389,7 @@ export function RaceDashboard() {
             </button>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[1.35fr_repeat(4,0.75fr)]">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.35fr_repeat(4,0.75fr)]">
             <label className="block">
               <span className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-white/42">
                 Search
@@ -449,7 +449,7 @@ export function RaceDashboard() {
             <motion.div
               key={`${activeTab}-${search}-${distance}-${weather}-${trackCondition}-${itemFilter}`}
               animate={{ opacity: 1, y: 0 }}
-              className="grid gap-4 lg:grid-cols-2"
+              className="grid gap-4 md:grid-cols-2"
               exit={{ opacity: 0, y: -8 }}
               initial={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.2 }}

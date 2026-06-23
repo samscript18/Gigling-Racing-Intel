@@ -30,8 +30,8 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-white/10">
-      <table className="min-w-full divide-y divide-white/10 text-sm">
+    <div className="overflow-x-auto overscroll-x-contain rounded-lg border border-white/10">
+      <table className="min-w-[760px] divide-y divide-white/10 text-sm md:min-w-full">
         <thead className="bg-white/[0.04] text-left text-xs uppercase tracking-[0.18em] text-white/38">
           <tr>
             {columns.map((column) => (

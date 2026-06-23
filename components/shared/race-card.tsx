@@ -41,7 +41,7 @@ export function RaceCard({ race, className }: RaceCardProps) {
           </Link>
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-2 text-sm">
+        <div className="mt-5 grid gap-2 text-sm min-[390px]:grid-cols-3">
           <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Distance</p>
             <p className="mt-1 font-bold capitalize text-white">{race.distance}</p>
@@ -56,7 +56,7 @@ export function RaceCard({ race, className }: RaceCardProps) {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <div className="mt-4 grid gap-2 min-[430px]:grid-cols-2">
           <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-sm text-white/58">
             <Coins className="h-4 w-4 text-emerald-racing" />
             {formatToken(race.prizePool)}

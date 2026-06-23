@@ -238,7 +238,7 @@ export function GiglingExplorer() {
             </button>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[1.3fr_repeat(5,0.75fr)]">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.3fr_repeat(5,0.75fr)]">
             <label className="block">
               <span className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-white/42">
                 Search

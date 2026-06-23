@@ -51,7 +51,7 @@ export function GiglingCard({ gigling, compact = false, className }: GiglingCard
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid gap-2 min-[380px]:grid-cols-3">
           <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Win</p>
             <p className="mt-1 text-sm font-bold text-white">{formatPercent(gigling.winRate)}</p>
@@ -67,7 +67,7 @@ export function GiglingCard({ gigling, compact = false, className }: GiglingCard
         </div>
 
         {!compact ? (
-          <div className="mt-4 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">
+          <div className="mt-4 flex flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 min-[430px]:flex-row min-[430px]:items-center min-[430px]:justify-between">
             <span className="flex items-center gap-2 text-sm text-white/58">
               <Gauge className="h-4 w-4 text-orange-racing" />
               {gigling.bestDistance} / {gigling.bestWeather}

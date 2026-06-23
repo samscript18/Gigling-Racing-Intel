@@ -390,7 +390,7 @@ export function LandingExperience({
 
         <motion.div
           animate="show"
-          className="relative z-10 mx-auto grid max-w-7xl items-center gap-10 pb-16 pt-20 sm:pt-24 lg:grid-cols-[1fr_0.86fr] lg:pt-28"
+          className="relative z-10 mx-auto grid max-w-7xl items-center gap-10 pb-16 pt-16 sm:pt-24 lg:grid-cols-[1fr_0.86fr] lg:pt-28"
           initial="hidden"
           variants={stagger}
         >
@@ -402,7 +402,7 @@ export function LandingExperience({
               GIGATHON 1 - Player Tools & Analytics
             </motion.p>
             <motion.h1
-              className="max-w-5xl text-5xl font-black tracking-normal text-white sm:text-7xl lg:text-8xl"
+              className="max-w-5xl text-4xl font-black tracking-normal text-white min-[430px]:text-5xl sm:text-7xl lg:text-8xl"
               variants={fadeUp}
             >
               Gigling Racing Intel
@@ -504,7 +504,7 @@ export function LandingExperience({
             </p>
           </motion.div>
 
-          <div className="grid gap-4 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {showcaseItems.map((item) => {
               const Icon = item.icon;
 
@@ -574,7 +574,7 @@ export function LandingExperience({
                 The predictor becomes easier to trust when the page explains field volatility,
                 confidence, race conditions, and risk instead of dropping a raw probability.
               </p>
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <RacingSignal label="Active races" tone="text-orange-racing" value={`${activeRaceCount}`} />
                 <RacingSignal label="Avg field" tone="text-cyan-racing" value={averageFieldSize} />
                 <RacingSignal label="Open prizes" tone="text-emerald-racing" value={formatToken(activePrizePool)} />
@@ -593,7 +593,7 @@ export function LandingExperience({
                 </div>
                 <ShieldAlert className="h-8 w-8 text-orange-racing" />
               </div>
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {[
                   {
                     icon: Gauge,
@@ -734,7 +734,7 @@ export function LandingExperience({
                   <h2 className="text-2xl font-black text-white">Make race history social.</h2>
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {["Rival", "Nemesis", "Ally"].map((relationship, index) => (
                   <div
                     key={relationship}
@@ -809,7 +809,7 @@ export function LandingExperience({
                 leading Giglings, faction pressure, and shareable context that can travel into
                 Discord, Telegram, and X.
               </p>
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <RacingSignal label="Top racers" tone="text-cyan-racing" value={`${topGiglings.length}`} />
                 <RacingSignal label="Top factions" tone="text-orange-racing" value={`${factionPerformance.length}`} />
                 <RacingSignal label="Share cards" tone="text-emerald-racing" value="PNG" />

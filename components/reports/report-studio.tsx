@@ -270,11 +270,11 @@ function SharePreview({
           title="Social Preview"
         />
         <div className="overflow-hidden rounded-lg border border-white/10 bg-[#05070d] shadow-glow">
-          <div className="relative aspect-[1200/630] min-h-[260px] p-5 sm:p-6">
+          <div className="relative aspect-[1200/630] min-h-[540px] p-5 sm:min-h-[430px] sm:p-6 md:min-h-0">
             <div className="absolute inset-0 bg-racing-grid opacity-35" />
             <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
             <div className="relative z-10 grid h-full gap-5 md:grid-cols-[0.92fr_1.08fr] md:items-center">
-              <div className="flex min-w-0 items-center gap-4">
+              <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center">
                 <GiglingAvatar
                   className="h-28 w-28 shrink-0 rounded-lg sm:h-36 sm:w-36"
                   imageUrl={gigling.imageUrl}
@@ -531,7 +531,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
           description="Shareable cards for community posts, match recaps, and meta alerts."
           title="Report Cards"
         />
-        <div className="mobile-card-rail grid gap-5 lg:grid-cols-3">
+        <div className="mobile-card-rail grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           <ReportShell accent="cyan" eyebrow="Gigling Report" title={gigling.name}>
             <GiglingAvatar
               className="mt-5 aspect-square max-h-56 rounded-lg"
