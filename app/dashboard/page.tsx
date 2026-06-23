@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CommandCenterBrief } from "@/components/dashboard/command-center-brief";
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
 import { QuickActionGrid } from "@/components/dashboard/quick-action-grid";
 import { GiglingCard } from "@/components/shared/gigling-card";
@@ -70,6 +71,7 @@ export default async function DashboardPage() {
   const averageConditionScore =
     raceTrendData.reduce((total, entry) => total + entry.conditionScore, 0) /
     Math.max(raceTrendData.length, 1);
+  const featuredRace = activeRaces[0] ?? races[0];
 
   return (
     <div>
@@ -87,6 +89,38 @@ export default async function DashboardPage() {
         description="A live-feeling command center for race conditions, top Giglings, active lobbies, and meta pressure."
         eyebrow="Race Command"
         title="Dashboard"
+      />
+
+      <CommandCenterBrief
+        activeRaceCount={activeRaces.length}
+        averageConditionScore={averageConditionScore}
+        completedRaceCount={raceMix.completedCount}
+        featuredRace={
+          featuredRace
+            ? {
+                distance: featuredRace.distance,
+                entryFee: featuredRace.entryFee,
+                id: featuredRace.id,
+                participants: featuredRace.participants.length,
+                prizePool: featuredRace.prizePool,
+                raceNumber: featuredRace.raceNumber,
+                status: featuredRace.status,
+                trackCondition: featuredRace.trackCondition,
+                weather: featuredRace.weather
+              }
+            : undefined
+        }
+        itemPressure={raceMix.itemPressure}
+        topFaction={{
+          faction: topFaction.faction,
+          podiumRate: topFaction.podiumRate,
+          winRate: topFaction.winRate
+        }}
+        topGigling={{
+          name: topGigling.name,
+          winRate: topGigling.winRate
+        }}
+        totalPrizePool={raceMix.totalPrizePool}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
