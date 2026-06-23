@@ -1,8 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Filter, Search, SlidersHorizontal, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Search,
+  SlidersHorizontal,
+  X
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -10,11 +17,13 @@ import { GiglingCard } from "@/components/shared/gigling-card";
 import { LoadingState } from "@/components/shared/loading-state";
 import { MetricCard } from "@/components/shared/metric-card";
 import { SectionHeader } from "@/components/shared/section-header";
-import { useGiglings } from "@/hooks/use-giglings";
+import { useGiglingsPage } from "@/hooks/use-giglings";
 import type { Gigling, GiglingFaction, GiglingRarity, RaceDistance, RaceWeather } from "@/types";
 import { formatOptionalToken, formatPercent } from "@/lib/utils/format";
 
 type SortKey = "winRate" | "podiumRate" | "earnings" | "totalRaces" | "level";
+
+const PAGE_SIZE = 50;
 
 const factionOptions: Array<GiglingFaction | "all"> = [
   "all",
@@ -114,13 +123,26 @@ function matchesSearch(gigling: Gigling, search: string) {
 }
 
 export function GiglingExplorer() {
-  const { data: giglings, error, isLoading, isError } = useGiglings();
+  const [page, setPage] = useState(0);
+  const pageOffset = page * PAGE_SIZE;
+  const {
+    data: pageData,
+    error,
+    isError,
+    isFetching,
+    isLoading
+  } = useGiglingsPage(PAGE_SIZE, pageOffset);
   const [search, setSearch] = useState("");
   const [faction, setFaction] = useState<GiglingFaction | "all">("all");
   const [rarity, setRarity] = useState<GiglingRarity | "all">("all");
   const [weather, setWeather] = useState<RaceWeather | "all">("all");
   const [distance, setDistance] = useState<RaceDistance | "all">("all");
   const [sortBy, setSortBy] = useState<SortKey>("winRate");
+  const giglings = pageData?.items;
+
+  useEffect(() => {
+    setPage(0);
+  }, [distance, faction, rarity, search, weather]);
 
   const filteredGiglings = useMemo(() => {
     if (!giglings) {
@@ -144,6 +166,12 @@ export function GiglingExplorer() {
     (total, gigling) => total + gigling.earnings,
     0
   );
+  const visibleRange =
+    pageData && giglings && giglings.length > 0
+      ? `${pageData.offset + 1}-${pageData.offset + giglings.length}`
+      : "no entries";
+  const hasMorePages = Boolean(pageData?.hasMore);
+  const pageNumber = pageData ? Math.floor(pageData.offset / pageData.limit) + 1 : page + 1;
 
   function resetFilters() {
     setSearch("");
@@ -154,7 +182,7 @@ export function GiglingExplorer() {
     setSortBy("winRate");
   }
 
-  if (isLoading) {
+  if (isLoading && !pageData) {
     return <LoadingState />;
   }
 
@@ -186,7 +214,7 @@ export function GiglingExplorer() {
         <MetricCard
           detail={`${filteredGiglings.length} currently visible`}
           icon="bot"
-          label="Giglings Indexed"
+          label="Live Page"
           value={`${giglings.length}`}
         />
         <MetricCard
@@ -298,11 +326,40 @@ export function GiglingExplorer() {
         </div>
       </section>
 
+      <div className="premium-panel rounded-lg p-4">
+        <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold text-white/58">
+            Showing live ELO leaderboard {visibleRange} on page {pageNumber}.
+            {isFetching ? " Refreshing page..." : hasMorePages ? " More pages are available." : " End of leaderboard reached."}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-bold text-white/64 transition hover:border-cyan-racing/40 hover:text-cyan-racing disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={page === 0 || isFetching}
+              type="button"
+              onClick={() => setPage((current) => Math.max(0, current - 1))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </button>
+            <button
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-bold text-white/64 transition hover:border-cyan-racing/40 hover:text-cyan-racing disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!hasMorePages || isFetching}
+              type="button"
+              onClick={() => setPage((current) => current + 1)}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <section>
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeader
-            description="Cards link directly into each Gigling detail page."
-            title="Filtered Giglings"
+            description="Cards link directly into each Gigling detail page. Filters apply to the current live page."
+            title="Paged Giglings"
           />
           <div className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-white/62">
             <Filter className="h-4 w-4 text-cyan-racing" />

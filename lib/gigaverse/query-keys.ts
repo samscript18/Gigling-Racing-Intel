@@ -1,6 +1,8 @@
 export const gigaverseQueryKeys = {
   all: ["gigaverse"] as const,
   giglings: () => [...gigaverseQueryKeys.all, "giglings"] as const,
+  giglingsPage: (limit: number, offset: number) =>
+    [...gigaverseQueryKeys.giglings(), "page", limit, offset] as const,
   gigling: (id: string) => [...gigaverseQueryKeys.giglings(), id] as const,
   giglingStats: (id: string) =>
     [...gigaverseQueryKeys.gigling(id), "stats"] as const,

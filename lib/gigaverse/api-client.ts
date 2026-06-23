@@ -38,6 +38,13 @@ type RequestOptions = {
   searchParams?: Record<string, string | number | boolean | undefined>;
 };
 
+export type GiglingLeaderboardPage = {
+  items: Gigling[];
+  hasMore: boolean;
+  limit: number;
+  offset: number;
+};
+
 export class GigaverseDataError extends Error {
   status?: number;
 
@@ -170,6 +177,62 @@ function getRaceGiglingIds(races: Race[]) {
   return Array.from(
     new Set(races.flatMap((race) => race.participants.map((participant) => participant.giglingId)))
   );
+}
+
+function payloadField(payload: unknown, keys: string[]) {
+  const candidates = [payload];
+
+  if (isRecord(payload)) {
+    candidates.push(payload.data, payload.meta, payload.pagination);
+  }
+
+  for (const candidate of candidates) {
+    if (!isRecord(candidate)) {
+      continue;
+    }
+
+    for (const key of keys) {
+      if (key in candidate) {
+        return candidate[key];
+      }
+    }
+  }
+
+  return undefined;
+}
+
+function normalizePageNumber(value: number | undefined, defaultValue: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return defaultValue;
+  }
+
+  return Math.max(0, Math.floor(value));
+}
+
+function normalizeLeaderboardLimit(value: number | undefined) {
+  const normalized = normalizePageNumber(value, 50);
+  return Math.max(1, Math.min(normalized, 100));
+}
+
+function extractHasMore(payload: unknown, items: Gigling[], limit: number, offset: number) {
+  const explicitHasMore = payloadField(payload, ["hasMore", "has_next", "hasNext"]);
+
+  if (typeof explicitHasMore === "boolean") {
+    return explicitHasMore;
+  }
+
+  if (typeof explicitHasMore === "string") {
+    return explicitHasMore.toLowerCase() === "true";
+  }
+
+  const totalValue = payloadField(payload, ["total", "totalCount", "count"]);
+  const total = typeof totalValue === "number" ? totalValue : Number(totalValue);
+
+  if (Number.isFinite(total)) {
+    return offset + items.length < total;
+  }
+
+  return items.length >= limit;
 }
 
 async function enrichRacesWithGiglings(races: Race[]) {
@@ -414,11 +477,31 @@ function buildRivalries(ownerAddress: string, races: Race[]): RivalryRecord[] {
     );
 }
 
-export async function fetchGiglings() {
+export async function fetchGiglingsPage({
+  limit,
+  offset
+}: {
+  limit?: number;
+  offset?: number;
+} = {}): Promise<GiglingLeaderboardPage> {
+  const safeLimit = normalizeLeaderboardLimit(limit);
+  const safeOffset = normalizePageNumber(offset, 0);
   const payload = await requestGigaverseJson("/leaderboard/elo", {
-    searchParams: { limit: 50, offset: 0 }
+    searchParams: { limit: safeLimit, offset: safeOffset }
   });
-  return adaptApiGiglings(payload);
+  const items = adaptApiGiglings(payload);
+
+  return {
+    items,
+    hasMore: extractHasMore(payload, items, safeLimit, safeOffset),
+    limit: safeLimit,
+    offset: safeOffset
+  };
+}
+
+export async function fetchGiglings() {
+  const page = await fetchGiglingsPage({ limit: 50, offset: 0 });
+  return page.items;
 }
 
 export async function fetchGiglingById(id: string) {
