@@ -461,7 +461,7 @@ export function LandingExperience({ feedStatus, factionPerformance, giglings, in
 
 			<LandingLiveTicker reduceMotion={reduceMotion} signals={landingSignals} />
 
-			<section className="px-4 pb-20 sm:px-6 lg:px-8">
+			<section className="px-4 pb-20 sm:px-6 lg:px-8 mt-16">
 				<motion.div className="mx-auto max-w-7xl" initial="hidden" variants={stagger} viewport={{ once: true, margin: "-80px" }} whileInView="show">
 					<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 						<MetricCard detail="Indexed races with participants, placements, items, and payouts" icon="flag" label="Races Analyzed" tone="cyan" value={liveCount(races.length, feedStatus.races)} />
