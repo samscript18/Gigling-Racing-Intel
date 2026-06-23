@@ -12,7 +12,8 @@ const routes = [
   "/leaderboard",
   "/meta",
   "/rivals",
-  "/reports"
+  "/reports",
+  "/docs"
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

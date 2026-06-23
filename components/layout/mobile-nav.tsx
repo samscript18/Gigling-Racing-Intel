@@ -68,7 +68,7 @@ export function MobileNav() {
             <motion.div
               aria-labelledby="more-navigation-title"
               aria-modal="true"
-              className="fixed inset-x-3 bottom-24 z-50 rounded-lg border border-white/12 bg-[#07101d] p-3 shadow-2xl md:hidden"
+              className="fixed inset-x-3 bottom-24 z-50 rounded-lg border border-cyan-racing/18 bg-[#07101d]/96 p-3 shadow-glow backdrop-blur-2xl md:hidden"
               exit={{ opacity: 0, y: 18 }}
               initial={{ opacity: 0, y: 18 }}
               role="dialog"
@@ -127,7 +127,7 @@ export function MobileNav() {
 
       <nav
         aria-label="Primary mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#060914]/92 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-2xl md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-cyan-racing/18 bg-[linear-gradient(90deg,rgba(32,247,255,0.08),rgba(168,85,247,0.08),rgba(5,7,13,0.94))] px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-20px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl md:hidden"
       >
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
           {mobileItems.map((item) => {

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bot, Flag, Radar, Zap } from "lucide-react";
+import { BookOpenCheck, Bot, Flag, Radar, Zap } from "lucide-react";
 import Link from "next/link";
 
 type QuickAction = {
@@ -33,6 +33,12 @@ const actions: QuickAction[] = [
     label: "Tune Stable",
     description: "Find opportunities and risk alerts.",
     icon: Zap
+  },
+  {
+    href: "/docs",
+    label: "Open Academy",
+    description: "Learn mechanics, strategy, and data signals.",
+    icon: BookOpenCheck
   }
 ];
 

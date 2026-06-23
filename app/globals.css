@@ -24,9 +24,13 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    linear-gradient(155deg, rgba(32, 247, 255, 0.09), transparent 34%),
-    linear-gradient(25deg, transparent 68%, rgba(255, 138, 31, 0.07)),
+    radial-gradient(circle at 50% -12%, rgba(168, 85, 247, 0.28), transparent 35%),
+    radial-gradient(circle at 12% 18%, rgba(32, 247, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 88% 8%, rgba(255, 138, 31, 0.13), transparent 28%),
+    linear-gradient(155deg, rgba(32, 247, 255, 0.08), transparent 34%),
+    linear-gradient(25deg, transparent 62%, rgba(255, 138, 31, 0.08)),
     #05070d;
+  background-attachment: fixed;
   color: hsl(var(--foreground));
   font-family:
     "Space Grotesk Variable", ui-sans-serif, system-ui, -apple-system,
@@ -66,12 +70,17 @@ textarea {
   .premium-panel {
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
-      rgba(8, 13, 24, 0.72);
-    box-shadow: 0 22px 80px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(18px);
+      radial-gradient(circle at 16% 0%, rgba(32, 247, 255, 0.16), transparent 30%),
+      radial-gradient(circle at 88% 16%, rgba(168, 85, 247, 0.14), transparent 34%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.028)),
+      rgba(8, 13, 24, 0.78);
+    box-shadow:
+      0 24px 90px rgba(0, 0, 0, 0.44),
+      0 0 32px rgba(32, 247, 255, 0.055),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px) saturate(132%);
   }
 
   .premium-panel::before {
@@ -79,8 +88,29 @@ textarea {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(120deg, rgba(32, 247, 255, 0.12), transparent 35%, rgba(255, 138, 31, 0.08));
+    background:
+      linear-gradient(120deg, rgba(32, 247, 255, 0.18), transparent 32%, rgba(255, 138, 31, 0.11)),
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
     opacity: 0.75;
+  }
+
+  .premium-panel::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+      linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.08) 38%, transparent 45%),
+      linear-gradient(90deg, rgba(32, 247, 255, 0.08), transparent 34%, rgba(255, 138, 31, 0.07));
+    opacity: 0;
+    transform: translateX(-18%);
+    transition: opacity 220ms ease, transform 420ms ease;
+  }
+
+  .premium-panel:hover::after {
+    opacity: 0.9;
+    transform: translateX(0);
   }
 
   .content-grid {
@@ -91,6 +121,107 @@ textarea {
   .racing-divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(32, 247, 255, 0.65), rgba(255, 138, 31, 0.54), transparent);
+  }
+
+  .racing-page-shell {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .racing-page-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(rgba(32, 247, 255, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(32, 247, 255, 0.045) 1px, transparent 1px),
+      radial-gradient(circle at 70% 10%, rgba(168, 85, 247, 0.16), transparent 30%),
+      radial-gradient(circle at 12% 70%, rgba(32, 247, 255, 0.1), transparent 30%);
+    background-size: 54px 54px, 54px 54px, auto, auto;
+    mask-image: linear-gradient(to bottom, black, rgba(0, 0, 0, 0.7), transparent 92%);
+  }
+
+  .hero-title-gradient {
+    background: linear-gradient(92deg, #ffffff 0%, #f2e7ff 22%, #a855f7 46%, #20f7ff 76%, #ffffff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 42px rgba(168, 85, 247, 0.2);
+  }
+
+  .neon-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(168, 85, 247, 0.34);
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.18), rgba(32, 247, 255, 0.08));
+    padding: 0.45rem 0.8rem;
+    color: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 0 28px rgba(168, 85, 247, 0.12);
+  }
+
+  .neon-kicker::before {
+    content: "";
+    height: 0.45rem;
+    width: 0.45rem;
+    border-radius: 999px;
+    background: #ff8a1f;
+    box-shadow: 0 0 18px rgba(255, 138, 31, 0.82);
+  }
+
+  .speed-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+      linear-gradient(135deg, rgba(11, 18, 34, 0.94), rgba(9, 9, 19, 0.86)),
+      rgba(8, 13, 24, 0.82);
+    box-shadow: 0 22px 80px rgba(0, 0, 0, 0.36);
+    backdrop-filter: blur(16px);
+  }
+
+  .speed-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(120deg, rgba(32, 247, 255, 0.18), transparent 28%, rgba(168, 85, 247, 0.13)),
+      radial-gradient(circle at 18% 18%, rgba(32, 247, 255, 0.18), transparent 28%);
+    opacity: 0.72;
+  }
+
+  .speed-rail {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .speed-rail::after {
+    content: "";
+    position: absolute;
+    inset-inline: -12%;
+    bottom: 12%;
+    height: 1px;
+    transform: rotate(-7deg);
+    background: linear-gradient(90deg, transparent, rgba(32, 247, 255, 0.64), rgba(255, 138, 31, 0.52), transparent);
+    opacity: 0.65;
+  }
+
+  .glow-button {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+      0 0 30px rgba(168, 85, 247, 0.26);
+  }
+
+  .intel-ticker {
+    border-block: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+      linear-gradient(90deg, rgba(32, 247, 255, 0.08), rgba(168, 85, 247, 0.08), rgba(255, 138, 31, 0.07)),
+      rgba(4, 7, 13, 0.86);
+    box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.26);
   }
 
   @media (max-width: 767px) {
@@ -123,5 +254,9 @@ textarea {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .premium-panel::after {
+    display: none;
   }
 }

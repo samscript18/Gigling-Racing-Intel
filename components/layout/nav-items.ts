@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  BookOpenCheck,
   Bot,
   FileStack,
   Flag,
@@ -75,6 +76,12 @@ export const primaryNavItems: NavItem[] = [
     label: "Reports",
     description: "Shareable intel cards",
     icon: FileStack
+  },
+  {
+    href: "/docs",
+    label: "Docs",
+    description: "Racing academy and manual",
+    icon: BookOpenCheck
   }
 ];
 
