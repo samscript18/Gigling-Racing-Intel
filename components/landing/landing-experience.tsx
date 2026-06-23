@@ -33,10 +33,20 @@ import { formatPercent, formatToken } from "@/lib/utils/format";
 import type { FactionPerformance, Gigling, MetaInsight, Race } from "@/types";
 
 type LandingExperienceProps = {
+  feedStatus: {
+    giglings: LandingFeedStatus;
+    meta: LandingFeedStatus;
+    races: LandingFeedStatus;
+  };
   factionPerformance: FactionPerformance[];
   giglings: Gigling[];
   insights: MetaInsight[];
   races: Race[];
+};
+
+type LandingFeedStatus = {
+  available: boolean;
+  message?: string;
 };
 
 type ShowcaseItem = {
@@ -90,47 +100,51 @@ function getRaceLabel(race?: Race) {
   return `Race #${race.raceNumber}`;
 }
 
-function getHeuristicEstimate(races: Race[], giglings: Gigling[]) {
-  if (races.length === 0 || giglings.length === 0) {
-    return "--";
+function liveCount(value: number, status: LandingFeedStatus) {
+  return status.available ? `${value}` : "Unavailable";
+}
+
+function feedDetail(status: LandingFeedStatus, liveText: string, emptyText: string) {
+  if (!status.available) {
+    return status.message ?? "Live Gigaverse data is unavailable right now.";
   }
 
-  const completedShare = races.filter((race) => race.status === "completed").length / races.length;
-  const participantDensity =
-    races.reduce((total, race) => total + race.participants.length, 0) / races.length;
-  const signalDepth = Math.min(24, participantDensity * 4);
-  const historyDepth = Math.min(20, giglings.length / 2);
-  const estimate = Math.round(48 + completedShare * 22 + signalDepth + historyDepth);
-
-  return `${Math.min(91, Math.max(58, estimate))}%`;
+  return liveText || emptyText;
 }
 
 function ProductMockup({
   className,
+  giglingFeedStatus,
   giglings,
+  raceFeedStatus,
   races,
   topFaction
 }: {
   className?: string;
+  giglingFeedStatus: LandingFeedStatus;
   giglings: Gigling[];
+  raceFeedStatus: LandingFeedStatus;
   races: Race[];
   topFaction?: FactionPerformance;
 }) {
   const topGigling = giglings[0];
   const featuredRace = races.find((race) => race.status === "live") ?? races[0];
   const bars = [
-    { label: "Win fit", value: topGigling?.winRate ?? 0, tone: "from-cyan-racing to-violet-racing" },
+    { label: "Win fit", value: topGigling?.winRate, tone: "from-cyan-racing to-violet-racing" },
     {
       label: "Podium",
-      value: topGigling?.podiumRate ?? 0,
+      value: topGigling?.podiumRate,
       tone: "from-orange-racing to-emerald-racing"
     },
     {
       label: "Faction",
-      value: topFaction?.winRate ?? 0,
+      value: topFaction?.winRate,
       tone: "from-violet-racing to-cyan-racing"
     }
   ];
+  const noGiglingText = giglingFeedStatus.available
+    ? "Live leaderboard returned no Gigling records."
+    : (giglingFeedStatus.message ?? "Live leaderboard data is unavailable.");
 
   return (
     <motion.div
@@ -144,7 +158,13 @@ function ProductMockup({
             <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-racing">
               Race Intel
             </p>
-            <h2 className="mt-1 text-xl font-black text-white">{getRaceLabel(featuredRace)}</h2>
+            <h2 className="mt-1 text-xl font-black text-white">
+              {featuredRace
+                ? getRaceLabel(featuredRace)
+                : raceFeedStatus.available
+                  ? "No live race records"
+                  : "Race feed unavailable"}
+            </h2>
           </div>
           {featuredRace ? <StatusBadge status={featuredRace.status} /> : null}
         </div>
@@ -179,7 +199,7 @@ function ProductMockup({
               <p className="mt-2 text-sm leading-6 text-white/56">
                 {topGigling
                   ? `${topGigling.totalRaces} races, ${formatPercent(topGigling.winRate)} wins, ${formatToken(topGigling.earnings)} earned.`
-                  : "Live leaderboard records are unavailable, so no substitute racer is shown."}
+                  : noGiglingText}
               </p>
             </div>
 
@@ -188,13 +208,13 @@ function ProductMockup({
                 <div key={bar.label}>
                   <div className="mb-1 flex items-center justify-between text-xs font-bold uppercase tracking-[0.16em] text-white/46">
                     <span>{bar.label}</span>
-                    <span>{formatPercent(bar.value)}</span>
+                    <span>{typeof bar.value === "number" ? formatPercent(bar.value) : "No signal"}</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-white/[0.07]">
                     <motion.div
                       className={cn("h-full rounded-full bg-gradient-to-r", bar.tone)}
                       initial={{ width: 0 }}
-                      whileInView={{ width: `${Math.min(100, Math.max(0, bar.value))}%` }}
+                      whileInView={{ width: `${Math.min(100, Math.max(0, bar.value ?? 0))}%` }}
                       transition={{ duration: 0.9, ease: "easeOut" }}
                       viewport={{ once: true }}
                     />
@@ -206,6 +226,46 @@ function ProductMockup({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function RacingMotionLayer({ reduceMotion }: { reduceMotion: boolean | null }) {
+  if (reduceMotion) {
+    return null;
+  }
+
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <motion.span
+          key={`lane-${index}`}
+          className="absolute left-[-35%] h-px w-[38rem] bg-gradient-to-r from-transparent via-cyan-racing/70 to-transparent"
+          style={{ top: `${48 + index * 8}%` }}
+          animate={{ x: ["0vw", "150vw"], opacity: [0, 0.85, 0] }}
+          transition={{
+            delay: index * 0.28,
+            duration: 2.8 + index * 0.18,
+            ease: "easeInOut",
+            repeat: Infinity,
+            repeatDelay: 0.8
+          }}
+        />
+      ))}
+      {Array.from({ length: 4 }).map((_, index) => (
+        <motion.span
+          key={`pulse-${index}`}
+          className="absolute h-2 w-2 rounded-full bg-orange-racing shadow-orange-glow"
+          style={{ left: `${18 + index * 18}%`, top: `${34 + (index % 2) * 24}%` }}
+          animate={{ opacity: [0.25, 1, 0.25], scale: [0.75, 1.35, 0.75] }}
+          transition={{
+            delay: index * 0.2,
+            duration: 1.8,
+            ease: "easeInOut",
+            repeat: Infinity
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -259,6 +319,7 @@ function RacingSignal({ label, value, tone }: { label: string; tone: string; val
 }
 
 export function LandingExperience({
+  feedStatus,
   factionPerformance,
   giglings,
   insights,
@@ -286,8 +347,16 @@ export function LandingExperience({
       ? (
           races.reduce((total, race) => total + race.participants.length, 0) / races.length
         ).toFixed(1)
-      : "--";
-  const heuristicAccuracyEstimate = getHeuristicEstimate(races, giglings);
+      : "No races";
+  const availableFeedCount = [
+    feedStatus.giglings.available,
+    feedStatus.meta.available,
+    feedStatus.races.available
+  ].filter(Boolean).length;
+  const liveFeedDetail =
+    availableFeedCount === 3
+      ? "Race, Gigling, and meta feeds are reachable"
+      : "One or more live feeds are unavailable; no substitute data is shown";
 
   const showcaseItems: ShowcaseItem[] = [
     {
@@ -296,7 +365,7 @@ export function LandingExperience({
       href: "/predictor",
       icon: Radar,
       label: "Predict",
-      metric: heuristicAccuracyEstimate,
+      metric: liveCount(activeRaceCount, feedStatus.races),
       title: "Race Intelligence Engine"
     },
     {
@@ -305,7 +374,7 @@ export function LandingExperience({
       href: latestRace ? `/races/${latestRace.id}` : "/races",
       icon: BrainCircuit,
       label: "Review",
-      metric: `${completedRaceCount}`,
+      metric: liveCount(completedRaceCount, feedStatus.races),
       title: "Why Did I Lose"
     },
     {
@@ -314,7 +383,7 @@ export function LandingExperience({
       href: "/meta",
       icon: LineChart,
       label: "Detect",
-      metric: `${insights.length}`,
+      metric: liveCount(insights.length, feedStatus.meta),
       title: "Meta Detection"
     },
     {
@@ -323,7 +392,7 @@ export function LandingExperience({
       href: "/stable",
       icon: WalletCards,
       label: "Manage",
-      metric: `${topGiglings.length}`,
+      metric: liveCount(topGiglings.length, feedStatus.giglings),
       title: "Stable Manager"
     }
   ];
@@ -338,6 +407,7 @@ export function LandingExperience({
         <div className="absolute left-1/2 top-[24%] h-[31rem] w-[31rem] -translate-x-1/2 rounded-full border border-orange-racing/12" />
         <div className="absolute left-[8%] top-[20%] hidden h-[70%] w-24 -skew-x-12 border-x border-cyan-racing/18 bg-cyan-racing/[0.03] lg:block" />
         <div className="absolute right-[10%] top-[14%] hidden h-[72%] w-24 skew-x-12 border-x border-orange-racing/18 bg-orange-racing/[0.03] lg:block" />
+        <RacingMotionLayer reduceMotion={reduceMotion} />
 
         {!reduceMotion ? (
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -438,7 +508,13 @@ export function LandingExperience({
             </motion.div>
           </div>
 
-          <ProductMockup giglings={topGiglings} races={races} topFaction={topFaction} />
+          <ProductMockup
+            giglingFeedStatus={feedStatus.giglings}
+            giglings={topGiglings}
+            raceFeedStatus={feedStatus.races}
+            races={races}
+            topFaction={topFaction}
+          />
         </motion.div>
       </section>
 
@@ -456,28 +532,36 @@ export function LandingExperience({
               icon="flag"
               label="Races Analyzed"
               tone="cyan"
-              value={`${races.length}`}
+              value={liveCount(races.length, feedStatus.races)}
             />
             <MetricCard
-              detail={topGigling ? `${topGigling.name} leads the indexed field` : "No live leaderboard records returned"}
+              detail={feedDetail(
+                feedStatus.giglings,
+                topGigling ? `${topGigling.name} leads the indexed field` : "",
+                "No live leaderboard records returned"
+              )}
               icon="bot"
               label="Giglings Tracked"
               tone="orange"
-              value={`${giglings.length}`}
+              value={liveCount(giglings.length, feedStatus.giglings)}
             />
             <MetricCard
-              detail="Faction, rarity, weather, distance, and track reads"
+              detail={feedDetail(
+                feedStatus.meta,
+                "Faction, rarity, weather, distance, and track reads",
+                "No live meta insights returned"
+              )}
               icon="barChart"
               label="Meta Insights"
               tone="emerald"
-              value={`${insights.length}`}
+              value={liveCount(insights.length, feedStatus.meta)}
             />
             <MetricCard
-              detail="Heuristic decision support, not a backtested guarantee"
-              icon="gauge"
-              label="Accuracy Estimate"
+              detail={liveFeedDetail}
+              icon="activity"
+              label="Live Feeds"
               tone="violet"
-              value={heuristicAccuracyEstimate}
+              value={`${availableFeedCount}/3`}
             />
           </div>
         </motion.div>
@@ -575,9 +659,9 @@ export function LandingExperience({
                 confidence, race conditions, and risk instead of dropping a raw probability.
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                <RacingSignal label="Active races" tone="text-orange-racing" value={`${activeRaceCount}`} />
-                <RacingSignal label="Avg field" tone="text-cyan-racing" value={averageFieldSize} />
-                <RacingSignal label="Open prizes" tone="text-emerald-racing" value={formatToken(activePrizePool)} />
+                <RacingSignal label="Active races" tone="text-orange-racing" value={liveCount(activeRaceCount, feedStatus.races)} />
+                <RacingSignal label="Avg field" tone="text-cyan-racing" value={feedStatus.races.available ? averageFieldSize : "Unavailable"} />
+                <RacingSignal label="Open prizes" tone="text-emerald-racing" value={feedStatus.races.available ? formatToken(activePrizePool) : "Unavailable"} />
               </div>
             </div>
           </motion.div>
@@ -672,7 +756,7 @@ export function LandingExperience({
                     Faction Surge
                   </p>
                   <p className="mt-2 text-xl font-black text-white">
-                    {topFaction ? formatPercent(topFaction.podiumRate) : "--"}
+                    {topFaction ? formatPercent(topFaction.podiumRate) : "No live signal"}
                   </p>
                   <p className="mt-2 text-sm text-white/52">
                     Podium conversion shows whether the faction is consistently threatening.
@@ -777,9 +861,9 @@ export function LandingExperience({
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <RacingSignal label="Wallet ownership" tone="text-emerald-racing" value="Live only" />
-                <RacingSignal label="Race alerts" tone="text-orange-racing" value={`${activeRaceCount}`} />
-                <RacingSignal label="Top win rate" tone="text-cyan-racing" value={topGigling ? formatPercent(topGigling.winRate) : "--"} />
-                <RacingSignal label="Best distance" tone="text-violet-200" value={topGigling?.bestDistance ?? "--"} />
+                <RacingSignal label="Race alerts" tone="text-orange-racing" value={liveCount(activeRaceCount, feedStatus.races)} />
+                <RacingSignal label="Top win rate" tone="text-cyan-racing" value={topGigling ? formatPercent(topGigling.winRate) : "No live signal"} />
+                <RacingSignal label="Best distance" tone="text-violet-200" value={topGigling?.bestDistance ?? "No live signal"} />
               </div>
               <p className="mt-5 text-sm leading-6 text-white/56">
                 Connected wallets load owned Giglings and live race context. If ownership data is
@@ -810,8 +894,8 @@ export function LandingExperience({
                 Discord, Telegram, and X.
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                <RacingSignal label="Top racers" tone="text-cyan-racing" value={`${topGiglings.length}`} />
-                <RacingSignal label="Top factions" tone="text-orange-racing" value={`${factionPerformance.length}`} />
+                <RacingSignal label="Top racers" tone="text-cyan-racing" value={liveCount(topGiglings.length, feedStatus.giglings)} />
+                <RacingSignal label="Top factions" tone="text-orange-racing" value={liveCount(factionPerformance.length, feedStatus.meta)} />
                 <RacingSignal label="Share cards" tone="text-emerald-racing" value="PNG" />
               </div>
             </div>
@@ -920,6 +1004,9 @@ export function LandingExperience({
           </div>
         </motion.div>
       </section>
+      <footer className="border-t border-white/10 px-4 py-5 text-center text-xs font-bold uppercase tracking-[0.18em] text-white/42 sm:px-6 lg:px-8">
+        Gigling Racing Intel - live Gigaverse racing intelligence for smarter race decisions.
+      </footer>
     </main>
   );
 }
