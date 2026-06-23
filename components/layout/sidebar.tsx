@@ -22,9 +22,11 @@ export function Sidebar() {
 			<div className="flex h-full flex-col">
 				<div className="mb-7 flex items-center justify-between gap-3">
 					<Link href="/dashboard" className="flex min-w-0 items-center gap-3">
-						<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-cyan-racing/30 bg-cyan-racing/10 shadow-glow">
-							<span className="text-sm font-black tracking-[0.18em] text-cyan-racing">GRI</span>
-						</div>
+						{!sidebarCollapsed && (
+							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-cyan-racing/30 bg-cyan-racing/10 shadow-glow">
+								<span className="text-sm font-black tracking-[0.18em] text-cyan-racing">GRI</span>
+							</div>
+						)}
 						{!sidebarCollapsed ? (
 							<div className="min-w-0">
 								<p className="truncate text-sm font-bold text-white">Gigling Racing Intel</p>

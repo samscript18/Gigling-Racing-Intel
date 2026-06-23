@@ -139,7 +139,7 @@ textarea {
       linear-gradient(90deg, rgba(32, 247, 255, 0.045) 1px, transparent 1px),
       radial-gradient(circle at 70% 10%, rgba(168, 85, 247, 0.16), transparent 30%),
       radial-gradient(circle at 12% 70%, rgba(32, 247, 255, 0.1), transparent 30%);
-    background-size: 54px 54px, 54px 54px, auto, auto;
+    /* background-size: 54px 54px, 54px 54px, auto, auto; */
     mask-image: linear-gradient(to bottom, black, rgba(0, 0, 0, 0.7), transparent 92%);
   }
 

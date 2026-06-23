@@ -21,9 +21,9 @@ export function AppShell({ children }: AppShellProps) {
 	const pathname = usePathname();
 	const { sidebarCollapsed } = useAppStore();
 
-  if (pathname === "/" || pathname.startsWith("/docs")) {
-    return <>{children}</>;
-  }
+	if (pathname === "/" || pathname.startsWith("/docs")) {
+		return <>{children}</>;
+	}
 
 	const currentItem = primaryNavItems.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)) ?? primaryNavItems[0];
 
@@ -43,7 +43,7 @@ export function AppShell({ children }: AppShellProps) {
 					<div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
 						<Link href="/dashboard" className="flex items-center gap-3 md:hidden">
 							<div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-racing/30 bg-cyan-racing/10">
-								<span className="text-xs font-black tracking-[0.18em] text-cyan-racing">GRI</span>
+								{!sidebarCollapsed && <span className="text-xs font-black tracking-[0.18em] text-cyan-racing">GRI</span>}
 							</div>
 							<div className="hidden min-[480px]:block">
 								<p className="text-sm font-bold text-white">Gigling Racing Intel</p>
@@ -67,7 +67,7 @@ export function AppShell({ children }: AppShellProps) {
 				<motion.main
 					key={pathname}
 					animate={{ opacity: 1, scale: 1, y: 0 }}
-					className="content-grid mx-auto max-w-7xl bg-racing-grid px-4 py-6 sm:px-6 lg:py-8"
+					className="content-grid mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8"
 					id="main-content"
 					initial={false}
 					transition={{ duration: 0.32, ease: "easeOut" }}
