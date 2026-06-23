@@ -11,7 +11,7 @@ export type DataTableColumn<T> = {
 type DataTableProps<T> = {
   columns: DataTableColumn<T>[];
   data: T[];
-  getRowKey: (row: T) => string;
+  getRowKey: (row: T, index: number) => string;
   emptyMessage?: string;
 };
 
@@ -42,8 +42,8 @@ export function DataTable<T>({
           </tr>
         </thead>
         <tbody className="divide-y divide-white/8">
-          {data.map((row) => (
-            <tr key={getRowKey(row)} className="transition hover:bg-white/[0.035]">
+          {data.map((row, index) => (
+            <tr key={`${getRowKey(row, index)}-${index}`} className="transition hover:bg-white/[0.035]">
               {columns.map((column) => (
                 <td key={column.header} className={cn("px-4 py-3 text-white/72", column.className)}>
                   {column.cell(row)}

@@ -946,7 +946,7 @@ export function adaptApiRaces(input: unknown) {
 }
 
 export function adaptApiPlayers(input: unknown) {
-  return extractRecordList(input, [
+  const players = extractRecordList(input, [
     "players",
     "owners",
     "entries",
@@ -957,4 +957,46 @@ export function adaptApiPlayers(input: unknown) {
     const adapted = adaptApiPlayer(entry);
     return adapted ? [adapted] : [];
   });
+
+  const playersByWallet = new Map<string, Player>();
+
+  for (const player of players) {
+    const walletAddress = normalizeAddress(player.walletAddress);
+    const existing = playersByWallet.get(walletAddress);
+
+    if (!existing) {
+      playersByWallet.set(walletAddress, {
+        ...player,
+        id: normalizeId("player", walletAddress, walletAddress),
+        walletAddress
+      });
+      continue;
+    }
+
+    const totalRaces = existing.totalRaces + player.totalRaces;
+    const wins = existing.wins + player.wins;
+    const earningValues = [existing.totalEarnings, player.totalEarnings].filter(
+      (value) => Number.isFinite(value) && value >= 0
+    );
+
+    playersByWallet.set(walletAddress, {
+      ...existing,
+      displayName: existing.displayName ?? player.displayName,
+      avatarUrl: existing.avatarUrl ?? player.avatarUrl,
+      totalRaces,
+      wins,
+      winRate: totalRaces > 0 ? Number(((wins / totalRaces) * 100).toFixed(1)) : 0,
+      totalEarnings:
+        earningValues.length > 0
+          ? earningValues.reduce((total, value) => total + value, 0)
+          : Number.NaN,
+      favoriteFaction:
+        existing.favoriteFaction && existing.favoriteFaction !== "unknown"
+          ? existing.favoriteFaction
+          : player.favoriteFaction,
+      stableSize: Math.max(existing.stableSize, player.stableSize)
+    });
+  }
+
+  return [...playersByWallet.values()].sort((first, second) => second.winRate - first.winRate);
 }
