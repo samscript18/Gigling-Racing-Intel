@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { primaryNavItems } from "@/components/layout/nav-items";
+import { RacingMotionLayer } from "@/components/layout/racing-motion-layer";
 import { Sidebar } from "@/components/layout/sidebar";
 import { WalletConnectButton } from "@/components/shared/wallet-connect-button";
 import { cn } from "@/lib/utils/cn";
@@ -29,7 +30,8 @@ export function AppShell({ children }: AppShellProps) {
     primaryNavItems[0];
 
   return (
-    <div className="min-h-screen bg-transparent">
+    <div className="relative isolate min-h-screen bg-transparent">
+      <RacingMotionLayer />
       <a
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:border focus:border-cyan-racing/40 focus:bg-[#07111f] focus:px-4 focus:py-2 focus:text-sm focus:font-black focus:text-cyan-racing"
         href="#main-content"
@@ -39,7 +41,7 @@ export function AppShell({ children }: AppShellProps) {
       <Sidebar />
       <div
         className={cn(
-          "min-h-screen pb-24 transition-[padding] duration-200 md:pb-0",
+          "relative z-10 min-h-screen pb-24 transition-[padding] duration-200 md:pb-0",
           sidebarCollapsed ? "md:pl-[88px]" : "md:pl-[286px]"
         )}
       >
