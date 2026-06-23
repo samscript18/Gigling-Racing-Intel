@@ -24,10 +24,19 @@ const abstract = defineChain({
 
 const walletConnectProjectId = appEnv.walletConnectProjectId;
 
+const rainbowKitQrWalletConnect: typeof walletConnectWallet = (walletOptions) => {
+	const wallet = walletConnectWallet(walletOptions);
+
+	return {
+		...wallet,
+		id: "walletConnectQr",
+	};
+};
+
 const walletGroups = [
 	{
 		groupName: "Recommended",
-		wallets: [metaMaskWallet, rabbyWallet, rainbowWallet, coinbaseWallet, injectedWallet, ...(walletConnectProjectId ? [walletConnectWallet] : [])],
+		wallets: [metaMaskWallet, rabbyWallet, rainbowWallet, coinbaseWallet, injectedWallet, ...(walletConnectProjectId ? [rainbowKitQrWalletConnect] : [])],
 	},
 ];
 
