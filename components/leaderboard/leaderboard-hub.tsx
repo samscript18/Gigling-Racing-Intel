@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Eye } from "lucide-react";
+import { Crown, Eye, Medal, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -17,6 +17,7 @@ import {
 import { DataTable, type DataTableColumn } from "@/components/shared/data-table";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FactionBadge } from "@/components/shared/faction-badge";
+import { GiglingAvatar } from "@/components/shared/gigling-avatar";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RaceCard } from "@/components/shared/race-card";
 import { RarityBadge } from "@/components/shared/rarity-badge";
@@ -100,6 +101,119 @@ function winnerName(race: Race) {
   );
 }
 
+function PodiumDeck({ giglings }: { giglings: Gigling[] }) {
+  const podium = giglings.slice(0, 3);
+  const rankStyles = [
+    "border-orange-racing/35 bg-orange-racing/10 text-orange-racing",
+    "border-cyan-racing/35 bg-cyan-racing/10 text-cyan-racing",
+    "border-violet-racing/35 bg-violet-racing/10 text-violet-200"
+  ];
+  const rankIcons = [Crown, Trophy, Medal];
+
+  return (
+    <section className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
+      <div className="premium-panel rounded-lg p-5">
+        <div className="relative z-10">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-racing">
+                Community Podium
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-white">Top indexed Giglings</h2>
+            </div>
+            <Trophy className="h-8 w-8 text-orange-racing" />
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-3">
+            {podium.map((gigling, index) => {
+              const Icon = rankIcons[index] ?? Medal;
+
+              return (
+                <motion.article
+                  key={gigling.id}
+                  className="rounded-lg border border-white/10 bg-white/[0.04] p-4"
+                  initial={{ opacity: 0, y: 12 }}
+                  transition={{ delay: index * 0.07, duration: 0.22 }}
+                  whileHover={{ y: -4 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <span
+                      className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-black ${rankStyles[index]}`}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      #{index + 1}
+                    </span>
+                    <span className="text-sm font-black text-white">
+                      {formatPercent(gigling.winRate)}
+                    </span>
+                  </div>
+                  <GiglingAvatar
+                    className="aspect-square rounded-lg"
+                    imageUrl={gigling.imageUrl}
+                    name={gigling.name}
+                    priority={index === 0}
+                  />
+                  <div className="mt-4 min-w-0">
+                    <Link
+                      className="block truncate text-lg font-black text-white transition hover:text-cyan-racing"
+                      href={`/giglings/${gigling.id}`}
+                    >
+                      {gigling.name}
+                    </Link>
+                    <p className="mt-1 text-xs text-white/42">{shortenAddress(gigling.ownerAddress)}</p>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-lg border border-white/10 bg-black/18 p-2">
+                      <p className="text-white/38">Podium</p>
+                      <p className="mt-1 font-black text-cyan-racing">
+                        {formatPercent(gigling.podiumRate)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/18 p-2">
+                      <p className="text-white/38">Earned</p>
+                      <p className="mt-1 font-black text-orange-racing">
+                        {formatToken(gigling.earnings)}
+                      </p>
+                    </div>
+                  </div>
+                </motion.article>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="premium-panel rounded-lg p-5">
+        <div className="relative z-10">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-racing">
+            Board Story
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-white">What the leaderboard says now</h2>
+          <div className="mt-5 space-y-3">
+            {podium.map((gigling, index) => (
+              <div
+                key={gigling.id}
+                className="rounded-lg border border-white/10 bg-white/[0.04] p-4"
+              >
+                <p className="text-sm font-black text-white">
+                  #{index + 1} {gigling.name}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-white/54">
+                  {gigling.faction} racer with {formatPercent(gigling.winRate)} wins,
+                  {` ${formatPercent(gigling.podiumRate)}`} podium conversion, and strongest
+                  live fit in {gigling.bestDistance} races.
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function LeaderboardHub({
   giglings,
   players,
@@ -157,9 +271,19 @@ export function LeaderboardHub({
     {
       header: "Gigling",
       cell: (row) => (
-        <Link className="font-bold text-cyan-racing transition hover:text-white" href={`/giglings/${row.id}`}>
-          {row.name}
-        </Link>
+        <div className="flex min-w-48 items-center gap-3">
+          <GiglingAvatar
+            className="h-10 w-10 shrink-0 rounded-lg"
+            imageUrl={row.imageUrl}
+            name={row.name}
+          />
+          <span className="min-w-0">
+            <Link className="block truncate font-bold text-cyan-racing transition hover:text-white" href={`/giglings/${row.id}`}>
+              {row.name}
+            </Link>
+            <span className="block truncate text-xs text-white/38">{row.tokenId}</span>
+          </span>
+        </div>
       )
     },
     { header: "Faction", cell: (row) => <FactionBadge faction={row.faction} /> },
@@ -289,6 +413,8 @@ export function LeaderboardHub({
 
   return (
     <div className="space-y-6">
+      <PodiumDeck giglings={giglings} />
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           detail={giglings[0].name}
