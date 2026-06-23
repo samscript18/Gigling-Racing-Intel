@@ -41,6 +41,7 @@ export const appEnv = {
 	gigaverseApiBaseUrl: readPublicUrl(process.env.NEXT_PUBLIC_GIGAVERSE_API_BASE_URL),
 	abstractRpcUrl: readPublicUrl(process.env.NEXT_PUBLIC_ABSTRACT_RPC_URL) ?? DEFAULT_ABSTRACT_RPC_URL,
 	petRacingSystemAddress: readPublicAddress(process.env.NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS),
+	walletConnectProjectId: cleanEnvValue(process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID),
 	chainId: readPublicNumber(process.env.NEXT_PUBLIC_CHAIN_ID, DEFAULT_CHAIN_ID),
 } as const;
 
