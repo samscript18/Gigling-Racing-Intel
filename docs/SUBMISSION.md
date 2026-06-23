@@ -16,7 +16,6 @@ The app uses live Gigaverse Racing REST data and Abstract contract reads. It rea
 
 # Demo Link
 
-Walkthrough: https://github.com/samscript18/Gigling-Racing-Intel#hackathon-demo-flow
 
 # Repo / Build Link
 

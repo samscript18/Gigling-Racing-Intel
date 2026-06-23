@@ -12,7 +12,7 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - Meta insights for faction, rarity, weather, distance, and track condition performance.
 - Race Intelligence Engine with weighted scoring, probabilities, confidence, risk, warnings, and plain-English reasoning.
 - Stable manager with RainbowKit, contract-backed race eligibility, live breeding-profile research, rotation/retirement watches, and race suggestions.
-- Rivalry intelligence, player and live-derived stable leaderboards, profile scouting, and shareable 1200 x 630 PNG report cards.
+- Rivalry intelligence, player and live-derived stable leaderboards, profile scouting, and shareable 970 x 630 PNG report cards.
 - Racing Academy `/docs` page with learning paths, race mechanics, strategy guidance, predictor documentation, reporting guidance, and developer data-layer notes.
 - Live-only Gigaverse REST integration with isolated Abstract contract reads and explicit outage states.
 - Keyboard-accessible mechanic tooltips with plain-English explanations and cautious strategy guidance.

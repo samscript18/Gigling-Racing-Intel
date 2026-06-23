@@ -257,7 +257,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
       cacheBust: true,
       height: 630,
       pixelRatio: 2,
-      width: 1000
+      width: 970
     });
 
     if (!blob) {
@@ -313,7 +313,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
-        setActionMessage("A 1000 x 630 PNG report was saved.");
+        setActionMessage("A 970 x 630 PNG report was saved.");
       }
 
       setActiveAction(action);

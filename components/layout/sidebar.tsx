@@ -19,7 +19,7 @@ export function Sidebar() {
 			className="fixed left-0 top-0 z-40 hidden h-screen overflow-y-auto overscroll-contain border-r border-white/10 bg-[#060914]/86 px-4 py-5 backdrop-blur-2xl md:block"
 			transition={{ duration: 0.22, ease: "easeOut" }}
 		>
-			<div className="flex h-full flex-col">
+			<div className="flex h-auto flex-col">
 				<div className="mb-7 flex items-center justify-between gap-3">
 					<Link href="/dashboard" className="flex min-w-0 items-center gap-3">
 						{!sidebarCollapsed && (
@@ -76,7 +76,7 @@ export function Sidebar() {
 				</nav>
 
 				{!sidebarCollapsed ? (
-					<div className="premium-panel mt-auto rounded-lg px-4 py-1">
+					<div className="premium-panel mt-8 min-h-auto rounded-lg px-4 pt-4 pb-2">
 						<div className="relative z-10">
 							<p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-racing">Meta Ping</p>
 							<p className="mt-2 text-sm font-semibold text-white">Chobo sprint pressure is live.</p>
