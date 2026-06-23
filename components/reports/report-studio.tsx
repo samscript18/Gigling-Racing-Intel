@@ -134,140 +134,13 @@ function ReportShell({
   );
 }
 
-function VisualReportArtifact({
+function SharePreview({
   artifactRef,
   gigling,
   insight,
   race
 }: {
   artifactRef: RefObject<HTMLDivElement | null>;
-  gigling: Gigling;
-  insight: MetaInsight;
-  race: Race;
-}) {
-  return (
-    <div
-      ref={artifactRef}
-      aria-hidden="true"
-      className="pointer-events-none fixed left-[-10000px] top-0 overflow-hidden bg-[#05070d] p-12 text-white"
-      style={{ height: 630, width: 1200 }}
-    >
-      <div className="absolute inset-0 bg-racing-grid opacity-35" />
-      <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
-      <div className="relative z-10 flex h-full flex-col">
-        <div className="flex items-start justify-between border-b border-white/10 pb-7">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.24em] text-cyan-racing">
-              Gigling Racing Intel
-            </p>
-            <h2 className="mt-3 text-4xl font-black">Live Racing Report</h2>
-          </div>
-          <div className="rounded-lg border border-orange-racing/30 bg-orange-racing/10 px-4 py-3 text-right">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-racing">
-              Race #{race.raceNumber}
-            </p>
-            <p className="mt-1 text-sm font-black capitalize">
-              {race.distance} / {race.weather} / {race.trackCondition}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid flex-1 grid-cols-[1.1fr_0.9fr_1fr] gap-8 py-8">
-          <section className="border-r border-white/10 pr-8">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-racing">
-              Stable Watch
-            </p>
-            <div className="mt-4 grid grid-cols-[130px_1fr] gap-5">
-              <GiglingAvatar
-                className="aspect-square rounded-lg"
-                imageUrl={gigling.imageUrl}
-                name={gigling.name}
-                priority
-              />
-              <div>
-                <h3 className="text-3xl font-black">{gigling.name}</h3>
-                <p className="mt-1 text-sm text-white/50">Token #{gigling.tokenId}</p>
-              </div>
-            </div>
-            <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5">
-              <div>
-                <p className="text-xs text-white/42">Win rate</p>
-                <p className="mt-1 text-3xl font-black text-cyan-racing">
-                  {formatPercent(gigling.winRate)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-white/42">Podium rate</p>
-                <p className="mt-1 text-3xl font-black text-orange-racing">
-                  {formatPercent(gigling.podiumRate)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-white/42">Best distance</p>
-                <p className="mt-1 text-lg font-black capitalize">
-                  {formatConditionLabel(gigling.bestDistance)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-white/42">Best weather</p>
-                <p className="mt-1 text-lg font-black capitalize">
-                  {formatConditionLabel(gigling.bestWeather)}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="border-r border-white/10 pr-8">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-racing">
-              Race Result
-            </p>
-            <p className="mt-3 text-sm text-white/42">Winner</p>
-            <h3 className="mt-1 text-3xl font-black">{winnerName(race)}</h3>
-            <div className="mt-7 space-y-5">
-              <div>
-                <p className="text-xs text-white/42">Prize pool</p>
-                <p className="mt-1 text-2xl font-black text-orange-racing">
-                  {formatToken(race.prizePool)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-white/42">Field</p>
-                <p className="mt-1 text-xl font-black">
-                  {race.participants.length} entrants / {race.participants.flatMap((entry) => entry.itemsUsed).length} item actions
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-racing">
-              Meta Signal
-            </p>
-            <h3 className="mt-3 text-2xl font-black leading-tight">{insight.title}</h3>
-            <p className="mt-5 text-5xl font-black text-emerald-racing">
-              {insight.metricValue}
-            </p>
-            <p className="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-white/42">
-              {insight.metricLabel}
-            </p>
-            <p className="mt-6 text-sm leading-6 text-white/62">{insight.description}</p>
-          </section>
-        </div>
-
-        <div className="flex items-center justify-between border-t border-white/10 pt-5 text-xs text-white/42">
-          <span>Live Gigaverse data / decision support, not guaranteed outcomes</span>
-          <span className="font-bold text-white/68">gigling racing intelligence</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SharePreview({
-  gigling,
-  insight,
-  race
-}: {
   gigling: Gigling;
   insight: MetaInsight;
   race: Race;
@@ -280,7 +153,7 @@ function SharePreview({
           title="Social Preview"
         />
         <div className="overflow-hidden rounded-lg border border-white/10 bg-[#05070d] shadow-glow">
-          <div className="relative aspect-[1200/630] min-h-[540px] p-5 sm:min-h-[430px] sm:p-6 md:min-h-0">
+          <div ref={artifactRef} className="relative aspect-[1200/630] min-h-[540px] bg-[#05070d] p-5 text-white sm:min-h-[430px] sm:p-6 md:min-h-0">
             <div className="absolute inset-0 bg-racing-grid opacity-35" />
             <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
             <div className="relative z-10 grid h-full gap-5 md:grid-cols-[0.92fr_1.08fr] md:items-center">
@@ -527,14 +400,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
         </p>
       </section>
 
-      <VisualReportArtifact
-        artifactRef={exportRef}
-        gigling={gigling}
-        insight={insight}
-        race={race}
-      />
-
-      <SharePreview gigling={gigling} insight={insight} race={race} />
+      <SharePreview artifactRef={exportRef} gigling={gigling} insight={insight} race={race} />
 
       <section>
         <SectionHeader
@@ -590,8 +456,14 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
                 <p className="mt-1 font-black text-orange-racing">{formatToken(race.prizePool)}</p>
               </div>
               <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
+                <p className="text-xs text-white/38">Entry</p>
+                <p className="mt-1 font-black text-emerald-racing">{formatToken(race.entryFee)}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
                 <p className="text-xs text-white/38">Conditions</p>
-                <p className="mt-1 font-black capitalize text-white">{race.weather} / {race.trackCondition}</p>
+                <p className="mt-1 font-black capitalize text-white">
+                  {formatConditionLabel(race.weather)} / {formatConditionLabel(race.trackCondition)}
+                </p>
               </div>
               <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
                 <p className="text-xs text-white/38">Entrants</p>
