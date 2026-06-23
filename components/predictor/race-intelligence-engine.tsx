@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertTriangle, Check, Play, Radar, Trophy, X } from "lucide-react";
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Play, Radar, Search, Trophy, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
@@ -11,7 +11,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
-import { useGiglings } from "@/hooks/use-giglings";
+import { useGiglingsPage } from "@/hooks/use-giglings";
 import { runRacePrediction } from "@/lib/gigaverse/predictor";
 import { cn } from "@/lib/utils/cn";
 import { formatGiglingRaceFit, formatPercent } from "@/lib/utils/format";
@@ -27,6 +27,7 @@ import type {
 const distanceOptions: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
 const weatherOptions: RaceWeather[] = ["sunny", "rainy", "stormy", "foggy", "windy"];
 const trackOptions: TrackCondition[] = ["dry", "wet", "muddy", "icy", "chaotic"];
+const PARTICIPANT_PAGE_SIZE = 50;
 
 const riskStyles: Record<PredictionParticipantResult["riskLevel"], string> = {
   low: "border-emerald-racing/30 bg-emerald-racing/10 text-emerald-racing",
@@ -160,16 +161,53 @@ function getDefaultSelectedIds(giglings: Gigling[]) {
     .map((gigling) => gigling.id);
 }
 
+function matchesParticipantSearch(gigling: Gigling, search: string) {
+  const normalized = search.trim().toLowerCase();
+
+  if (!normalized) {
+    return true;
+  }
+
+  return [
+    gigling.name,
+    gigling.tokenId,
+    gigling.ownerName ?? "",
+    gigling.ownerAddress
+  ].some((value) => value.toLowerCase().includes(normalized));
+}
+
 export function RaceIntelligenceEngine() {
-  const { data: giglings, error, isLoading, isError } = useGiglings();
+  const [page, setPage] = useState(0);
+  const pageOffset = page * PARTICIPANT_PAGE_SIZE;
+  const {
+    data: pageData,
+    error,
+    isError,
+    isFetching,
+    isLoading
+  } = useGiglingsPage(PARTICIPANT_PAGE_SIZE, pageOffset);
   const [distance, setDistance] = useState<RaceDistance>("sprint");
   const [weather, setWeather] = useState<RaceWeather>("sunny");
   const [trackCondition, setTrackCondition] = useState<TrackCondition>("dry");
+  const [participantSearch, setParticipantSearch] = useState("");
   const [selectedGiglingIds, setSelectedGiglingIds] = useState<string[]>([]);
+  const [knownGiglings, setKnownGiglings] = useState<Map<string, Gigling>>(
+    () => new Map()
+  );
   const [prediction, setPrediction] = useState<PredictionResult | undefined>();
+  const giglings = pageData?.items;
 
   useEffect(() => {
     if (giglings?.length) {
+      setKnownGiglings((current) => {
+        const next = new Map(current);
+
+        for (const gigling of giglings) {
+          next.set(gigling.id, gigling);
+        }
+
+        return next;
+      });
       setSelectedGiglingIds((current) =>
         current.length > 0 ? current : getDefaultSelectedIds(giglings)
       );
@@ -177,10 +215,34 @@ export function RaceIntelligenceEngine() {
   }, [giglings]);
 
   const availableGiglings = useMemo(() => giglings ?? [], [giglings]);
-  const selectedGiglings = availableGiglings.filter((gigling) =>
-    selectedGiglingIds.includes(gigling.id)
+  const giglingById = useMemo(() => {
+    const next = new Map(knownGiglings);
+
+    for (const gigling of availableGiglings) {
+      next.set(gigling.id, gigling);
+    }
+
+    return next;
+  }, [availableGiglings, knownGiglings]);
+  const predictionGiglings = useMemo(() => Array.from(giglingById.values()), [giglingById]);
+  const selectedGiglings = selectedGiglingIds.flatMap((id) => {
+    const gigling = giglingById.get(id);
+    return gigling ? [gigling] : [];
+  });
+  const filteredAvailableGiglings = useMemo(
+    () =>
+      availableGiglings.filter((gigling) =>
+        matchesParticipantSearch(gigling, participantSearch)
+      ),
+    [availableGiglings, participantSearch]
   );
   const topPick = prediction?.participants[0];
+  const visibleRange =
+    pageData && availableGiglings.length > 0
+      ? `${pageData.offset + 1}-${pageData.offset + availableGiglings.length}`
+      : "no entries";
+  const pageNumber = pageData ? Math.floor(pageData.offset / pageData.limit) + 1 : page + 1;
+  const hasMorePages = Boolean(pageData?.hasMore);
 
   function toggleGigling(id: string) {
     setSelectedGiglingIds((current) =>
@@ -197,15 +259,17 @@ export function RaceIntelligenceEngine() {
       return;
     }
 
+    setPage(0);
+    setParticipantSearch("");
     setDistance("sprint");
     setWeather("sunny");
     setTrackCondition("dry");
-    setSelectedGiglingIds(getDefaultSelectedIds(giglings));
+    setSelectedGiglingIds(getDefaultSelectedIds(predictionGiglings.length ? predictionGiglings : giglings));
     setPrediction(undefined);
   }
 
   function runPrediction() {
-    if (!giglings || selectedGiglingIds.length < 2) {
+    if (selectedGiglings.length < 2) {
       return;
     }
 
@@ -217,12 +281,12 @@ export function RaceIntelligenceEngine() {
           trackCondition,
           participantGiglingIds: selectedGiglingIds
         },
-        giglings
+        predictionGiglings
       )
     );
   }
 
-  if (isLoading) {
+  if (isLoading && !pageData) {
     return <LoadingState />;
   }
 
@@ -417,7 +481,7 @@ export function RaceIntelligenceEngine() {
         <div className="relative z-10">
           <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <SectionHeader
-              description="Select 2 to 8 Giglings. The model ranks selected participants only."
+              description="Select 2 to 8 Giglings. Browse live leaderboard pages or search the current page."
               title="Participant Selector"
             />
             <button
@@ -431,8 +495,52 @@ export function RaceIntelligenceEngine() {
             </button>
           </div>
 
+          <div className="mb-4 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
+            <label className="block">
+              <span className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-white/42">
+                Search current page
+              </span>
+              <div className="flex h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 transition focus-within:border-cyan-racing/50">
+                <Search className="h-4 w-4 text-white/38" />
+                <input
+                  className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-white outline-none placeholder:text-white/32"
+                  placeholder="Gigling #7136, owner, wallet..."
+                  value={participantSearch}
+                  onChange={(event) => setParticipantSearch(event.target.value)}
+                />
+              </div>
+            </label>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <p className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-sm font-semibold text-white/58">
+                Showing {visibleRange} · page {pageNumber} · {selectedGiglingIds.length}/8 selected
+                {isFetching ? " · refreshing" : ""}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-bold text-white/64 transition hover:border-cyan-racing/40 hover:text-cyan-racing disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={page === 0 || isFetching}
+                  type="button"
+                  onClick={() => setPage((current) => Math.max(0, current - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </button>
+                <button
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-bold text-white/64 transition hover:border-cyan-racing/40 hover:text-cyan-racing disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={!hasMorePages || isFetching}
+                  type="button"
+                  onClick={() => setPage((current) => current + 1)}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {availableGiglings.map((gigling) => {
+            {filteredAvailableGiglings.map((gigling) => {
               const selected = selectedGiglingIds.includes(gigling.id);
 
               return (
@@ -483,6 +591,11 @@ export function RaceIntelligenceEngine() {
               );
             })}
           </div>
+          {filteredAvailableGiglings.length === 0 ? (
+            <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] p-5 text-sm text-white/58">
+              No Giglings on this page match that search.
+            </div>
+          ) : null}
         </div>
       </section>
 
