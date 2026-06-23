@@ -51,11 +51,11 @@ This data is processed through typed clients, adapters, analytics engines, and p
 
 # 5. Demo Link
 
-[https://gigling-racing-intel.vercel.app](https://gigling-racing-intel.vercel.app/)
+https://gigling-racing-intel.vercel.app
 
 # 6. Repo / Build Link
 
-[https://github.com/samscript18/Gigling-Racing-Intel](https://github.com/samscript18/Gigling-Racing-Intel)
+https://github.com/samscript18/Gigling-Racing-Intel
 
 # 7. Future Potential
 
