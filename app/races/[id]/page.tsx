@@ -86,7 +86,7 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
     },
     {
       header: "Owner",
-      cell: (participant) => participant.ownerName ?? "Unknown"
+      cell: (participant) => participant.ownerName ?? "Owner unavailable"
     },
     {
       header: "Tags",

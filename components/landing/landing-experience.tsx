@@ -91,7 +91,7 @@ function formatNumber(value: number) {
 
 function compactAddress(value?: string) {
   if (!value) {
-    return "Unknown stable";
+    return "Stable unavailable";
   }
 
   return `${value.slice(0, 6)}...${value.slice(-4)}`;

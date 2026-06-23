@@ -82,7 +82,7 @@ export function PlacementLadder({ participants, winnerGiglingId }: PlacementLadd
                     {isWinner ? <Trophy className="h-4 w-4 text-orange-racing" /> : null}
                   </div>
                   <p className="mt-1 text-xs text-white/42">
-                    Lane {participant.startingLane} / {participant.ownerName ?? "Unknown owner"}
+                    Lane {participant.startingLane} / {participant.ownerName ?? "Owner unavailable"}
                   </p>
                 </div>
               </div>
