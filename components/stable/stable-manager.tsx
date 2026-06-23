@@ -133,15 +133,18 @@ export function StableManager() {
   )[0];
   const suggestedRaces =
     races?.filter((race) => stable.recommendedRaceIds.includes(race.id)) ?? [];
-  const totalEarnings = stable.giglings.reduce(
-    (total, gigling) => total + gigling.earnings,
-    0
-  );
+  const availableEarnings = stable.giglings
+    .map((gigling) => gigling.earnings)
+    .filter((value) => Number.isFinite(value) && value >= 0);
+  const totalEarnings =
+    availableEarnings.length > 0
+      ? availableEarnings.reduce((total, value) => total + value, 0)
+      : Number.NaN;
   const performanceData = stable.giglings.map((gigling) => ({
     name: gigling.name,
     winRate: gigling.winRate,
     podiumRate: gigling.podiumRate,
-    earnings: gigling.earnings,
+    earnings: Number.isFinite(gigling.earnings) && gigling.earnings >= 0 ? gigling.earnings : 0,
     races: gigling.totalRaces
   }));
   const raceVolumeData = stable.giglings.map((gigling) => ({

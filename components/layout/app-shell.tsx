@@ -69,7 +69,7 @@ export function AppShell({ children }: AppShellProps) {
 					animate={{ opacity: 1, scale: 1, y: 0 }}
 					className="content-grid mx-auto max-w-7xl bg-racing-grid px-4 py-6 sm:px-6 lg:py-8"
 					id="main-content"
-					initial={{ opacity: 0, scale: 0.992, y: 14 }}
+					initial={false}
 					transition={{ duration: 0.32, ease: "easeOut" }}
 				>
 					{children}

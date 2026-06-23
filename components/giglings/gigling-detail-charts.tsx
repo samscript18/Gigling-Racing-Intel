@@ -88,6 +88,8 @@ export function GiglingDetailCharts({
   weatherData,
   distanceData
 }: GiglingDetailChartsProps) {
+  const hasStatData = statData.some((entry) => Number.isFinite(entry.value) && entry.value > 0);
+
   return (
     <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
       <ChartCard
@@ -95,41 +97,55 @@ export function GiglingDetailCharts({
         title="Stat Radar"
       >
         <div className="h-[330px]">
-          <ResponsiveContainer height="100%" width="100%">
-            <RadarChart data={statData} outerRadius="76%">
-              <defs>
-                <radialGradient id="giglingRadarFill" cx="50%" cy="50%" r="70%">
-                  <stop offset="0%" stopColor="#20F7FF" stopOpacity={0.34} />
-                  <stop offset="55%" stopColor="#A855F7" stopOpacity={0.22} />
-                  <stop offset="100%" stopColor="#20F7FF" stopOpacity={0.05} />
-                </radialGradient>
-                <filter id="giglingRadarGlow">
-                  <feGaussianBlur result="coloredBlur" stdDeviation="3" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <PolarGrid gridType="polygon" stroke="rgba(255,255,255,0.12)" />
-              <PolarAngleAxis
-                dataKey="stat"
-                tick={{ fill: "rgba(255,255,255,0.62)", fontSize: 11 }}
-              />
-              <Tooltip content={<DetailTooltip />} />
-              <Radar
-                animationEasing="ease-out"
-                animationDuration={1000}
-                dataKey="value"
-                fill="url(#giglingRadarFill)"
-                fillOpacity={1}
-                filter="url(#giglingRadarGlow)"
-                name="Stat"
-                stroke="#20F7FF"
-                strokeWidth={3}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
+          {hasStatData ? (
+            <ResponsiveContainer height="100%" width="100%">
+              <RadarChart data={statData} outerRadius="76%">
+                <defs>
+                  <radialGradient id="giglingRadarFill" cx="50%" cy="50%" r="70%">
+                    <stop offset="0%" stopColor="#20F7FF" stopOpacity={0.34} />
+                    <stop offset="55%" stopColor="#A855F7" stopOpacity={0.22} />
+                    <stop offset="100%" stopColor="#20F7FF" stopOpacity={0.05} />
+                  </radialGradient>
+                  <filter id="giglingRadarGlow">
+                    <feGaussianBlur result="coloredBlur" stdDeviation="3" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <PolarGrid gridType="polygon" stroke="rgba(255,255,255,0.12)" />
+                <PolarAngleAxis
+                  dataKey="stat"
+                  tick={{ fill: "rgba(255,255,255,0.62)", fontSize: 11 }}
+                />
+                <Tooltip content={<DetailTooltip />} />
+                <Radar
+                  animationEasing="ease-out"
+                  animationDuration={1000}
+                  dataKey="value"
+                  fill="url(#giglingRadarFill)"
+                  fillOpacity={1}
+                  filter="url(#giglingRadarGlow)"
+                  name="Stat"
+                  stroke="#20F7FF"
+                  strokeWidth={3}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center rounded-lg border border-white/10 bg-white/[0.035] p-5 text-center">
+              <div>
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-racing">
+                  Stats unavailable
+                </p>
+                <p className="mt-3 max-w-sm text-sm leading-6 text-white/58">
+                  Gigaverse returned this Gigling without speed, stamina, handling,
+                  acceleration, luck, or consistency values.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </ChartCard>
 

@@ -32,7 +32,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils/cn";
 
@@ -408,18 +408,62 @@ function DocsTopNav() {
 }
 
 function AcademySectionNav() {
+  const [activeHref, setActiveHref] = useState(sectionLinks[0]?.href ?? "#learning-path");
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const activeEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0];
+
+        if (activeEntry?.target.id) {
+          setActiveHref(`#${activeEntry.target.id}`);
+        }
+      },
+      {
+        rootMargin: "-22% 0px -62% 0px",
+        threshold: [0.15, 0.35, 0.6]
+      }
+    );
+
+    for (const link of sectionLinks) {
+      const target = document.getElementById(link.href.slice(1));
+
+      if (target) {
+        observer.observe(target);
+      }
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <aside className="sticky top-24 hidden self-start xl:block">
+    <aside className="sticky top-20 hidden max-h-[calc(100vh-6rem)] self-start overflow-y-auto pr-1 xl:block">
       <div className="premium-panel rounded-lg p-4">
         <div className="relative z-10">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-racing">Manual Index</p>
           <nav aria-label="Docs sections" className="mt-4 space-y-1">
-            {sectionLinks.map((link) => (
-              <a key={link.href} className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-bold text-white/54 transition hover:bg-white/[0.05] hover:text-cyan-racing" href={link.href}>
-                {link.label}
-                <ChevronRight className="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
-              </a>
-            ))}
+            {sectionLinks.map((link) => {
+              const active = activeHref === link.href;
+
+              return (
+                <a
+                  key={link.href}
+                  aria-current={active ? "true" : undefined}
+                  className={cn(
+                    "group flex items-center justify-between rounded-lg border px-3 py-2 text-sm font-bold transition",
+                    active
+                      ? "border-cyan-racing/35 bg-cyan-racing/12 text-cyan-racing shadow-glow"
+                      : "border-transparent text-white/54 hover:border-white/10 hover:bg-white/[0.05] hover:text-cyan-racing"
+                  )}
+                  href={link.href}
+                >
+                  {link.label}
+                  <ChevronRight className={cn("h-4 w-4 transition", active ? "opacity-100" : "opacity-0 group-hover:opacity-100")} />
+                </a>
+              );
+            })}
           </nav>
         </div>
       </div>

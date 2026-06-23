@@ -122,6 +122,21 @@ function matchesSearch(gigling: Gigling, search: string) {
   ].some((value) => value.toLowerCase().includes(normalized));
 }
 
+function getSortableValue(gigling: Gigling, sortBy: SortKey) {
+  const value = gigling[sortBy];
+  return Number.isFinite(value) ? value : Number.NEGATIVE_INFINITY;
+}
+
+function sumAvailableEarnings(giglings: Gigling[]) {
+  const availableEarnings = giglings
+    .map((gigling) => gigling.earnings)
+    .filter((value) => Number.isFinite(value) && value >= 0);
+
+  return availableEarnings.length > 0
+    ? availableEarnings.reduce((total, value) => total + value, 0)
+    : Number.NaN;
+}
+
 export function GiglingExplorer() {
   const [page, setPage] = useState(0);
   const pageOffset = page * PAGE_SIZE;
@@ -155,17 +170,14 @@ export function GiglingExplorer() {
       .filter((gigling) => rarity === "all" || gigling.rarity === rarity)
       .filter((gigling) => weather === "all" || gigling.bestWeather === weather)
       .filter((gigling) => distance === "all" || gigling.bestDistance === distance)
-      .sort((first, second) => second[sortBy] - first[sortBy]);
+      .sort((first, second) => getSortableValue(second, sortBy) - getSortableValue(first, sortBy));
   }, [distance, faction, giglings, rarity, search, sortBy, weather]);
 
   const topResult = filteredGiglings[0];
   const averageWinRate =
     filteredGiglings.reduce((total, gigling) => total + gigling.winRate, 0) /
     Math.max(filteredGiglings.length, 1);
-  const totalEarnings = filteredGiglings.reduce(
-    (total, gigling) => total + gigling.earnings,
-    0
-  );
+  const totalEarnings = sumAvailableEarnings(filteredGiglings);
   const visibleRange =
     pageData && giglings && giglings.length > 0
       ? `${pageData.offset + 1}-${pageData.offset + giglings.length}`
@@ -370,7 +382,7 @@ export function GiglingExplorer() {
         {filteredGiglings.length > 0 ? (
           <motion.div
             className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-            initial="hidden"
+            initial={false}
             animate="show"
             variants={{
               hidden: {},
@@ -385,7 +397,7 @@ export function GiglingExplorer() {
               <motion.div
                 key={gigling.id}
                 variants={{
-                  hidden: { opacity: 0, y: 10 },
+                  hidden: { opacity: 1, y: 0 },
                   show: { opacity: 1, y: 0 }
                 }}
               >

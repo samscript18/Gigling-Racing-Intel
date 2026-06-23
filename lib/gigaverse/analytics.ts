@@ -14,6 +14,13 @@ import type {
 const weatherOrder: RaceWeather[] = ["sunny", "rainy", "stormy", "foggy", "windy"];
 const distanceOrder: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
 
+function sumAvailableTokenValues(values: number[]) {
+  const availableValues = values.filter((value) => Number.isFinite(value) && value >= 0);
+  return availableValues.length > 0
+    ? availableValues.reduce((total, value) => total + value, 0)
+    : Number.NaN;
+}
+
 export function getHighestWinRateGigling(giglings: Gigling[]) {
   return [...giglings].sort((first, second) => second.winRate - first.winRate)[0];
 }
@@ -59,10 +66,7 @@ export function getStableLeaderboard(giglings: Gigling[]): StableLeaderboardEntr
         totalWins,
         winRate:
           totalRaces > 0 ? Number(((totalWins / totalRaces) * 100).toFixed(1)) : 0,
-        totalEarnings: stableGiglings.reduce(
-          (total, gigling) => total + gigling.earnings,
-          0
-        ),
+        totalEarnings: sumAvailableTokenValues(stableGiglings.map((gigling) => gigling.earnings)),
         bestGiglingName: bestGigling?.name ?? "Unavailable"
       } satisfies StableLeaderboardEntry;
     })

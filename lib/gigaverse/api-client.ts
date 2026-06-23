@@ -245,7 +245,7 @@ function mergeGiglingSummary(primary: Gigling, enriched?: Gigling) {
     ...enriched,
     ownerName: enriched.ownerName ?? primary.ownerName,
     imageUrl: enriched.imageUrl || primary.imageUrl,
-    earnings: enriched.earnings || primary.earnings,
+    earnings: Number.isFinite(enriched.earnings) ? enriched.earnings : primary.earnings,
     bestDistance:
       enriched.bestDistance === "unknown" ? primary.bestDistance : enriched.bestDistance,
     bestWeather: enriched.bestWeather === "unknown" ? primary.bestWeather : enriched.bestWeather

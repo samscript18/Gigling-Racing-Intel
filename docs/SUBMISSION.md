@@ -43,7 +43,8 @@ The app turns raw racing, pet, owner, item, condition, and onchain data into dec
 - Stable Manager: RainbowKit wallet connection, live owned Giglings, suggested races, and risk alerts.
 - Rivalry Intelligence: rival, ally, and nemesis tracking with notes.
 - Leaderboards: top Giglings, players, factions, streaks, earnings, and recent winners.
-- Reports: shareable Gigling, race, and meta report cards with social copy, native image sharing, and 1200 x 630 PNG downloads.
+- Reports: shareable Gigling, race, and meta report cards with social copy, native image sharing, and 1000 x 630 PNG downloads.
+- Racing Academy: premium `/docs` knowledge hub with a sticky manual index, learning path, mechanics guide, strategy lab, predictor documentation, report previews, FAQ, and developer data-layer explanation.
 - Educational layer: accessible mechanic explanations and strategy guidance across metrics, charts, race conditions, and predictions.
 
 ## Why It Fits Gigaverse
@@ -53,8 +54,8 @@ The entire product is centered on Gigling Racing language and decisions. It does
 ## Judging Strengths
 
 - Execution: complete Next.js app with all required routes, responsive UI, loading/empty/error states, TypeScript quality, and Vercel-ready build.
-- Creativity: Race Intelligence Engine, "Why Did I Lose?", Meta Shift Detection, Rivalry Intelligence, and shareable report cards.
-- Usefulness: directly helps players pick Giglings, avoid bad race fits, understand losses, and track the current meta.
+- Creativity: Race Intelligence Engine, Racing Academy, "Why Did I Lose?", Meta Shift Detection, Rivalry Intelligence, and shareable report cards.
+- Usefulness: directly helps players learn mechanics, pick Giglings, avoid bad race fits, understand losses, and track the current meta.
 - Gigaverse Alignment: built around Gigling Racing APIs, contract reads, and racing-specific gameplay language.
 - Potential: clean adapters, query architecture, stable manager, reports, and community features can evolve into an official companion.
 
@@ -65,3 +66,4 @@ The entire product is centered on Gigling Racing language and decisions. It does
 - Add authenticated Gigaverse sessions for protected item, chat, and inventory endpoints.
 - Add richer statistical models after more live race history is indexed.
 - Add player-facing public report URLs for persistent community profiles.
+- Expand historical Gigling race-history indexing if Gigaverse exposes a full pet race archive beyond the current recent stats feed.

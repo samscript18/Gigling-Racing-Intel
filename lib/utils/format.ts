@@ -3,12 +3,14 @@ export function formatPercent(value: number) {
 }
 
 export function formatToken(value: number) {
-  if (!Number.isFinite(value)) {
+  if (!Number.isFinite(value) || value < 0) {
     return "N/A";
   }
 
+  const maximumFractionDigits = value > 0 && value < 1 ? 6 : value >= 100 ? 0 : 2;
+
   return `${Intl.NumberFormat("en", {
-    maximumFractionDigits: value >= 100 ? 0 : 2
+    maximumFractionDigits
   }).format(value)} GIGA`;
 }
 

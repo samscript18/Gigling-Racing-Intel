@@ -107,6 +107,10 @@ function winnerName(race: Race) {
   );
 }
 
+function safeEarningsValue(value: number) {
+  return Number.isFinite(value) && value >= 0 ? value : 0;
+}
+
 function PodiumDeck({ giglings }: { giglings: Gigling[] }) {
   const podium = giglings.slice(0, 3);
   const rankStyles = [
@@ -235,7 +239,7 @@ export function LeaderboardHub({
     [giglings]
   );
   const topEarnings = useMemo(
-    () => [...giglings].sort((first, second) => second.earnings - first.earnings),
+    () => [...giglings].sort((first, second) => safeEarningsValue(second.earnings) - safeEarningsValue(first.earnings)),
     [giglings]
   );
   const recentWinners = useMemo(
@@ -269,7 +273,7 @@ export function LeaderboardHub({
   const chartData = giglings.slice(0, 8).map((gigling) => ({
     name: gigling.name,
     winRate: gigling.winRate,
-    earnings: gigling.earnings,
+    earnings: safeEarningsValue(gigling.earnings),
     podiumRate: gigling.podiumRate
   }));
 

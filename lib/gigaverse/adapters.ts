@@ -121,11 +121,16 @@ function clampStat(value: number) {
 }
 
 function normalizeTokenAmount(value: unknown, defaultValue = 0): number {
-  if (typeof value === "string" && /^\d+$/.test(value) && value.length > 12) {
+  if (typeof value === "string" && /^-?\d+$/.test(value) && value.replace("-", "").length > 12) {
     return Number((Number(value) / 1_000_000_000_000_000_000).toFixed(4));
   }
 
   return normalizeNumber(value, defaultValue);
+}
+
+function normalizeAvailableTokenAmount(value: unknown): number {
+  const parsed = normalizeTokenAmount(value, Number.NaN);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : Number.NaN;
 }
 
 function normalizeId(prefix: "gigling" | "race" | "player", value: unknown, defaultValue: string) {
@@ -399,13 +404,11 @@ function sumPayoutAmounts(value: unknown): number {
       return total;
     }
 
-    return (
-      total +
-      normalizeTokenAmount(
-        firstValue(payout, ["amount", "raceAmount", "weiPayout", "weiRaceAmount"]),
-        0
-      )
+    const amount = normalizeAvailableTokenAmount(
+      firstValue(payout, ["amount", "raceAmount", "weiPayout", "weiRaceAmount"])
     );
+
+    return total + (Number.isFinite(amount) ? amount : 0);
   }, 0);
 }
 
@@ -494,6 +497,33 @@ function isAppPlayer(input: UnknownRecord): input is Player {
   );
 }
 
+function hasGiglingStatShape(value: unknown) {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return [
+    "speed",
+    "spd",
+    "stamina",
+    "sta",
+    "handling",
+    "control",
+    "finish",
+    "acceleration",
+    "accel",
+    "launch",
+    "start",
+    "luck",
+    "rng",
+    "consistency",
+    "startRange",
+    "speedRange",
+    "staminaRange",
+    "finishRange"
+  ].some((key) => key in value);
+}
+
 export function adaptApiGigling(input: Gigling): Gigling;
 export function adaptApiGigling(input: unknown): Gigling | undefined;
 export function adaptApiGigling(input: unknown): Gigling | undefined {
@@ -510,7 +540,15 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
   }
 
   const racePublic = nestedRecord(input, ["racePublic"]);
-  const statsRecord = nestedRecord(input, ["stats", "racingStats", "attributes"]) ?? racePublic ?? input;
+  const statsCandidates = [
+    nestedRecord(input, ["stats", "racingStats", "attributes"]),
+    racePublic,
+    input
+  ];
+  const statsRecord =
+    statsCandidates.find((candidate) => hasGiglingStatShape(candidate)) ??
+    statsCandidates.find((candidate) => isRecord(candidate)) ??
+    input;
   const stats = normalizeStats(statsRecord);
   const idSource = firstValue(input, ["id", "petId", "giglingId", "tokenId", "pet_id"]);
 
@@ -575,9 +613,8 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
       firstValue(input, ["podiumRate", "podium_rate"]),
       totalRaces > 0 ? Number(((podiums / totalRaces) * 100).toFixed(1)) : 0
     ),
-    earnings: normalizeTokenAmount(
-      firstValue(input, ["earnings", "totalEarnings", "prize", "weiNet", "weiWon"]),
-      0
+    earnings: normalizeAvailableTokenAmount(
+      firstValue(input, ["earnings", "totalEarnings", "prize", "weiWon"])
     ),
     currentStreak: normalizeNumber(firstValue(input, ["currentStreak", "streak"]), 0),
     bestDistance:
@@ -809,7 +846,9 @@ export function adaptApiPlayer(input: unknown): Player | undefined {
       firstValue(input, ["winRate", "win_rate"]),
       totalRaces > 0 ? Number(((wins / totalRaces) * 100).toFixed(1)) : 0
     ),
-    totalEarnings: normalizeTokenAmount(firstValue(input, ["totalEarnings", "earnings", "weiNet"]), 0),
+    totalEarnings: normalizeAvailableTokenAmount(
+      firstValue(input, ["totalEarnings", "earnings", "weiWon"])
+    ),
     favoriteFaction: normalizeFaction(
       firstValue(input, ["favoriteFaction", "factionName", "faction"])
     ),

@@ -6,7 +6,7 @@ import { coinbaseWallet, injectedWallet, metaMaskWallet, rabbyWallet, rainbowWal
 import { MotionConfig } from "framer-motion";
 import { useState, type ReactNode } from "react";
 import { defineChain } from "viem";
-import { createConfig, http, WagmiProvider } from "wagmi";
+import { cookieStorage, createConfig, createStorage, http, WagmiProvider } from "wagmi";
 
 import { appEnv } from "@/lib/config/env";
 
@@ -22,21 +22,27 @@ const abstract = defineChain({
 	},
 });
 
+const walletConnectProjectId = appEnv.walletConnectProjectId;
+
 const walletGroups = [
 	{
 		groupName: "Recommended",
-		wallets: [metaMaskWallet, rabbyWallet, rainbowWallet, coinbaseWallet, injectedWallet, ...(appEnv.walletConnectProjectId ? [walletConnectWallet] : [])],
+		wallets: [metaMaskWallet, rabbyWallet, rainbowWallet, coinbaseWallet, injectedWallet, ...(walletConnectProjectId ? [walletConnectWallet] : [])],
 	},
 ];
 
 const connectors = connectorsForWallets(walletGroups, {
 	appName: appEnv.appName,
-	projectId: appEnv.walletConnectProjectId ?? process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "",
+	projectId: walletConnectProjectId ?? "walletconnect-project-id-required",
 });
 
 const wagmiConfig = createConfig({
 	chains: [abstract],
 	connectors,
+	ssr: true,
+	storage: createStorage({
+		storage: cookieStorage,
+	}),
 	transports: {
 		[abstract.id]: http(appEnv.abstractRpcUrl),
 	},
@@ -60,7 +66,7 @@ export function Providers({ children }: ProvidersProps) {
 	);
 
 	return (
-		<WagmiProvider config={wagmiConfig}>
+		<WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
 			<QueryClientProvider client={queryClient}>
 				<RainbowKitProvider
 					theme={darkTheme({

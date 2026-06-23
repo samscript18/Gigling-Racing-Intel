@@ -13,6 +13,7 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - Race Intelligence Engine with weighted scoring, probabilities, confidence, risk, warnings, and plain-English reasoning.
 - Stable manager with RainbowKit, contract-backed race eligibility, live breeding-profile research, rotation/retirement watches, and race suggestions.
 - Rivalry intelligence, player and live-derived stable leaderboards, profile scouting, and shareable 1200 x 630 PNG report cards.
+- Racing Academy `/docs` page with learning paths, race mechanics, strategy guidance, predictor documentation, reporting guidance, and developer data-layer notes.
 - Live-only Gigaverse REST integration with isolated Abstract contract reads and explicit outage states.
 - Keyboard-accessible mechanic tooltips with plain-English explanations and cautious strategy guidance.
 
@@ -62,9 +63,11 @@ NEXT_PUBLIC_GIGAVERSE_API_BASE_URL=https://gigaverse.io/api/racing
 NEXT_PUBLIC_ABSTRACT_RPC_URL=https://api.mainnet.abs.xyz
 NEXT_PUBLIC_PET_RACING_SYSTEM_ADDRESS=0xF6Ed2a53F311352c869e268601AAe5B78B9a9650
 NEXT_PUBLIC_CHAIN_ID=2741
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
 ```
 
 The app uses the Abstract mainnet public RPC and the verified PetRacingSystem deployment by default. Override these values only for another network or provider. The app never substitutes local records when the REST API or RPC is unreachable.
+Set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` to a WalletConnect Cloud project ID to enable the WalletConnect QR option in RainbowKit.
 
 ## Data Architecture
 
@@ -89,6 +92,7 @@ Important files:
 - `lib/gigaverse/analytics.ts` - dashboard, detail, meta, rivalry, and report calculations.
 - `lib/gigaverse/predictor.ts` - explainable prediction model.
 - `hooks/` - UI-facing query hooks.
+- `components/docs/racing-academy.tsx` - Racing Academy manual, strategy guide, and developer data overview.
 
 ## Gigaverse Integration Notes
 
@@ -136,7 +140,8 @@ Every Gigling, race, player, stable, rivalry, leaderboard, and meta record comes
 3. Open a Gigling detail page to explain strengths, history, and risk warnings.
 4. Open `/races` and a race detail page to show winner and loss explanations.
 5. Open `/predictor` and run the Race Intelligence Engine.
-6. Open `/stable`, `/rivals`, `/leaderboard`, and `/reports` to show player utility and community sharing.
+6. Open `/docs` to show the Racing Academy onboarding, mechanics, strategy, and data-layer guide.
+7. Open `/stable`, `/rivals`, `/leaderboard`, and `/reports` to show player utility and community sharing.
 
 ## Scripts
 

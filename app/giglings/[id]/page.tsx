@@ -162,7 +162,10 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
 			</section>
 			<section className="premium-panel rounded-lg p-5">
 				<div className="relative z-10">
-					<SectionHeader description="Completed, live, and scheduled races involving this Gigling." title="Race History" />
+					<SectionHeader
+						description={`${raceHistory.length} recent indexed race${raceHistory.length === 1 ? "" : "s"} returned by Gigaverse stats, out of ${gigling.totalRaces} career race${gigling.totalRaces === 1 ? "" : "s"} reported for this Gigling.`}
+						title="Recent Indexed Race History"
+					/>
 					<GiglingRaceHistoryTable rows={raceHistory} />
 				</div>
 			</section>
