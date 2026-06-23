@@ -8,7 +8,7 @@ import { FactionBadge } from "@/components/shared/faction-badge";
 import { GiglingAvatar } from "@/components/shared/gigling-avatar";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { cn } from "@/lib/utils/cn";
-import { formatPercent, formatToken } from "@/lib/utils/format";
+import { formatGiglingRaceFit, formatOptionalToken, formatPercent } from "@/lib/utils/format";
 import type { Gigling } from "@/types";
 
 type GiglingCardProps = {
@@ -70,10 +70,10 @@ export function GiglingCard({ gigling, compact = false, className }: GiglingCard
           <div className="mt-4 flex flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 min-[430px]:flex-row min-[430px]:items-center min-[430px]:justify-between">
             <span className="flex items-center gap-2 text-sm text-white/58">
               <Gauge className="h-4 w-4 text-orange-racing" />
-              {gigling.bestDistance} / {gigling.bestWeather}
+              {formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather)}
             </span>
             <span className="text-sm font-bold text-emerald-racing">
-              {formatToken(gigling.earnings)}
+              {formatOptionalToken(gigling.earnings)}
             </span>
           </div>
         ) : null}

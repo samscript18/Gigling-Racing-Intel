@@ -14,7 +14,7 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { useGiglings } from "@/hooks/use-giglings";
 import { runRacePrediction } from "@/lib/gigaverse/predictor";
 import { cn } from "@/lib/utils/cn";
-import { formatPercent } from "@/lib/utils/format";
+import { formatGiglingRaceFit, formatPercent } from "@/lib/utils/format";
 import type {
   Gigling,
   PredictionParticipantResult,
@@ -391,7 +391,9 @@ export function RaceIntelligenceEngine() {
                     </div>
                     <div className="rounded-lg border border-white/10 bg-white/[0.035] p-2">
                       <p className="text-white/38">Fit</p>
-                      <p className="font-bold capitalize text-white">{gigling.bestDistance}</p>
+                      <p className="font-bold capitalize text-white">
+                        {formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather)}
+                      </p>
                     </div>
                   </div>
                 </button>

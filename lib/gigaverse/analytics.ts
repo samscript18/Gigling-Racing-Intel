@@ -341,8 +341,15 @@ export function getGiglingIntelligenceSummary(gigling: Gigling, races: Race[]) {
     0
   );
 
+  const hasDistanceSignal = gigling.bestDistance !== "unknown";
+  const hasWeatherSignal = gigling.bestWeather !== "unknown";
+  const headline =
+    hasDistanceSignal || hasWeatherSignal
+      ? `${gigling.name} profiles with ${hasDistanceSignal ? `${getConditionLabel(gigling.bestDistance)} distance` : "no distance"} and ${hasWeatherSignal ? `${getConditionLabel(gigling.bestWeather)} weather` : "no weather"} fit signals.`
+      : `${gigling.name} has no live distance or weather fit signal yet, so the profile leans on indexed stats and race history.`;
+
   return {
-    headline: `${gigling.name} profiles as a ${gigling.bestDistance} specialist with its clearest edge in ${gigling.bestWeather} weather.`,
+    headline,
     bullets: [
       `${getConditionLabel(bestStat[0])} is the peak stat at ${bestStat[1]}/100.`,
       `Average completed placement in indexed races is P${averagePlacement.toFixed(2)}.`,
@@ -354,16 +361,21 @@ export function getGiglingIntelligenceSummary(gigling: Gigling, races: Race[]) {
 }
 
 export function getRecommendedRaceConditions(gigling: Gigling) {
-  const recommendations = [
-    {
+  const recommendations = [];
+
+  if (gigling.bestDistance !== "unknown") {
+    recommendations.push({
       label: `${getConditionLabel(gigling.bestDistance)} races`,
-      description: `Primary distance fit based on historical performance and stat shape.`
-    },
-    {
+      description: "Primary distance fit based on historical performance and stat shape."
+    });
+  }
+
+  if (gigling.bestWeather !== "unknown") {
+    recommendations.push({
       label: `${getConditionLabel(gigling.bestWeather)} weather`,
       description: "Best weather signal from its indexed career profile."
-    }
-  ];
+    });
+  }
 
   if (gigling.stats.handling >= 85) {
     recommendations.push({
@@ -383,6 +395,13 @@ export function getRecommendedRaceConditions(gigling: Gigling) {
     recommendations.push({
       label: "Low-variance prize races",
       description: "Consistency makes the Gigling more reliable when the field is evenly matched."
+    });
+  }
+
+  if (recommendations.length === 0) {
+    recommendations.push({
+      label: "Stat-first scouting",
+      description: "Distance and weather fit are not present in the live feed, so compare speed, stamina, handling, and recent race history before entry."
     });
   }
 
@@ -914,6 +933,10 @@ export function getTopEmergingGiglings(giglings: Gigling[]) {
 export function getConditionLabel(
   value: GiglingFaction | RaceDistance | RaceWeather | TrackCondition | string
 ) {
+  if (!value || value === "unknown") {
+    return "Unavailable";
+  }
+
   return value
     .split("-")
     .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)

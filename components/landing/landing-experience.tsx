@@ -29,7 +29,12 @@ import { InsightCard } from "@/components/shared/insight-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { cn } from "@/lib/utils/cn";
-import { formatPercent, formatToken } from "@/lib/utils/format";
+import {
+  formatConditionLabel,
+  formatOptionalToken,
+  formatPercent,
+  formatToken
+} from "@/lib/utils/format";
 import type { FactionPerformance, Gigling, MetaInsight, Race } from "@/types";
 
 type LandingExperienceProps = {
@@ -198,7 +203,7 @@ function ProductMockup({
               </div>
               <p className="mt-2 text-sm leading-6 text-white/56">
                 {topGigling
-                  ? `${topGigling.totalRaces} races, ${formatPercent(topGigling.winRate)} wins, ${formatToken(topGigling.earnings)} earned.`
+                  ? `${topGigling.totalRaces} races, ${formatPercent(topGigling.winRate)} wins, ${formatOptionalToken(topGigling.earnings).toLowerCase()}.`
                   : noGiglingText}
               </p>
             </div>
@@ -863,7 +868,7 @@ export function LandingExperience({
                 <RacingSignal label="Wallet ownership" tone="text-emerald-racing" value="Live only" />
                 <RacingSignal label="Race alerts" tone="text-orange-racing" value={liveCount(activeRaceCount, feedStatus.races)} />
                 <RacingSignal label="Top win rate" tone="text-cyan-racing" value={topGigling ? formatPercent(topGigling.winRate) : "No live signal"} />
-                <RacingSignal label="Best distance" tone="text-violet-200" value={topGigling?.bestDistance ?? "No live signal"} />
+                <RacingSignal label="Best distance" tone="text-violet-200" value={topGigling ? formatConditionLabel(topGigling.bestDistance, "No live signal") : "No live signal"} />
               </div>
               <p className="mt-5 text-sm leading-6 text-white/56">
                 Connected wallets load owned Giglings and live race context. If ownership data is

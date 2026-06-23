@@ -12,7 +12,7 @@ import { MetricCard } from "@/components/shared/metric-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { useGiglings } from "@/hooks/use-giglings";
 import type { Gigling, GiglingFaction, GiglingRarity, RaceDistance, RaceWeather } from "@/types";
-import { formatPercent, formatToken } from "@/lib/utils/format";
+import { formatOptionalToken, formatPercent } from "@/lib/utils/format";
 
 type SortKey = "winRate" | "podiumRate" | "earnings" | "totalRaces" | "level";
 
@@ -195,7 +195,7 @@ export function GiglingExplorer() {
           label="Best Visible"
           mechanic="winRate"
           tone="orange"
-          value={topResult ? formatPercent(topResult.winRate) : "0%"}
+          value={topResult ? formatPercent(topResult.winRate) : "No match"}
         />
         <MetricCard
           detail="Across filtered results"
@@ -206,11 +206,11 @@ export function GiglingExplorer() {
           value={formatPercent(averageWinRate)}
         />
         <MetricCard
-          detail="Filtered career earnings"
+          detail="Only shown when the live feed includes payouts"
           icon="coins"
           label="Earnings"
           tone="violet"
-          value={formatToken(totalEarnings)}
+          value={formatOptionalToken(totalEarnings)}
         />
       </div>
 

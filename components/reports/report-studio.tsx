@@ -11,7 +11,13 @@ import { GiglingAvatar } from "@/components/shared/gigling-avatar";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
-import { formatPercent, formatToken } from "@/lib/utils/format";
+import {
+  formatConditionLabel,
+  formatGiglingRaceFit,
+  formatOptionalToken,
+  formatPercent,
+  formatToken
+} from "@/lib/utils/format";
 import type { Gigling, MetaInsight, Race } from "@/types";
 
 type ReportStudioProps = {
@@ -198,11 +204,15 @@ function VisualReportArtifact({
               </div>
               <div>
                 <p className="text-xs text-white/42">Best distance</p>
-                <p className="mt-1 text-lg font-black capitalize">{gigling.bestDistance}</p>
+                <p className="mt-1 text-lg font-black capitalize">
+                  {formatConditionLabel(gigling.bestDistance)}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-white/42">Best weather</p>
-                <p className="mt-1 text-lg font-black capitalize">{gigling.bestWeather}</p>
+                <p className="mt-1 text-lg font-black capitalize">
+                  {formatConditionLabel(gigling.bestWeather)}
+                </p>
               </div>
             </div>
           </section>
@@ -360,7 +370,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
     );
   }
 
-  const socialCopy = `${gigling.name} watchlist: ${formatPercent(gigling.winRate)} win rate, ${formatPercent(gigling.podiumRate)} podium rate, best fit ${gigling.bestDistance}/${gigling.bestWeather}. Race #${race.raceNumber} winner: ${winnerName(race)}. Meta signal: ${insight.title} (${insight.metricValue}). Powered by Gigling Racing Intel.`;
+  const socialCopy = `${gigling.name} watchlist: ${formatPercent(gigling.winRate)} win rate, ${formatPercent(gigling.podiumRate)} podium rate, best fit ${formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather).toLowerCase()}. Race #${race.raceNumber} winner: ${winnerName(race)}. Meta signal: ${insight.title} (${insight.metricValue}). Powered by Gigling Racing Intel.`;
 
   async function renderReportImage() {
     if (!exportRef.current) {
@@ -553,15 +563,19 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
               </div>
               <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
                 <p className="text-xs text-white/38">Best Fit</p>
-                <p className="mt-1 font-black capitalize text-white">{gigling.bestDistance}</p>
+                <p className="mt-1 font-black capitalize text-white">
+                  {formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather)}
+                </p>
               </div>
               <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
                 <p className="text-xs text-white/38">Earnings</p>
-                <p className="mt-1 font-black text-white">{formatToken(gigling.earnings)}</p>
+                <p className="mt-1 font-black text-white">{formatOptionalToken(gigling.earnings)}</p>
               </div>
             </div>
             <p className="mt-5 text-sm leading-6 text-white/58">
-              {gigling.name} is strongest in {gigling.bestWeather} weather and is currently carrying a {gigling.currentStreak} race streak.
+              {gigling.bestWeather === "unknown"
+                ? `${gigling.name} has no live weather-fit signal yet and is currently carrying a ${gigling.currentStreak} race streak.`
+                : `${gigling.name} is strongest in ${formatConditionLabel(gigling.bestWeather)} weather and is currently carrying a ${gigling.currentStreak} race streak.`}
             </p>
           </ReportShell>
 

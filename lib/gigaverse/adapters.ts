@@ -455,7 +455,10 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
       firstValue(input, ["tokenId", "petId", "id"]),
       normalizeText(idSource, id)
     ),
-    name: normalizeText(firstValue(input, ["name", "displayName", "petName"]), `Gigling ${id}`),
+    name: normalizeText(
+      firstValue(input, ["name", "displayName", "petName"]),
+      `Gigling #${normalizeText(idSource, id).replace(/^#/, "")}`
+    ),
     imageUrl: normalizeText(
       firstValue(input, ["imageUrl", "image", "imgUrl", "avatarUrl"]),
       ""
@@ -469,7 +472,10 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
     faction: normalizeFaction(firstValue(input, ["factionName", "faction"])),
     rarity: normalizeRarity(firstValue(input, ["rarityName", "rarity", "tier"])),
     level: normalizeNumber(firstValue(input, ["level", "rank"]), 1),
-    traits: adaptTraits(firstValue(input, ["traits", "attributes"])),
+    traits: adaptTraits(
+      firstValue(input, ["traits", "attributes"]) ??
+        firstValue(racePublic ?? {}, ["traits", "attributes"])
+    ),
     stats,
     totalRaces,
     wins,

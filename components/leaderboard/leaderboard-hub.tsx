@@ -22,7 +22,13 @@ import { MetricCard } from "@/components/shared/metric-card";
 import { RaceCard } from "@/components/shared/race-card";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
-import { formatPercent, formatToken, shortenAddress } from "@/lib/utils/format";
+import {
+  formatConditionLabel,
+  formatOptionalToken,
+  formatPercent,
+  formatToken,
+  shortenAddress
+} from "@/lib/utils/format";
 import type {
   FactionPerformance,
   Gigling,
@@ -174,7 +180,7 @@ function PodiumDeck({ giglings }: { giglings: Gigling[] }) {
                     <div className="rounded-lg border border-white/10 bg-black/18 p-2">
                       <p className="text-white/38">Earned</p>
                       <p className="mt-1 font-black text-orange-racing">
-                        {formatToken(gigling.earnings)}
+                        {formatOptionalToken(gigling.earnings)}
                       </p>
                     </div>
                   </div>
@@ -203,7 +209,7 @@ function PodiumDeck({ giglings }: { giglings: Gigling[] }) {
                 <p className="mt-2 text-sm leading-6 text-white/54">
                   {gigling.faction} racer with {formatPercent(gigling.winRate)} wins,
                   {` ${formatPercent(gigling.podiumRate)}`} podium conversion, and strongest
-                  live fit in {gigling.bestDistance} races.
+                  live fit {gigling.bestDistance === "unknown" ? "not provided by this feed" : `in ${formatConditionLabel(gigling.bestDistance)} races`}.
                 </p>
               </div>
             ))}
@@ -290,7 +296,7 @@ export function LeaderboardHub({
     { header: "Rarity", cell: (row) => <RarityBadge rarity={row.rarity} /> },
     { header: "Win", cell: (row) => formatPercent(row.winRate) },
     { header: "Podium", cell: (row) => formatPercent(row.podiumRate) },
-    { header: "Earnings", cell: (row) => formatToken(row.earnings) }
+    { header: "Earnings", cell: (row) => formatOptionalToken(row.earnings) }
   ];
   const playerColumns: DataTableColumn<Player>[] = [
     { header: "Player", cell: (row) => row.displayName ?? shortenAddress(row.walletAddress) },
@@ -298,7 +304,7 @@ export function LeaderboardHub({
     { header: "Wins", cell: (row) => row.wins },
     { header: "Win Rate", cell: (row) => formatPercent(row.winRate) },
     { header: "Stable", cell: (row) => row.stableSize },
-    { header: "Earnings", cell: (row) => formatToken(row.totalEarnings) },
+    { header: "Earnings", cell: (row) => formatOptionalToken(row.totalEarnings) },
     {
       header: "Scout",
       cell: (row) => (
@@ -323,7 +329,7 @@ export function LeaderboardHub({
     { header: "Giglings", cell: (row) => row.stableSize },
     { header: "Wins", cell: (row) => row.totalWins },
     { header: "Win Rate", cell: (row) => formatPercent(row.winRate) },
-    { header: "Earnings", cell: (row) => formatToken(row.totalEarnings) },
+    { header: "Earnings", cell: (row) => formatOptionalToken(row.totalEarnings) },
     { header: "Ace", cell: (row) => row.bestGiglingName }
   ];
   const factionColumns: DataTableColumn<FactionPerformance>[] = [
@@ -428,7 +434,7 @@ export function LeaderboardHub({
           detail={players[0].displayName}
           icon="users"
           label="Top Player"
-          value={formatToken(players[0].totalEarnings)}
+          value={formatOptionalToken(players[0].totalEarnings)}
         />
         <MetricCard
           detail={stables[0].ownerName ?? shortenAddress(stables[0].ownerAddress)}

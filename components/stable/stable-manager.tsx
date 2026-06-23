@@ -30,7 +30,12 @@ import {
   getStableBreedingRecommendations,
   getStableRetirementWarnings
 } from "@/lib/gigaverse/analytics";
-import { formatPercent, formatToken, shortenAddress } from "@/lib/utils/format";
+import {
+  formatConditionLabel,
+  formatOptionalToken,
+  formatPercent,
+  shortenAddress
+} from "@/lib/utils/format";
 
 type TooltipPayload = {
   name: string;
@@ -206,7 +211,7 @@ export function StableManager() {
           icon="coins"
           label="Earnings"
           tone="violet"
-          value={formatToken(totalEarnings)}
+          value={formatOptionalToken(totalEarnings)}
         />
       </div>
 
@@ -407,7 +412,7 @@ export function StableManager() {
                   </p>
                   <p className="mt-2 text-lg font-black text-white">{bestGigling.name}</p>
                   <p className="mt-1 text-sm text-white/52">
-                    {formatPercent(bestGigling.winRate)} win rate, best in {bestGigling.bestWeather}.
+                    {formatPercent(bestGigling.winRate)} win rate, best weather {formatConditionLabel(bestGigling.bestWeather, "not provided")}.
                   </p>
                 </motion.div>
                 <motion.div
@@ -420,7 +425,9 @@ export function StableManager() {
                   </p>
                   <p className="mt-2 text-lg font-black text-white">{weakestGigling.name}</p>
                   <p className="mt-1 text-sm text-white/52">
-                    Avoid overexposing it outside {weakestGigling.bestDistance} races.
+                    {weakestGigling.bestDistance === "unknown"
+                      ? "Distance fit is not available from the current live feed."
+                      : `Avoid overexposing it outside ${formatConditionLabel(weakestGigling.bestDistance)} races.`}
                   </p>
                 </motion.div>
               </div>
