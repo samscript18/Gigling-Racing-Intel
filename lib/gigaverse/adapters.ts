@@ -120,7 +120,7 @@ function clampStat(value: number) {
   return Math.max(0, Math.min(100, Number(value.toFixed(1))));
 }
 
-function normalizeTokenAmount(value: unknown, defaultValue = 0) {
+function normalizeTokenAmount(value: unknown, defaultValue = 0): number {
   if (typeof value === "string" && /^\d+$/.test(value) && value.length > 12) {
     return Number((Number(value) / 1_000_000_000_000_000_000).toFixed(4));
   }
@@ -249,7 +249,19 @@ function normalizeTrack(value: unknown): TrackCondition {
     return raw as TrackCondition;
   }
 
-  return "unknown";
+  const mapped: Record<string, TrackCondition> = {
+    average: "dry",
+    clear: "dry",
+    cold: "icy",
+    hot: "dry",
+    rain: "wet",
+    rainy: "wet",
+    snow: "icy",
+    snowing: "icy",
+    wet: "wet"
+  };
+
+  return mapped[raw] ?? "unknown";
 }
 
 function normalizeStatus(value: unknown): RaceStatus {
@@ -292,6 +304,25 @@ function normalizeStats(record?: UnknownRecord): GiglingStats {
       2
     );
   };
+  const rangeSpread = ["startRange", "speedRange", "staminaRange", "finishRange"]
+    .map((key) => {
+      const range = nestedRecord(record ?? {}, [key]);
+
+      if (!range) {
+        return undefined;
+      }
+
+      return Math.abs(
+        normalizeNumber(firstValue(range, ["max"]), 0) -
+          normalizeNumber(firstValue(range, ["min"]), 0)
+      );
+    })
+    .filter((value): value is number => typeof value === "number");
+  const consistencyFromRanges =
+    rangeSpread.length > 0
+      ? 100 - rangeSpread.reduce((total, value) => total + value, 0) / rangeSpread.length
+      : undefined;
+
   return {
     speed: clampStat(
       normalizeNumber(firstValue(record ?? {}, ["speed", "spd"]), averageRange("speedRange") ?? 0)
@@ -318,10 +349,64 @@ function normalizeStats(record?: UnknownRecord): GiglingStats {
     consistency: clampStat(
       normalizeNumber(
         firstValue(record ?? {}, ["consistency"]),
-        0
+        consistencyFromRanges ?? 0
       )
     )
   };
+}
+
+function deriveBestDistance(stats: GiglingStats): RaceDistance {
+  if (stats.acceleration >= 76 && stats.speed >= stats.stamina - 4) {
+    return "sprint";
+  }
+
+  if (stats.stamina >= 84 && stats.consistency >= 70) {
+    return "marathon";
+  }
+
+  if (stats.stamina >= 72) {
+    return "long";
+  }
+
+  return "medium";
+}
+
+function deriveBestWeather(stats: GiglingStats, traits: GiglingTrait[]): RaceWeather {
+  const traitNames = traits.map((trait) => trait.name.toLowerCase());
+
+  if (stats.handling >= 82) {
+    return "rainy";
+  }
+
+  if (traitNames.some((trait) => trait.includes("volatile") || trait.includes("comeback"))) {
+    return "stormy";
+  }
+
+  if (stats.consistency >= 78 || stats.stamina >= 78) {
+    return "foggy";
+  }
+
+  return "sunny";
+}
+
+function sumPayoutAmounts(value: unknown): number {
+  if (!isRecord(value)) {
+    return 0;
+  }
+
+  return Object.values(value).reduce<number>((total, payout) => {
+    if (!isRecord(payout)) {
+      return total;
+    }
+
+    return (
+      total +
+      normalizeTokenAmount(
+        firstValue(payout, ["amount", "raceAmount", "weiPayout", "weiRaceAmount"]),
+        0
+      )
+    );
+  }, 0);
 }
 
 function adaptTrait(input: unknown, index: number): GiglingTrait {
@@ -448,6 +533,14 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
     firstValue(input, ["winRate", "win_rate"]),
     totalRaces > 0 ? Number(((wins / totalRaces) * 100).toFixed(1)) : 0
   );
+  const traits = adaptTraits(
+    firstValue(input, ["traits", "attributes"]) ??
+      firstValue(racePublic ?? {}, ["traits", "attributes"])
+  );
+  const explicitBestDistance = normalizeDistance(
+    firstValue(input, ["bestDistance", "distance"])
+  );
+  const explicitBestWeather = normalizeWeather(firstValue(input, ["bestWeather", "weather"]));
 
   return {
     id,
@@ -460,7 +553,7 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
       `Gigling #${normalizeText(idSource, id).replace(/^#/, "")}`
     ),
     imageUrl: normalizeText(
-      firstValue(input, ["imageUrl", "image", "imgUrl", "avatarUrl"]),
+      firstValue(input, ["imageUrl", "image", "imgUrl", "avatarUrl", "image_url"]),
       ""
     ),
     ownerAddress: normalizeAddress(firstValue(input, ["ownerAddress", "owner", "wallet"])),
@@ -472,10 +565,7 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
     faction: normalizeFaction(firstValue(input, ["factionName", "faction"])),
     rarity: normalizeRarity(firstValue(input, ["rarityName", "rarity", "tier"])),
     level: normalizeNumber(firstValue(input, ["level", "rank"]), 1),
-    traits: adaptTraits(
-      firstValue(input, ["traits", "attributes"]) ??
-        firstValue(racePublic ?? {}, ["traits", "attributes"])
-    ),
+    traits,
     stats,
     totalRaces,
     wins,
@@ -490,8 +580,9 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
       0
     ),
     currentStreak: normalizeNumber(firstValue(input, ["currentStreak", "streak"]), 0),
-    bestDistance: normalizeDistance(firstValue(input, ["bestDistance", "distance"])),
-    bestWeather: normalizeWeather(firstValue(input, ["bestWeather", "weather"])),
+    bestDistance:
+      explicitBestDistance === "unknown" ? deriveBestDistance(stats) : explicitBestDistance,
+    bestWeather: explicitBestWeather === "unknown" ? deriveBestWeather(stats, traits) : explicitBestWeather,
     lastRaceAt: normalizeDate(firstValue(input, ["lastRaceAt", "lastRace", "updatedAt"]))
   };
 }
@@ -610,6 +701,8 @@ export function adaptApiRace(input: unknown): Race | undefined {
   const rankingWinner = Array.isArray(finalRanking) ? finalRanking[0] : undefined;
   const finishTimes = firstValue(raceRecord, ["finishTimes", "msFinishTimes"]);
   const petOwners = nestedRecord(raceRecord, ["petOwners"]);
+  const payoutPrizePool = sumPayoutAmounts(firstValue(raceRecord, ["petPayouts", "payouts"]));
+  const explicitPrizePool = normalizeTokenAmount(firstValue(raceRecord, ["prizePool", "pool"]), 0);
   const generatedParticipants =
     !Array.isArray(participants) && Array.isArray(firstValue(raceRecord, ["racePets"]))
       ? (firstValue(raceRecord, ["racePets"]) as unknown[]).map((petId, index) => ({
@@ -627,9 +720,12 @@ export function adaptApiRace(input: unknown): Race | undefined {
       firstValue(raceRecord, ["trackLength", "length"])
     ),
     weather,
-    trackCondition: normalizeTrack(firstValue(raceRecord, ["trackCondition", "condition"])),
+    trackCondition: normalizeTrack(
+      firstValue(raceRecord, ["trackCondition", "condition", "track", "trackType"]) ??
+        firstValue(raceRecord, ["raceTemp", "weather", "weatherName"])
+    ),
     entryFee: normalizeTokenAmount(firstValue(raceRecord, ["entryFee", "entryFeeWei"]), 0),
-    prizePool: normalizeTokenAmount(firstValue(raceRecord, ["prizePool", "pool"]), 0),
+    prizePool: explicitPrizePool > 0 ? explicitPrizePool : payoutPrizePool,
     startedAt: normalizeDate(firstValue(raceRecord, ["startedAt", "raceStart", "createdAt"])),
     endedAt: normalizeDate(firstValue(raceRecord, ["endedAt", "raceFinish", "resolvedAt"])),
     participants: (Array.isArray(participants) ? participants : generatedParticipants ?? []).map(

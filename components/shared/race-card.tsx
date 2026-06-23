@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Coins, Users } from "lucide-react";
+import { ArrowUpRight, Coins, Ticket, Users } from "lucide-react";
 import Link from "next/link";
 
 import { StatusBadge } from "@/components/shared/status-badge";
 import { cn } from "@/lib/utils/cn";
-import { formatDateTime, formatToken } from "@/lib/utils/format";
+import { formatConditionLabel, formatDateTime, formatToken } from "@/lib/utils/format";
 import type { Race } from "@/types";
 
 type RaceCardProps = {
@@ -44,27 +44,31 @@ export function RaceCard({ race, className }: RaceCardProps) {
         <div className="mt-5 grid gap-2 text-sm min-[390px]:grid-cols-3">
           <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Distance</p>
-            <p className="mt-1 font-bold capitalize text-white">{race.distance}</p>
+            <p className="mt-1 font-bold capitalize text-white">{formatConditionLabel(race.distance)}</p>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Weather</p>
-            <p className="mt-1 font-bold capitalize text-white">{race.weather}</p>
+            <p className="mt-1 font-bold capitalize text-white">{formatConditionLabel(race.weather)}</p>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Track</p>
-            <p className="mt-1 font-bold capitalize text-white">{race.trackCondition}</p>
+            <p className="mt-1 font-bold capitalize text-white">{formatConditionLabel(race.trackCondition)}</p>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-2 min-[430px]:grid-cols-2">
+        <div className="mt-4 grid gap-2 min-[430px]:grid-cols-3">
           <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-sm text-white/58">
             <Coins className="h-4 w-4 text-emerald-racing" />
             {formatToken(race.prizePool)}
           </div>
           <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-sm text-white/58">
+            <Ticket className="h-4 w-4 text-orange-racing" />
+            {formatToken(race.entryFee)}
+          </div>
+          <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-sm text-white/58">
             <Users className="h-4 w-4 text-cyan-racing" />
             {race.participants.length} entrants
-            {itemCount > 0 ? ` / ${itemCount} items` : ""}
+            {` / ${itemCount} item actions`}
           </div>
         </div>
 

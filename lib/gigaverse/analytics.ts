@@ -252,10 +252,12 @@ export function summarizeConditionFit(gigling: Gigling, race: Race) {
 }
 
 export function getGiglingStatRadarData(gigling: Gigling) {
-  return Object.entries(gigling.stats).map(([stat, value]) => ({
-    stat: getConditionLabel(stat),
-    value
-  }));
+  return Object.entries(gigling.stats)
+    .filter(([, value]) => value > 0)
+    .map(([stat, value]) => ({
+      stat: getConditionLabel(stat),
+      value
+    }));
 }
 
 export function getGiglingPerformanceByWeather(giglingId: string, races: Race[]) {

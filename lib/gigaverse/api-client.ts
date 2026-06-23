@@ -235,6 +235,59 @@ function extractHasMore(payload: unknown, items: Gigling[], limit: number, offse
   return items.length >= limit;
 }
 
+function mergeGiglingSummary(primary: Gigling, enriched?: Gigling) {
+  if (!enriched) {
+    return primary;
+  }
+
+  return {
+    ...primary,
+    ...enriched,
+    ownerName: enriched.ownerName ?? primary.ownerName,
+    imageUrl: enriched.imageUrl || primary.imageUrl,
+    earnings: enriched.earnings || primary.earnings,
+    bestDistance:
+      enriched.bestDistance === "unknown" ? primary.bestDistance : enriched.bestDistance,
+    bestWeather: enriched.bestWeather === "unknown" ? primary.bestWeather : enriched.bestWeather
+  } satisfies Gigling;
+}
+
+async function enrichGiglingSummaries(giglings: Gigling[]) {
+  if (giglings.length === 0) {
+    return giglings;
+  }
+
+  try {
+    const enrichedGiglings = await fetchGiglingsByIds(giglings.map((gigling) => gigling.id));
+    const enrichedById = new Map(enrichedGiglings.map((gigling) => [gigling.id, gigling]));
+
+    return giglings.map((gigling) => mergeGiglingSummary(gigling, enrichedById.get(gigling.id)));
+  } catch {
+    return giglings;
+  }
+}
+
+function getStatsRecord(payload: unknown) {
+  if (isRecord(payload) && isRecord(payload.stats)) {
+    return payload.stats;
+  }
+
+  return payload;
+}
+
+function extractRecentRaceIdsFromStats(payload: unknown) {
+  const statsRecord = getStatsRecord(payload);
+
+  if (!isRecord(statsRecord) || !Array.isArray(statsRecord.recent)) {
+    return [];
+  }
+
+  return statsRecord.recent
+    .map((entry) => (isRecord(entry) ? entry.raceId : undefined))
+    .filter((raceId): raceId is string | number => typeof raceId === "string" || typeof raceId === "number")
+    .map((raceId) => String(raceId));
+}
+
 async function enrichRacesWithGiglings(races: Race[]) {
   const giglingIds = getRaceGiglingIds(races);
 
@@ -489,7 +542,7 @@ export async function fetchGiglingsPage({
   const payload = await requestGigaverseJson("/leaderboard/elo", {
     searchParams: { limit: safeLimit, offset: safeOffset }
   });
-  const items = adaptApiGiglings(payload);
+  const items = await enrichGiglingSummaries(adaptApiGiglings(payload));
 
   return {
     items,
@@ -502,6 +555,24 @@ export async function fetchGiglingsPage({
 export async function fetchGiglings() {
   const page = await fetchGiglingsPage({ limit: 50, offset: 0 });
   return page.items;
+}
+
+export async function fetchGiglingRaceHistory(id: string) {
+  const remoteId = toRemotePetId(id);
+  const statsPayload = await requestGigaverseJson(`/pets/${remoteId}/stats`, {
+    allowNotFound: true
+  });
+  const raceIds = extractRecentRaceIdsFromStats(statsPayload);
+
+  if (raceIds.length === 0) {
+    return [];
+  }
+
+  const raceResults = await Promise.allSettled(raceIds.map((raceId) => fetchRaceById(raceId)));
+
+  return raceResults
+    .map((result) => (result.status === "fulfilled" ? result.value : undefined))
+    .filter((race): race is Race => Boolean(race));
 }
 
 export async function fetchGiglingById(id: string) {

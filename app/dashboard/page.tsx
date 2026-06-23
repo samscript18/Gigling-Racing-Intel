@@ -101,6 +101,10 @@ export default async function DashboardPage() {
                 distance: featuredRace.distance,
                 entryFee: featuredRace.entryFee,
                 id: featuredRace.id,
+                itemActions: featuredRace.participants.reduce(
+                  (total, participant) => total + participant.itemsUsed.length,
+                  0
+                ),
                 participants: featuredRace.participants.length,
                 prizePool: featuredRace.prizePool,
                 raceNumber: featuredRace.raceNumber,

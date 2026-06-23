@@ -14,7 +14,7 @@ import { RaceCard } from "@/components/shared/race-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useRaceRealtime, useRaces } from "@/hooks/use-races";
-import { formatToken } from "@/lib/utils/format";
+import { formatConditionLabel, formatToken } from "@/lib/utils/format";
 import type { Race, RaceDistance, RaceWeather, TrackCondition } from "@/types";
 
 type RaceTab = "live" | "recent" | "historical";
@@ -221,7 +221,12 @@ export function RaceDashboard() {
     },
     {
       header: "Conditions",
-      cell: (race) => `${race.distance} / ${race.weather} / ${race.trackCondition}`
+      cell: (race) =>
+        `${formatConditionLabel(race.distance)} / ${formatConditionLabel(race.weather)} / ${formatConditionLabel(race.trackCondition)}`
+    },
+    {
+      header: "Entry",
+      cell: (race) => formatToken(race.entryFee)
     },
     {
       header: "Prize",

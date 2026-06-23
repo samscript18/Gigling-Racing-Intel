@@ -15,13 +15,14 @@ import Link from "next/link";
 
 import { StatusBadge } from "@/components/shared/status-badge";
 import { cn } from "@/lib/utils/cn";
-import { formatPercent, formatToken } from "@/lib/utils/format";
+import { formatConditionLabel, formatPercent, formatToken } from "@/lib/utils/format";
 import type { GiglingFaction, RaceDistance, RaceStatus, RaceWeather, TrackCondition } from "@/types";
 
 type FeaturedRace = {
   distance: RaceDistance;
   entryFee: number;
   id: string;
+  itemActions: number;
   participants: number;
   prizePool: number;
   raceNumber: number;
@@ -221,10 +222,20 @@ export function CommandCenterBrief({
 
           <div className="space-y-3">
             {[
-              { label: "Weather", value: featuredRace?.weather ?? "--" },
-              { label: "Track", value: featuredRace?.trackCondition ?? "--" },
-              { label: "Distance", value: featuredRace?.distance ?? "--" },
+              {
+                label: "Weather",
+                value: featuredRace ? formatConditionLabel(featuredRace.weather) : "--"
+              },
+              {
+                label: "Track",
+                value: featuredRace ? formatConditionLabel(featuredRace.trackCondition) : "--"
+              },
+              {
+                label: "Distance",
+                value: featuredRace ? formatConditionLabel(featuredRace.distance) : "--"
+              },
               { label: "Field", value: featuredRace ? `${featuredRace.participants} entrants` : "--" },
+              { label: "Items", value: featuredRace ? `${featuredRace.itemActions} actions` : "--" },
               { label: "Entry", value: featuredRace ? formatToken(featuredRace.entryFee) : "--" },
               { label: "Pool", value: featuredRace ? formatToken(featuredRace.prizePool) : "--" }
             ].map((item) => (
