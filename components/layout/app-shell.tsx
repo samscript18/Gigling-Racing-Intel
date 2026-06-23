@@ -21,9 +21,9 @@ export function AppShell({ children }: AppShellProps) {
 	const pathname = usePathname();
 	const { sidebarCollapsed } = useAppStore();
 
-	if (pathname === "/") {
-		return <>{children}</>;
-	}
+  if (pathname === "/" || pathname.startsWith("/docs")) {
+    return <>{children}</>;
+  }
 
 	const currentItem = primaryNavItems.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)) ?? primaryNavItems[0];
 

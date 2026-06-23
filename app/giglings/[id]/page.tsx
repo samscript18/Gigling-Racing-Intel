@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 
 import { GiglingDetailCharts } from "@/components/giglings/gigling-detail-charts";
-import { DataTable, type DataTableColumn } from "@/components/shared/data-table";
+import { GiglingRaceHistoryTable } from "@/components/giglings/gigling-race-history-table";
 import { FactionBadge } from "@/components/shared/faction-badge";
 import { GiglingAvatar } from "@/components/shared/gigling-avatar";
 import { GiglingCard } from "@/components/shared/gigling-card";
@@ -10,10 +9,9 @@ import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
-import { StatusBadge } from "@/components/shared/status-badge";
 import { getGiglingIntelligenceSummary, getGiglingPerformanceByDistance, getGiglingPerformanceByWeather, getGiglingRaceHistory, getGiglingRiskWarnings, getGiglingStatRadarData, getRecommendedRaceConditions } from "@/lib/gigaverse/analytics";
 import { fetchGiglingById, fetchGiglingRaceHistory, fetchGiglings, fetchRaces } from "@/lib/gigaverse/api-client";
-import { formatConditionLabel, formatDateTime, formatOptionalToken, formatPercent, shortenAddress } from "@/lib/utils/format";
+import { formatConditionLabel, formatOptionalToken, formatPercent, shortenAddress } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
@@ -45,36 +43,6 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
 	const intelligence = getGiglingIntelligenceSummary(gigling, profileRaces);
 	const recommendations = getRecommendedRaceConditions(gigling);
 	const warnings = getGiglingRiskWarnings(gigling);
-	const columns: DataTableColumn<(typeof raceHistory)[number]>[] = [
-		{
-			header: "Race",
-			cell: ({ race }) => (
-				<Link className="font-bold text-cyan-racing transition hover:text-white" href={`/races/${race.id}`}>
-					#{race.raceNumber}
-				</Link>
-			),
-		},
-		{
-			header: "Status",
-			cell: ({ race }) => <StatusBadge status={race.status} />,
-		},
-		{
-			header: "Conditions",
-			cell: ({ race }) => `${formatConditionLabel(race.distance)} / ${formatConditionLabel(race.weather)} / ${formatConditionLabel(race.trackCondition)}`,
-		},
-		{
-			header: "Placement",
-			cell: ({ participant }) => (participant.finalPosition ? `P${participant.finalPosition}` : "Pending"),
-		},
-		{
-			header: "Score",
-			cell: ({ participant }) => participant.performanceScore ?? "Pending",
-		},
-		{
-			header: "Date",
-			cell: ({ race }) => formatDateTime(race.startedAt),
-		},
-	];
 	const similarGiglings = giglings
 		.filter((entry) => entry.id !== gigling.id && entry.faction === gigling.faction)
 		.sort((first, second) => second.winRate - first.winRate)
@@ -195,7 +163,7 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
 			<section className="premium-panel rounded-lg p-5">
 				<div className="relative z-10">
 					<SectionHeader description="Completed, live, and scheduled races involving this Gigling." title="Race History" />
-					<DataTable columns={columns} data={raceHistory} getRowKey={({ race }) => race.id} />
+					<GiglingRaceHistoryTable rows={raceHistory} />
 				</div>
 			</section>
 		</div>

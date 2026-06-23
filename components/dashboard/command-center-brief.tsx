@@ -224,20 +224,20 @@ export function CommandCenterBrief({
             {[
               {
                 label: "Weather",
-                value: featuredRace ? formatConditionLabel(featuredRace.weather) : "--"
+                value: featuredRace ? formatConditionLabel(featuredRace.weather) : "N/A"
               },
               {
                 label: "Track",
-                value: featuredRace ? formatConditionLabel(featuredRace.trackCondition) : "--"
+                value: featuredRace ? formatConditionLabel(featuredRace.trackCondition) : "N/A"
               },
               {
                 label: "Distance",
-                value: featuredRace ? formatConditionLabel(featuredRace.distance) : "--"
+                value: featuredRace ? formatConditionLabel(featuredRace.distance) : "N/A"
               },
-              { label: "Field", value: featuredRace ? `${featuredRace.participants} entrants` : "--" },
-              { label: "Items", value: featuredRace ? `${featuredRace.itemActions} actions` : "--" },
-              { label: "Entry", value: featuredRace ? formatToken(featuredRace.entryFee) : "--" },
-              { label: "Pool", value: featuredRace ? formatToken(featuredRace.prizePool) : "--" }
+              { label: "Field", value: featuredRace ? `${featuredRace.participants} entrants` : "N/A" },
+              { label: "Items", value: featuredRace ? `${featuredRace.itemActions} actions` : "N/A" },
+              { label: "Entry", value: featuredRace ? formatToken(featuredRace.entryFee) : "N/A" },
+              { label: "Pool", value: featuredRace ? formatToken(featuredRace.prizePool) : "N/A" }
             ].map((item) => (
               <div
                 key={item.label}

@@ -374,6 +374,39 @@ function DocsHero() {
   );
 }
 
+function DocsTopNav() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05070d]/82 px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-2xl sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+        <Link href="/" className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-violet-racing/40 bg-violet-racing/14 shadow-glow">
+            <span className="text-xs font-black tracking-[0.18em] text-violet-200">GRI</span>
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-black text-white">Gigling Racing Intel</p>
+            <p className="truncate text-xs text-white/45">Racing Academy</p>
+          </div>
+        </Link>
+        <nav className="flex items-center gap-2" aria-label="Docs navigation">
+          <Link
+            className="hidden rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-white/68 transition hover:border-cyan-racing/35 hover:text-cyan-racing sm:inline-flex"
+            href="/"
+          >
+            Landing
+          </Link>
+          <Link
+            className="glow-button inline-flex items-center gap-2 rounded-lg bg-violet-racing px-4 py-2 text-sm font-black text-white transition hover:scale-[1.02]"
+            href="/dashboard"
+          >
+            Open App
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
 function AcademySectionNav() {
   return (
     <aside className="sticky top-24 hidden self-start xl:block">
@@ -585,13 +618,15 @@ function DocsCTA() {
 
 export function RacingAcademy() {
   return (
-    <div className="space-y-8">
-      <DocsHero />
+    <main className="racing-page-shell min-h-screen overflow-hidden px-4 pb-14 pt-4 sm:px-6 lg:px-8">
+      <DocsTopNav />
+      <div className="mx-auto mt-5 max-w-7xl space-y-8">
+        <DocsHero />
 
-      <div className="grid gap-8 xl:grid-cols-[15rem_1fr]">
-        <AcademySectionNav />
+        <div className="grid gap-8 xl:grid-cols-[15rem_1fr]">
+          <AcademySectionNav />
 
-        <div className="space-y-16">
+          <div className="space-y-16">
           <DocsSection
             description="Start with the player journey: learn the object, read the race, evaluate the field, then choose what to do next."
             id="learning-path"
@@ -825,8 +860,9 @@ export function RacingAcademy() {
           </DocsSection>
 
           <DocsCTA />
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

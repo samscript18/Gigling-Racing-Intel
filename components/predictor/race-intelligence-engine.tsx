@@ -257,7 +257,7 @@ export function RaceIntelligenceEngine() {
           label="Suggested Pick"
           mechanic="confidence"
           tone="orange"
-          value={topPick ? formatPercent(topPick.estimatedWinProbability) : "--"}
+          value={topPick ? formatPercent(topPick.estimatedWinProbability) : "N/A"}
         />
         <MetricCard
           detail={`${distance} / ${weather}`}

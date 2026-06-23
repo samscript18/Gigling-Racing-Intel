@@ -3,17 +3,23 @@ export function formatPercent(value: number) {
 }
 
 export function formatToken(value: number) {
+  if (!Number.isFinite(value)) {
+    return "N/A";
+  }
+
   return `${Intl.NumberFormat("en", {
     maximumFractionDigits: value >= 100 ? 0 : 2
   }).format(value)} GIGA`;
 }
 
-export function formatOptionalToken(value: number, unavailableLabel = "Payout data unavailable") {
-  return value > 0 ? formatToken(value) : unavailableLabel;
+export function formatOptionalToken(value?: number | null, unavailableLabel = "N/A") {
+  return typeof value === "number" && Number.isFinite(value)
+    ? formatToken(value)
+    : unavailableLabel;
 }
 
-export function formatConditionLabel(value: string, unavailableLabel = "Unavailable") {
-  return value === "unknown" ? unavailableLabel : value;
+export function formatConditionLabel(value?: string | null, unavailableLabel = "N/A") {
+  return !value || value === "unknown" ? unavailableLabel : value;
 }
 
 export function formatGiglingRaceFit(distance: string, weather: string) {
@@ -22,7 +28,7 @@ export function formatGiglingRaceFit(distance: string, weather: string) {
     formatConditionLabel(weather, "")
   ].filter(Boolean);
 
-  return labels.length > 0 ? labels.join(" / ") : "Race fit unavailable";
+  return labels.length > 0 ? labels.join(" / ") : "N/A";
 }
 
 export function shortenAddress(address: string) {
