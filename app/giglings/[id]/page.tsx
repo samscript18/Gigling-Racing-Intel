@@ -26,9 +26,10 @@ import {
   fetchRaces
 } from "@/lib/gigaverse/api-client";
 import {
+  formatConditionLabel,
   formatDateTime,
+  formatOptionalToken,
   formatPercent,
-  formatToken,
   shortenAddress
 } from "@/lib/utils/format";
 
@@ -148,11 +149,11 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
               </div>
               <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
                 <p className="text-xs uppercase tracking-[0.2em] text-white/38">Best Distance</p>
-                <p className="mt-2 font-black capitalize text-cyan-racing">{gigling.bestDistance}</p>
+                <p className="mt-2 font-black capitalize text-cyan-racing">{formatConditionLabel(gigling.bestDistance)}</p>
               </div>
               <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
                 <p className="text-xs uppercase tracking-[0.2em] text-white/38">Best Weather</p>
-                <p className="mt-2 font-black capitalize text-orange-racing">{gigling.bestWeather}</p>
+                <p className="mt-2 font-black capitalize text-orange-racing">{formatConditionLabel(gigling.bestWeather)}</p>
               </div>
             </div>
           </div>
@@ -163,7 +164,7 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
         <MetricCard icon="flag" label="Total Races" value={`${gigling.totalRaces}`} />
         <MetricCard icon="trophy" label="Win Rate" mechanic="winRate" tone="orange" value={formatPercent(gigling.winRate)} />
         <MetricCard icon="medal" label="Podium Rate" mechanic="podiumRate" tone="emerald" value={formatPercent(gigling.podiumRate)} />
-        <MetricCard icon="coins" label="Earnings" tone="violet" value={formatToken(gigling.earnings)} />
+        <MetricCard icon="coins" label="Earnings" tone="violet" value={formatOptionalToken(gigling.earnings)} />
         <MetricCard
           detail={`${completedHistory.length} indexed races`}
           icon="barChart"
