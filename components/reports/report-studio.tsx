@@ -7,6 +7,7 @@ import type { RefObject } from "react";
 
 import { FactionBadge } from "@/components/shared/faction-badge";
 import { EmptyState } from "@/components/shared/empty-state";
+import { GiglingAvatar } from "@/components/shared/gigling-avatar";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
@@ -146,6 +147,7 @@ function VisualReportArtifact({
       style={{ height: 630, width: 1200 }}
     >
       <div className="absolute inset-0 bg-racing-grid opacity-35" />
+      <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
       <div className="relative z-10 flex h-full flex-col">
         <div className="flex items-start justify-between border-b border-white/10 pb-7">
           <div>
@@ -169,8 +171,18 @@ function VisualReportArtifact({
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-racing">
               Stable Watch
             </p>
-            <h3 className="mt-3 text-3xl font-black">{gigling.name}</h3>
-            <p className="mt-1 text-sm text-white/50">Token #{gigling.tokenId}</p>
+            <div className="mt-4 grid grid-cols-[130px_1fr] gap-5">
+              <GiglingAvatar
+                className="aspect-square rounded-lg"
+                imageUrl={gigling.imageUrl}
+                name={gigling.name}
+                priority
+              />
+              <div>
+                <h3 className="text-3xl font-black">{gigling.name}</h3>
+                <p className="mt-1 text-sm text-white/50">Token #{gigling.tokenId}</p>
+              </div>
+            </div>
             <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5">
               <div>
                 <p className="text-xs text-white/42">Win rate</p>
@@ -238,6 +250,82 @@ function VisualReportArtifact({
         </div>
       </div>
     </div>
+  );
+}
+
+function SharePreview({
+  gigling,
+  insight,
+  race
+}: {
+  gigling: Gigling;
+  insight: MetaInsight;
+  race: Race;
+}) {
+  return (
+    <section className="premium-panel rounded-lg p-5">
+      <div className="relative z-10">
+        <SectionHeader
+          description="A social-format preview of the PNG report generated from the selected live inputs."
+          title="Social Preview"
+        />
+        <div className="overflow-hidden rounded-lg border border-white/10 bg-[#05070d] shadow-glow">
+          <div className="relative aspect-[1200/630] min-h-[260px] p-5 sm:p-6">
+            <div className="absolute inset-0 bg-racing-grid opacity-35" />
+            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
+            <div className="relative z-10 grid h-full gap-5 md:grid-cols-[0.92fr_1.08fr] md:items-center">
+              <div className="flex min-w-0 items-center gap-4">
+                <GiglingAvatar
+                  className="h-28 w-28 shrink-0 rounded-lg sm:h-36 sm:w-36"
+                  imageUrl={gigling.imageUrl}
+                  name={gigling.name}
+                  priority
+                />
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-racing">
+                    Gigling Report
+                  </p>
+                  <h3 className="mt-2 truncate text-2xl font-black text-white sm:text-4xl">
+                    {gigling.name}
+                  </h3>
+                  <p className="mt-2 text-sm text-white/48">{gigling.tokenId}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <FactionBadge faction={gigling.faction} />
+                    <RarityBadge rarity={gigling.rarity} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-cyan-racing/22 bg-cyan-racing/[0.07] p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-racing">
+                    Win rate
+                  </p>
+                  <p className="mt-2 text-3xl font-black text-white">
+                    {formatPercent(gigling.winRate)}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-orange-racing/22 bg-orange-racing/[0.07] p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-racing">
+                    Race #{race.raceNumber}
+                  </p>
+                  <p className="mt-2 truncate text-xl font-black text-white">
+                    {winnerName(race)}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-emerald-racing/22 bg-emerald-racing/[0.07] p-4 sm:col-span-2">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-racing">
+                    Meta signal
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-white">{insight.metricValue}</p>
+                  <p className="mt-1 text-sm leading-6 text-white/58">{insight.title}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -436,6 +524,8 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
         race={race}
       />
 
+      <SharePreview gigling={gigling} insight={insight} race={race} />
+
       <section>
         <SectionHeader
           description="Shareable cards for community posts, match recaps, and meta alerts."
@@ -443,6 +533,11 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
         />
         <div className="mobile-card-rail grid gap-5 lg:grid-cols-3">
           <ReportShell accent="cyan" eyebrow="Gigling Report" title={gigling.name}>
+            <GiglingAvatar
+              className="mt-5 aspect-square max-h-56 rounded-lg"
+              imageUrl={gigling.imageUrl}
+              name={gigling.name}
+            />
             <div className="mt-4 flex flex-wrap gap-2">
               <FactionBadge faction={gigling.faction} />
               <RarityBadge rarity={gigling.rarity} />
