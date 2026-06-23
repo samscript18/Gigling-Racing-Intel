@@ -330,79 +330,6 @@ export function RaceIntelligenceEngine() {
         </div>
       </section>
 
-      <section className="premium-panel rounded-lg p-4 sm:p-5">
-        <div className="relative z-10">
-          <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <SectionHeader
-              description="Select 2 to 8 Giglings. The model ranks selected participants only."
-              title="Participant Selector"
-            />
-            <button
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-cyan-racing px-4 text-sm font-black text-[#031018] shadow-glow transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-45"
-              disabled={selectedGiglingIds.length < 2}
-              type="button"
-              onClick={runPrediction}
-            >
-              <Play className="h-4 w-4" />
-              Run prediction
-            </button>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {availableGiglings.map((gigling) => {
-              const selected = selectedGiglingIds.includes(gigling.id);
-
-              return (
-                <button
-                  key={gigling.id}
-                  className={cn(
-                    "rounded-lg border p-3 text-left transition",
-                    selected
-                      ? "border-cyan-racing/45 bg-cyan-racing/12 shadow-glow"
-                      : "border-white/10 bg-white/[0.035] hover:border-white/20 hover:bg-white/[0.055]"
-                  )}
-                  type="button"
-                  onClick={() => toggleGigling(gigling.id)}
-                >
-                  <div className="mb-3 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-black text-white">{gigling.name}</p>
-                      <p className="mt-1 text-xs text-white/42">{gigling.tokenId}</p>
-                    </div>
-                    <span
-                      className={cn(
-                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border",
-                        selected
-                          ? "border-cyan-racing/40 bg-cyan-racing/14 text-cyan-racing"
-                          : "border-white/10 bg-white/[0.04] text-white/32"
-                      )}
-                    >
-                      {selected ? <Check className="h-4 w-4" /> : null}
-                    </span>
-                  </div>
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    <FactionBadge faction={gigling.faction} />
-                    <RarityBadge rarity={gigling.rarity} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-2">
-                      <p className="text-white/38">Win</p>
-                      <p className="font-bold text-white">{formatPercent(gigling.winRate)}</p>
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-2">
-                      <p className="text-white/38">Fit</p>
-                      <p className="font-bold capitalize text-white">
-                        {formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather)}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {prediction ? (
         <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
           <section>
@@ -485,6 +412,80 @@ export function RaceIntelligenceEngine() {
           title="Race Intelligence Engine ready"
         />
       )}
+
+      <section className="premium-panel rounded-lg p-4 sm:p-5">
+        <div className="relative z-10">
+          <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <SectionHeader
+              description="Select 2 to 8 Giglings. The model ranks selected participants only."
+              title="Participant Selector"
+            />
+            <button
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-cyan-racing px-4 text-sm font-black text-[#031018] shadow-glow transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-45"
+              disabled={selectedGiglingIds.length < 2}
+              type="button"
+              onClick={runPrediction}
+            >
+              <Play className="h-4 w-4" />
+              Run prediction
+            </button>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {availableGiglings.map((gigling) => {
+              const selected = selectedGiglingIds.includes(gigling.id);
+
+              return (
+                <button
+                  key={gigling.id}
+                  className={cn(
+                    "rounded-lg border p-3 text-left transition",
+                    selected
+                      ? "border-cyan-racing/45 bg-cyan-racing/12 shadow-glow"
+                      : "border-white/10 bg-white/[0.035] hover:border-white/20 hover:bg-white/[0.055]"
+                  )}
+                  type="button"
+                  onClick={() => toggleGigling(gigling.id)}
+                >
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-black text-white">{gigling.name}</p>
+                      <p className="mt-1 text-xs text-white/42">{gigling.tokenId}</p>
+                    </div>
+                    <span
+                      className={cn(
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border",
+                        selected
+                          ? "border-cyan-racing/40 bg-cyan-racing/14 text-cyan-racing"
+                          : "border-white/10 bg-white/[0.04] text-white/32"
+                      )}
+                    >
+                      {selected ? <Check className="h-4 w-4" /> : null}
+                    </span>
+                  </div>
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <FactionBadge faction={gigling.faction} />
+                    <RarityBadge rarity={gigling.rarity} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-2">
+                      <p className="text-white/38">Win</p>
+                      <p className="font-bold text-white">{formatPercent(gigling.winRate)}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-white/[0.035] p-2">
+                      <p className="text-white/38">Fit</p>
+                      <p className="font-bold capitalize text-white">
+                        {formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather)}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }
