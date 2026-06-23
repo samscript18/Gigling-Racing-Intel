@@ -662,7 +662,7 @@ function DocsCTA() {
 
 export function RacingAcademy() {
   return (
-    <main className="racing-page-shell min-h-screen overflow-hidden px-4 pb-14 pt-4 sm:px-6 lg:px-8">
+    <main className="racing-page-shell min-h-screen px-4 pb-14 pt-4 sm:px-6 lg:px-8">
       <DocsTopNav />
       <div className="mx-auto mt-5 max-w-7xl space-y-8">
         <DocsHero />
