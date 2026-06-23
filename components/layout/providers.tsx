@@ -2,14 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { connectorsForWallets, darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import {
-	coinbaseWallet,
-	injectedWallet,
-	metaMaskWallet,
-	rabbyWallet,
-	rainbowWallet,
-	walletConnectWallet,
-} from "@rainbow-me/rainbowkit/wallets";
+import { coinbaseWallet, injectedWallet, metaMaskWallet, rabbyWallet, rainbowWallet, walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
 import { MotionConfig } from "framer-motion";
 import { useState, type ReactNode } from "react";
 import { defineChain } from "viem";
@@ -32,20 +25,13 @@ const abstract = defineChain({
 const walletGroups = [
 	{
 		groupName: "Recommended",
-		wallets: [
-			metaMaskWallet,
-			rabbyWallet,
-			rainbowWallet,
-			coinbaseWallet,
-			injectedWallet,
-			...(appEnv.walletConnectProjectId ? [walletConnectWallet] : []),
-		],
+		wallets: [metaMaskWallet, rabbyWallet, rainbowWallet, coinbaseWallet, injectedWallet, ...(appEnv.walletConnectProjectId ? [walletConnectWallet] : [])],
 	},
 ];
 
 const connectors = connectorsForWallets(walletGroups, {
 	appName: appEnv.appName,
-	projectId: appEnv.walletConnectProjectId ?? "walletconnect-project-id-required",
+	projectId: appEnv.walletConnectProjectId ?? process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "",
 });
 
 const wagmiConfig = createConfig({

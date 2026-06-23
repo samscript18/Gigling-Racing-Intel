@@ -29,7 +29,6 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - viem
 - wagmi
 - RainbowKit
-- Vercel-ready deployment
 
 ## Getting Started
 
@@ -139,8 +138,6 @@ Every Gigling, race, player, stable, rivalry, leaderboard, and meta record comes
 5. Open `/predictor` and run the Race Intelligence Engine.
 6. Open `/stable`, `/rivals`, `/leaderboard`, and `/reports` to show player utility and community sharing.
 
-Submission-ready copy lives in `docs/SUBMISSION.md`, the 30-90 second demo script lives in `docs/DEMO-WALKTHROUGH.md`, and the judging review lives in `docs/ALIGNMENT-AUDIT.md`.
-
 ## Scripts
 
 ```bash
@@ -149,7 +146,3 @@ npm run lint
 npm run typecheck
 npm run build
 ```
-
-## Security
-
-Do not commit secrets, private keys, JWTs, or private RPC credentials. Only public `NEXT_PUBLIC_*` values belong in browser-readable configuration.
