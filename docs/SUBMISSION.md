@@ -1,69 +1,29 @@
-# Gigling Racing Intel Submission Copy
-
-## Project Name
+# Project Name
 
 Gigling Racing Intel
 
-## Short Description
+# Short Description
 
-Gigling Racing Intel is the intelligence layer for Gigaverse Gigling Racing: a polished player dashboard for inspecting Giglings, analyzing races, reading the meta, predicting race outcomes, managing a stable, tracking rivals, and sharing performance reports.
+Gigling Racing Intel is a live-data racing intelligence app for Gigaverse Gigling Racing. It helps players inspect Giglings, study race history, read the current meta, run explainable race predictions, manage a stable, track rivals, and create shareable reports so race decisions feel clearer and more strategic.
 
-## Problem It Solves
+# Problem It Solves
 
-Gigling Racing players need quick answers before entering races:
+Gigling Racing exposes valuable race, Gigling, owner, payout, and performance data, but players still need fast answers before entering or analyzing races. The app turns that data into practical guidance: which Giglings fit a race, why a result happened, what conditions are trending, who the toughest rivals are, and how a stable can be managed more intelligently.
 
-- Which Gigling should I enter?
-- What conditions favor my stable?
-- Why did my Gigling win or lose?
-- Which factions, rarities, weather, and distances are performing best?
-- Who are my biggest rivals?
+# How It Uses Gigaverse APIs / Data
 
-The app turns raw racing, pet, owner, item, condition, and onchain data into decisions players can act on.
+The app uses live Gigaverse Racing REST data and Abstract contract reads. It reads race feeds, race details, Gigling metadata, Gigling racing stats, player race history, ELO leaderboards, global racing stats, ownership context, race entry data, prize and payout fields, item/action fields when present, and PetRacingSystem contract views. Central adapters normalize the raw payloads into typed app data for analytics, prediction scoring, dashboards, charts, report cards, and user-readable unavailable states.
 
-## How It Uses Gigaverse Data
+# Demo Link
 
-- Reads the public Gigaverse Racing REST API by default.
-- Parses live race feed data from `/races`.
-- Parses race detail payloads from `/race/{raceId}`.
-- Parses Gigling metadata and racing stats from `/pets`, `/pets/stats`, and `/pets/{petId}/stats`.
-- Parses ELO leaderboard data from `/leaderboard/elo`.
-- Parses global racing stats from `/stats`.
-- Prepares viem contract reads for PetRacingSystem views such as `getRace`, `getRacePets`, `getRaceFinalRanking`, `getRaceFinishTimes`, `getPetOwnerInRace`, and `canPetRace`.
-- Uses the eight official racing factions: Crusader, Overseer, Athena, Archon, Foxglove, Summoner, Chobo, and Gigus.
-- Uses live data exclusively and presents explicit retry or empty states when upstream data is unavailable.
+Walkthrough: https://github.com/samscript18/Gigling-Racing-Intel#hackathon-demo-flow
 
-## Core Features
+# Repo / Build Link
 
-- Dashboard: live-feeling race command center with metrics, active races, charts, alerts, and quick actions.
-- Gigling Explorer: search, filters, sorting, cards, and detailed Gigling intelligence pages.
-- Race Dashboard: live/recent/historical race feed with filters and race cards.
-- Race Detail: placements, item timeline, winner explanation, loss explanation, and similar races.
-- Race Intelligence Engine: explainable weighted scoring model with probabilities, confidence, risk, reasons, and warnings.
-- Meta Insights: faction, rarity, weather, distance, and track-condition analysis.
-- Stable Manager: RainbowKit wallet connection, live owned Giglings, suggested races, and risk alerts.
-- Rivalry Intelligence: rival, ally, and nemesis tracking with notes.
-- Leaderboards: top Giglings, players, factions, streaks, earnings, and recent winners.
-- Reports: shareable Gigling, race, and meta report cards with social copy, native image sharing, and 1000 x 630 PNG downloads.
-- Racing Academy: premium `/docs` knowledge hub with a sticky manual index, learning path, mechanics guide, strategy lab, predictor documentation, report previews, FAQ, and developer data-layer explanation.
-- Educational layer: accessible mechanic explanations and strategy guidance across metrics, charts, race conditions, and predictions.
+Repository: https://github.com/samscript18/Gigling-Racing-Intel
 
-## Why It Fits Gigaverse
+Build commands: `npm install`, `npm run lint`, `npm run typecheck`, `npm run build`
 
-The entire product is centered on Gigling Racing language and decisions. It does not behave like a generic Web3 analytics panel; every route, type, chart, card, and explanation revolves around Giglings, races, factions, weather, track conditions, items, players, stables, and rivals.
+# Future Potential
 
-## Judging Strengths
-
-- Execution: complete Next.js app with all required routes, responsive UI, loading/empty/error states, TypeScript quality, and Vercel-ready build.
-- Creativity: Race Intelligence Engine, Racing Academy, "Why Did I Lose?", Meta Shift Detection, Rivalry Intelligence, and shareable report cards.
-- Usefulness: directly helps players learn mechanics, pick Giglings, avoid bad race fits, understand losses, and track the current meta.
-- Gigaverse Alignment: built around Gigling Racing APIs, contract reads, and racing-specific gameplay language.
-- Potential: clean adapters, query architecture, stable manager, reports, and community features can evolve into an official companion.
-
-## Future Potential
-
-- Add authenticated item inventory and race chat.
-- Add tick-level GigaSocket/Pusher updates alongside the implemented Abstract contract-event refresh.
-- Add authenticated Gigaverse sessions for protected item, chat, and inventory endpoints.
-- Add richer statistical models after more live race history is indexed.
-- Add player-facing public report URLs for persistent community profiles.
-- Expand historical Gigling race-history indexing if Gigaverse exposes a full pet race archive beyond the current recent stats feed.
+Gigling Racing Intel can evolve into a long-term companion for Gigling Racing with authenticated item inventory and race chat, deeper historical indexing, persistent public report URLs, stronger backtested prediction models, richer stable automation, and realtime race updates through Gigaverse socket channels.
