@@ -111,6 +111,11 @@ export function normalizeNumber(value: unknown, defaultValue = 0) {
   return defaultValue;
 }
 
+function normalizeOptionalNumber(value: unknown) {
+  const parsed = normalizeNumber(value, Number.NaN);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 function normalizePercent(value: unknown, defaultValue = 0) {
   const parsed = normalizeNumber(value, defaultValue);
   return parsed > 0 && parsed <= 1 ? Number((parsed * 100).toFixed(1)) : parsed;
@@ -602,7 +607,10 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
     ),
     faction: normalizeFaction(firstValue(input, ["factionName", "faction"])),
     rarity: normalizeRarity(firstValue(input, ["rarityName", "rarity", "tier"])),
-    level: normalizeNumber(firstValue(input, ["level", "rank"]), 1),
+    level: normalizeOptionalNumber(firstValue(input, ["level", "petLevel"])),
+    elo: normalizeOptionalNumber(
+      firstValue(input, ["elo"]) ?? firstValue(racePublic ?? {}, ["elo"])
+    ),
     traits,
     stats,
     totalRaces,

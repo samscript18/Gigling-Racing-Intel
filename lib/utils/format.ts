@@ -20,6 +20,16 @@ export function formatOptionalToken(value?: number | null, unavailableLabel = "N
     : unavailableLabel;
 }
 
+export function formatInteger(value?: number | null, unavailableLabel = "N/A") {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return unavailableLabel;
+  }
+
+  return Intl.NumberFormat("en", {
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
 export function formatConditionLabel(value?: string | null, unavailableLabel = "N/A") {
   return !value || value === "unknown" ? unavailableLabel : value;
 }

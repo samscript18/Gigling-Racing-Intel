@@ -46,7 +46,8 @@ export type Gigling = {
   ownerName?: string;
   faction: GiglingFaction;
   rarity: GiglingRarity;
-  level: number;
+  level?: number;
+  elo?: number;
   traits: GiglingTrait[];
   stats: GiglingStats;
   totalRaces: number;

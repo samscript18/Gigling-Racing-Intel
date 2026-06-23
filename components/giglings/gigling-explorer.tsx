@@ -21,7 +21,7 @@ import { useGiglingsPage } from "@/hooks/use-giglings";
 import type { Gigling, GiglingFaction, GiglingRarity, RaceDistance, RaceWeather } from "@/types";
 import { formatOptionalToken, formatPercent } from "@/lib/utils/format";
 
-type SortKey = "winRate" | "podiumRate" | "earnings" | "totalRaces" | "level";
+type SortKey = "winRate" | "podiumRate" | "earnings" | "totalRaces" | "elo";
 
 const PAGE_SIZE = 50;
 
@@ -71,7 +71,7 @@ const sortOptions: Array<{
   { label: "Podium rate", value: "podiumRate" },
   { label: "Earnings", value: "earnings" },
   { label: "Races", value: "totalRaces" },
-  { label: "Level", value: "level" }
+  { label: "ELO", value: "elo" }
 ];
 
 type SelectFilterProps<T extends string> = {
@@ -124,7 +124,9 @@ function matchesSearch(gigling: Gigling, search: string) {
 
 function getSortableValue(gigling: Gigling, sortBy: SortKey) {
   const value = gigling[sortBy];
-  return Number.isFinite(value) ? value : Number.NEGATIVE_INFINITY;
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : Number.NEGATIVE_INFINITY;
 }
 
 function sumAvailableEarnings(giglings: Gigling[]) {

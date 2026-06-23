@@ -11,7 +11,7 @@ import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
 import { getGiglingIntelligenceSummary, getGiglingPerformanceByDistance, getGiglingPerformanceByWeather, getGiglingRaceHistory, getGiglingRiskWarnings, getGiglingStatRadarData, getRecommendedRaceConditions } from "@/lib/gigaverse/analytics";
 import { fetchGiglingById, fetchGiglingRaceHistory, fetchGiglings, fetchRaces } from "@/lib/gigaverse/api-client";
-import { formatConditionLabel, formatOptionalToken, formatPercent, shortenAddress } from "@/lib/utils/format";
+import { formatConditionLabel, formatInteger, formatOptionalToken, formatPercent, shortenAddress } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
@@ -84,7 +84,7 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
 							<div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
 								<p className="text-xs uppercase tracking-[0.2em] text-white/38">Token</p>
 								<p className="mt-2 font-black text-white">{gigling.tokenId}</p>
-								<p className="mt-1 text-sm capitalize text-white/46">Level {gigling.level}</p>
+								<p className="mt-1 text-sm text-white/46">ELO {formatInteger(gigling.elo)}</p>
 							</div>
 							<div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
 								<p className="text-xs uppercase tracking-[0.2em] text-white/38">Best Distance</p>

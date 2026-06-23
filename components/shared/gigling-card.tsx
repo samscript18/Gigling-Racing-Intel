@@ -8,7 +8,7 @@ import { FactionBadge } from "@/components/shared/faction-badge";
 import { GiglingAvatar } from "@/components/shared/gigling-avatar";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { cn } from "@/lib/utils/cn";
-import { formatGiglingRaceFit, formatOptionalToken, formatPercent } from "@/lib/utils/format";
+import { formatGiglingRaceFit, formatInteger, formatOptionalToken, formatPercent } from "@/lib/utils/format";
 import type { Gigling } from "@/types";
 
 type GiglingCardProps = {
@@ -61,8 +61,8 @@ export function GiglingCard({ gigling, compact = false, className }: GiglingCard
             <p className="mt-1 text-sm font-bold text-white">{formatPercent(gigling.podiumRate)}</p>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
-            <p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Level</p>
-            <p className="mt-1 text-sm font-bold text-white">{gigling.level}</p>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-white/36">ELO</p>
+            <p className="mt-1 text-sm font-bold text-white">{formatInteger(gigling.elo)}</p>
           </div>
         </div>
 
