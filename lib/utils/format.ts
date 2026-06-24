@@ -11,7 +11,7 @@ export function formatToken(value: number) {
 
   return `${Intl.NumberFormat("en", {
     maximumFractionDigits
-  }).format(value)} GIGA`;
+  }).format(value)} ETH`;
 }
 
 export function formatOptionalToken(value?: number | null, unavailableLabel = "N/A") {
