@@ -103,7 +103,7 @@ export default async function DashboardPage() {
 			<div className="mt-6 space-y-6">
 				<section>
 					<SectionHeader description="Live and scheduled lobbies that deserve pre-race attention." title="Active Race Radar" />
-					<div className="mobile-card-rail grid gap-4 grid-cols-1 md:grid-cols-2">
+					<div className="mobile-card-rail grid gap-4 xl:grid-cols-3">
 						{activeRaces.slice(0, 4).map((race) => (
 							<RaceCard key={race.id} race={race} />
 						))}
@@ -127,7 +127,7 @@ export default async function DashboardPage() {
 			<div className="mt-6 space-y-6">
 				<section>
 					<SectionHeader description="Recent completed races, with item pressure and winner context." title="Recent Races" />
-					<div className="mobile-card-rail grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="mobile-card-rail grid gap-4 xl:grid-cols-3">
 						{recentCompletedRaces.slice(0, 4).map((race) => (
 							<RaceCard key={race.id} race={race} />
 						))}
