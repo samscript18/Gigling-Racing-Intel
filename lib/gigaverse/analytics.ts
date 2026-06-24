@@ -11,7 +11,7 @@ import type {
   TrackCondition
 } from "@/types";
 
-const weatherOrder: RaceWeather[] = ["sunny", "rainy", "stormy", "foggy", "windy"];
+const weatherOrder: RaceWeather[] = ["cold", "average", "hot", "sunny", "rainy", "stormy", "foggy", "windy"];
 const distanceOrder: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
 
 function sumAvailableTokenValues(values: number[]) {
@@ -557,9 +557,10 @@ export function getRaceFieldSummary(race: Race, giglings: Gigling[]) {
   const conditionRisk =
     race.trackCondition === "chaotic" ||
     race.weather === "stormy" ||
+    race.weather === "hot" ||
     race.trackCondition === "icy"
       ? "high"
-      : race.weather === "rainy" || race.trackCondition === "muddy"
+      : race.weather === "cold" || race.weather === "rainy" || race.trackCondition === "muddy"
         ? "medium"
         : "low";
 
@@ -656,6 +657,9 @@ export function getRaceConditionTrend(races: Race[]) {
     unknown: 0
   };
   const weatherWeight: Record<RaceWeather, number> = {
+    cold: 64,
+    average: 32,
+    hot: 58,
     sunny: 28,
     windy: 46,
     rainy: 62,
@@ -787,7 +791,13 @@ export function getWeatherImpactData(races: Race[]) {
       itemPressure,
       volatility: Number(
         ((itemPressure / Math.max(matchingRaces.length, 1)) * 12 +
-          (weather === "stormy" ? 36 : weather === "foggy" ? 28 : weather === "rainy" ? 20 : 12)).toFixed(1)
+          (weather === "stormy" || weather === "hot"
+            ? 36
+            : weather === "foggy" || weather === "cold"
+              ? 28
+              : weather === "rainy"
+                ? 20
+                : 12)).toFixed(1)
       )
     };
   });
@@ -886,7 +896,7 @@ export function getWeeklyTrendSummary(races: Race[], performance: FactionPerform
     bullets: [
       `${itemPressure} recorded item actions are shaping current race variance.`,
       `Podium conversion is the better signal than raw wins in volatile tracks.`,
-      `Condition fit is most important when stormy, foggy, muddy, icy, or chaotic tags stack.`
+      `Condition fit is most important when hot, cold, stormy, foggy, muddy, icy, or chaotic tags stack.`
     ]
   };
 }

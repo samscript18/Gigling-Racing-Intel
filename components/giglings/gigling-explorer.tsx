@@ -50,6 +50,9 @@ const rarityOptions: Array<GiglingRarity | "all"> = [
 
 const weatherOptions: Array<RaceWeather | "all"> = [
   "all",
+  "cold",
+  "average",
+  "hot",
   "sunny",
   "rainy",
   "stormy",

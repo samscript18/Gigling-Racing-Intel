@@ -37,7 +37,16 @@ const rarityValues: GiglingRarity[] = [
   "relic",
   "giga"
 ];
-const weatherValues: RaceWeather[] = ["sunny", "rainy", "stormy", "foggy", "windy"];
+const weatherValues: RaceWeather[] = [
+  "cold",
+  "average",
+  "hot",
+  "sunny",
+  "rainy",
+  "stormy",
+  "foggy",
+  "windy"
+];
 const distanceValues: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
 const trackValues: TrackCondition[] = ["dry", "wet", "muddy", "icy", "chaotic"];
 
@@ -215,9 +224,8 @@ function normalizeWeather(value: unknown): RaceWeather {
   }
 
   const mapped: Record<string, RaceWeather> = {
-    average: "sunny",
-    cold: "foggy",
-    hot: "sunny",
+    clear: "average",
+    temperate: "average",
     snow: "stormy",
     snowing: "stormy",
     wet: "rainy"
@@ -387,18 +395,18 @@ function deriveBestWeather(stats: GiglingStats, traits: GiglingTrait[]): RaceWea
   const traitNames = traits.map((trait) => trait.name.toLowerCase());
 
   if (stats.handling >= 82) {
-    return "rainy";
+    return "cold";
   }
 
   if (traitNames.some((trait) => trait.includes("volatile") || trait.includes("comeback"))) {
-    return "stormy";
+    return "hot";
   }
 
   if (stats.consistency >= 78 || stats.stamina >= 78) {
-    return "foggy";
+    return "average";
   }
 
-  return "sunny";
+  return "hot";
 }
 
 function sumPayoutAmounts(value: unknown): number {

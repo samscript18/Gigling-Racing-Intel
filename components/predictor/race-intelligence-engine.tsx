@@ -25,7 +25,7 @@ import type {
 } from "@/types";
 
 const distanceOptions: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
-const weatherOptions: RaceWeather[] = ["sunny", "rainy", "stormy", "foggy", "windy"];
+const weatherOptions: RaceWeather[] = ["cold", "average", "hot", "sunny", "rainy", "stormy", "foggy", "windy"];
 const trackOptions: TrackCondition[] = ["dry", "wet", "muddy", "icy", "chaotic"];
 const PARTICIPANT_PAGE_SIZE = 50;
 
@@ -187,7 +187,7 @@ export function RaceIntelligenceEngine() {
     isLoading
   } = useGiglingsPage(PARTICIPANT_PAGE_SIZE, pageOffset);
   const [distance, setDistance] = useState<RaceDistance>("sprint");
-  const [weather, setWeather] = useState<RaceWeather>("sunny");
+  const [weather, setWeather] = useState<RaceWeather>("average");
   const [trackCondition, setTrackCondition] = useState<TrackCondition>("dry");
   const [participantSearch, setParticipantSearch] = useState("");
   const [selectedGiglingIds, setSelectedGiglingIds] = useState<string[]>([]);
@@ -262,7 +262,7 @@ export function RaceIntelligenceEngine() {
     setPage(0);
     setParticipantSearch("");
     setDistance("sprint");
-    setWeather("sunny");
+    setWeather("average");
     setTrackCondition("dry");
     setSelectedGiglingIds(getDefaultSelectedIds(predictionGiglings.length ? predictionGiglings : giglings));
     setPrediction(undefined);

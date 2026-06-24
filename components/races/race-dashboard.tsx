@@ -51,6 +51,9 @@ const distanceOptions: Array<RaceDistance | "all"> = [
 ];
 const weatherOptions: Array<RaceWeather | "all"> = [
   "all",
+  "cold",
+  "average",
+  "hot",
   "sunny",
   "rainy",
   "stormy",

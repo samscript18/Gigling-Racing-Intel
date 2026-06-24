@@ -16,7 +16,7 @@ function conditionFit(gigling: Gigling, input: PredictionInput) {
     score += 18;
   }
 
-  if (["rainy", "stormy"].includes(input.weather) || ["wet", "muddy", "icy"].includes(input.trackCondition)) {
+  if (["cold", "hot", "rainy", "stormy"].includes(input.weather) || ["wet", "muddy", "icy"].includes(input.trackCondition)) {
     score += Math.max(0, gigling.stats.handling - 72) * 0.35;
   }
 
@@ -45,7 +45,7 @@ function weightedScore(gigling: Gigling, input: PredictionInput) {
     score += stats.stamina * 0.07 + stats.consistency * 0.05;
   }
 
-  if (["rainy", "stormy"].includes(input.weather) || ["wet", "muddy"].includes(input.trackCondition)) {
+  if (["cold", "hot", "rainy", "stormy"].includes(input.weather) || ["wet", "muddy"].includes(input.trackCondition)) {
     score += stats.handling * 0.05;
   }
 
@@ -169,7 +169,7 @@ export function runRacePrediction(
       ? 92
       : ["muddy", "icy"].includes(input.trackCondition)
         ? 76
-        : ["stormy", "foggy"].includes(input.weather)
+        : ["hot", "cold", "stormy", "foggy"].includes(input.weather)
           ? 68
           : 38;
   const fieldVolatility = Math.round((riskPressure + conditionPressure) / 2);

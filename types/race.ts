@@ -2,7 +2,16 @@ import type { GiglingFaction, GiglingRarity } from "./gigling";
 
 export type RaceStatus = "scheduled" | "live" | "completed" | "cancelled" | "unknown";
 
-export type RaceWeather = "sunny" | "rainy" | "stormy" | "foggy" | "windy" | "unknown";
+export type RaceWeather =
+  | "cold"
+  | "average"
+  | "hot"
+  | "sunny"
+  | "rainy"
+  | "stormy"
+  | "foggy"
+  | "windy"
+  | "unknown";
 
 export type RaceDistance = "sprint" | "medium" | "long" | "marathon" | "unknown";
 
