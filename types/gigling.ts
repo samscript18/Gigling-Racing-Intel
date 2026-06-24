@@ -6,6 +6,8 @@ export type GiglingRarity =
   | "rare"
   | "epic"
   | "legendary"
+  | "relic"
+  | "giga"
   | "unknown";
 
 export type GiglingFaction =

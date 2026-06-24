@@ -43,7 +43,9 @@ const rarityOptions: Array<GiglingRarity | "all"> = [
   "uncommon",
   "rare",
   "epic",
-  "legendary"
+  "legendary",
+  "relic",
+  "giga"
 ];
 
 const weatherOptions: Array<RaceWeather | "all"> = [

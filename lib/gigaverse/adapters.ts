@@ -33,7 +33,9 @@ const rarityValues: GiglingRarity[] = [
   "uncommon",
   "rare",
   "epic",
-  "legendary"
+  "legendary",
+  "relic",
+  "giga"
 ];
 const weatherValues: RaceWeather[] = ["sunny", "rainy", "stormy", "foggy", "windy"];
 const distanceValues: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
@@ -198,8 +200,8 @@ function normalizeRarity(value: unknown): GiglingRarity {
     "3": "rare",
     "4": "epic",
     "5": "legendary",
-    "6": "legendary",
-    giga: "legendary"
+    "6": "relic",
+    "7": "giga"
   };
 
   return mapped[raw] ?? "unknown";

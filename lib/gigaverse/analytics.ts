@@ -732,7 +732,7 @@ export function getRarityPerformanceData(races: Race[]) {
     .filter((race) => race.status === "completed")
     .flatMap((race) => race.participants)
     .filter((participant) => typeof participant.finalPosition === "number");
-  const rarities = ["common", "uncommon", "rare", "epic", "legendary"] as const;
+  const rarities = ["common", "uncommon", "rare", "epic", "legendary", "relic", "giga"] as const;
 
   return rarities.map((rarity) => {
     const entries = completedParticipants.filter(
