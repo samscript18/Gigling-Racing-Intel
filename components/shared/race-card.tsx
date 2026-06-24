@@ -16,7 +16,6 @@ type RaceCardProps = {
 
 export function RaceCard({ race, className }: RaceCardProps) {
 	const winner = race.participants.find((participant) => participant.giglingId === race.winnerGiglingId);
-	const itemCount = race.participants.flatMap((participant) => participant.itemsUsed).length;
 
 	return (
 		<motion.article className={cn("premium-panel group rounded-lg p-4", className)} whileHover={{ y: -4, scale: 1.01 }}>
