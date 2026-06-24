@@ -303,6 +303,13 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
       cacheBust: true,
       height: REPORT_IMAGE_HEIGHT,
       pixelRatio: 2,
+      style: {
+        height: `${REPORT_IMAGE_HEIGHT}px`,
+        left: "0",
+        position: "relative",
+        top: "0",
+        width: `${REPORT_IMAGE_WIDTH}px`
+      },
       width: REPORT_IMAGE_WIDTH
     });
 
