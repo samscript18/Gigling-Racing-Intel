@@ -152,23 +152,23 @@ function SharePreview({
           description="A social-format preview of the PNG report generated from the selected live inputs."
           title="Social Preview"
         />
-        <div className="overflow-hidden rounded-lg border border-white/10 bg-[#05070d] shadow-glow">
-          <div ref={artifactRef} className="relative aspect-[1200/630] min-h-[540px] bg-[#05070d] p-5 text-white sm:min-h-[430px] sm:p-6 md:min-h-0">
+        <div className="w-full overflow-hidden rounded-lg border border-white/10 bg-[#05070d] shadow-glow">
+          <div ref={artifactRef} className="relative overflow-hidden bg-[#05070d] p-4 text-white sm:p-5 lg:aspect-[1200/630] lg:p-6">
             <div className="absolute inset-0 bg-racing-grid opacity-35" />
             <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
-            <div className="relative z-10 grid h-full gap-5 md:grid-cols-[0.92fr_1.08fr] md:items-center">
+            <div className="relative z-10 grid gap-5 lg:h-full lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
               <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center">
                 <GiglingAvatar
-                  className="h-28 w-28 shrink-0 rounded-lg sm:h-36 sm:w-36"
+                  className="h-24 w-24 shrink-0 rounded-lg sm:h-28 sm:w-28 lg:h-36 lg:w-36"
                   imageUrl={gigling.imageUrl}
                   name={gigling.name}
                   priority
                 />
                 <div className="min-w-0">
-                  <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-racing">
+                  <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-cyan-racing sm:text-xs sm:tracking-[0.22em]">
                     Gigling Report
                   </p>
-                  <h3 className="mt-2 truncate text-2xl font-black text-white sm:text-4xl">
+                  <h3 className="mt-2 break-words text-2xl font-black leading-tight text-white sm:text-3xl lg:text-4xl">
                     {gigling.name}
                   </h3>
                   <p className="mt-2 text-sm text-white/48">{gigling.tokenId}</p>
@@ -180,27 +180,27 @@ function SharePreview({
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-cyan-racing/22 bg-cyan-racing/[0.07] p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-racing">
+                <div className="min-w-0 rounded-lg border border-cyan-racing/22 bg-cyan-racing/[0.07] p-3 sm:p-4">
+                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-cyan-racing sm:text-xs sm:tracking-[0.18em]">
                     Win rate
                   </p>
-                  <p className="mt-2 text-3xl font-black text-white">
+                  <p className="mt-2 text-2xl font-black text-white sm:text-3xl">
                     {formatPercent(gigling.winRate)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-orange-racing/22 bg-orange-racing/[0.07] p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-racing">
+                <div className="min-w-0 rounded-lg border border-orange-racing/22 bg-orange-racing/[0.07] p-3 sm:p-4">
+                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-orange-racing sm:text-xs sm:tracking-[0.18em]">
                     Race #{race.raceNumber}
                   </p>
-                  <p className="mt-2 truncate text-xl font-black text-white">
+                  <p className="mt-2 break-words text-lg font-black text-white sm:text-xl">
                     {winnerName(race)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-emerald-racing/22 bg-emerald-racing/[0.07] p-4 sm:col-span-2">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-racing">
+                <div className="min-w-0 rounded-lg border border-emerald-racing/22 bg-emerald-racing/[0.07] p-3 sm:col-span-2 sm:p-4">
+                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-emerald-racing sm:text-xs sm:tracking-[0.18em]">
                     Meta signal
                   </p>
-                  <p className="mt-2 text-2xl font-black text-white">{insight.metricValue}</p>
+                  <p className="mt-2 break-words text-xl font-black text-white sm:text-2xl">{insight.metricValue}</p>
                   <p className="mt-1 text-sm leading-6 text-white/58">{insight.title}</p>
                 </div>
               </div>
