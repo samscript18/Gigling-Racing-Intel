@@ -250,7 +250,7 @@ function mergeGiglingSummary(primary: Gigling, enriched?: Gigling) {
     earnings: Number.isFinite(enriched.earnings) ? enriched.earnings : primary.earnings,
     bestDistance:
       enriched.bestDistance === "unknown" ? primary.bestDistance : enriched.bestDistance,
-    bestWeather: enriched.bestWeather === "unknown" ? primary.bestWeather : enriched.bestWeather
+    bestTrackCondition: enriched.bestTrackCondition === "unknown" ? primary.bestTrackCondition : enriched.bestTrackCondition
   } satisfies Gigling;
 }
 
@@ -322,8 +322,8 @@ async function enrichRacesWithGiglings(races: Race[]) {
             ? Math.round(
                 (gigling.stats.speed +
                   gigling.stats.stamina +
-                  gigling.stats.handling +
-                  gigling.stats.consistency) /
+                  gigling.stats.start +
+                  gigling.stats.finish) /
                   4
               )
             : undefined)

@@ -10,7 +10,6 @@ import type {
   RaceItemUsage,
   RaceParticipant,
   RaceStatus,
-  RaceWeather,
   StableSummary,
   TrackCondition
 } from "@/types";
@@ -37,18 +36,8 @@ const rarityValues: GiglingRarity[] = [
   "relic",
   "giga"
 ];
-const weatherValues: RaceWeather[] = [
-  "cold",
-  "average",
-  "hot",
-  "sunny",
-  "rainy",
-  "stormy",
-  "foggy",
-  "windy"
-];
 const distanceValues: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
-const trackValues: TrackCondition[] = ["dry", "wet", "muddy", "icy", "chaotic"];
+const trackConditionValues: TrackCondition[] = ["cold", "average", "hot"];
 
 export function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -216,19 +205,30 @@ function normalizeRarity(value: unknown): GiglingRarity {
   return mapped[raw] ?? "unknown";
 }
 
-function normalizeWeather(value: unknown): RaceWeather {
+function normalizeTrackCondition(value: unknown): TrackCondition {
   const raw = normalizeText(value).toLowerCase();
 
-  if (weatherValues.includes(raw as RaceWeather)) {
-    return raw as RaceWeather;
+  if (trackConditionValues.includes(raw as TrackCondition)) {
+    return raw as TrackCondition;
   }
 
-  const mapped: Record<string, RaceWeather> = {
+  const mapped: Record<string, TrackCondition> = {
     clear: "average",
+    dry: "average",
+    normal: "average",
     temperate: "average",
-    snow: "stormy",
-    snowing: "stormy",
-    wet: "rainy"
+    sunny: "average",
+    icy: "cold",
+    foggy: "cold",
+    rain: "cold",
+    rainy: "cold",
+    snow: "cold",
+    snowing: "cold",
+    wet: "cold",
+    muddy: "cold",
+    chaotic: "hot",
+    stormy: "hot",
+    windy: "hot"
   };
 
   return mapped[raw] ?? "unknown";
@@ -260,28 +260,6 @@ function normalizeDistance(value: unknown, trackLength?: unknown): RaceDistance 
   }
 
   return "unknown";
-}
-
-function normalizeTrack(value: unknown): TrackCondition {
-  const raw = normalizeText(value).toLowerCase();
-
-  if (trackValues.includes(raw as TrackCondition)) {
-    return raw as TrackCondition;
-  }
-
-  const mapped: Record<string, TrackCondition> = {
-    average: "dry",
-    clear: "dry",
-    cold: "icy",
-    hot: "dry",
-    rain: "wet",
-    rainy: "wet",
-    snow: "icy",
-    snowing: "icy",
-    wet: "wet"
-  };
-
-  return mapped[raw] ?? "unknown";
 }
 
 function normalizeStatus(value: unknown): RaceStatus {
@@ -324,26 +302,13 @@ function normalizeStats(record?: UnknownRecord): GiglingStats {
       2
     );
   };
-  const rangeSpread = ["startRange", "speedRange", "staminaRange", "finishRange"]
-    .map((key) => {
-      const range = nestedRecord(record ?? {}, [key]);
-
-      if (!range) {
-        return undefined;
-      }
-
-      return Math.abs(
-        normalizeNumber(firstValue(range, ["max"]), 0) -
-          normalizeNumber(firstValue(range, ["min"]), 0)
-      );
-    })
-    .filter((value): value is number => typeof value === "number");
-  const consistencyFromRanges =
-    rangeSpread.length > 0
-      ? 100 - rangeSpread.reduce((total, value) => total + value, 0) / rangeSpread.length
-      : undefined;
-
   return {
+    start: clampStat(
+      normalizeNumber(
+        firstValue(record ?? {}, ["start", "acceleration", "accel", "launch"]),
+        averageRange("startRange") ?? 0
+      )
+    ),
     speed: clampStat(
       normalizeNumber(firstValue(record ?? {}, ["speed", "spd"]), averageRange("speedRange") ?? 0)
     ),
@@ -353,34 +318,21 @@ function normalizeStats(record?: UnknownRecord): GiglingStats {
         averageRange("staminaRange") ?? 0
       )
     ),
-    handling: clampStat(
+    finish: clampStat(
       normalizeNumber(
-        firstValue(record ?? {}, ["handling", "control", "finish"]),
+        firstValue(record ?? {}, ["finish", "handling", "control"]),
         averageRange("finishRange") ?? 0
-      )
-    ),
-    acceleration: clampStat(
-      normalizeNumber(
-        firstValue(record ?? {}, ["acceleration", "accel", "launch", "start"]),
-        averageRange("startRange") ?? 0
-      )
-    ),
-    luck: clampStat(normalizeNumber(firstValue(record ?? {}, ["luck", "rng"]), 0)),
-    consistency: clampStat(
-      normalizeNumber(
-        firstValue(record ?? {}, ["consistency"]),
-        consistencyFromRanges ?? 0
       )
     )
   };
 }
 
 function deriveBestDistance(stats: GiglingStats): RaceDistance {
-  if (stats.acceleration >= 76 && stats.speed >= stats.stamina - 4) {
+  if (stats.start >= 76 && stats.speed >= stats.stamina - 4) {
     return "sprint";
   }
 
-  if (stats.stamina >= 84 && stats.consistency >= 70) {
+  if (stats.stamina >= 84 && stats.finish >= 70) {
     return "marathon";
   }
 
@@ -391,10 +343,10 @@ function deriveBestDistance(stats: GiglingStats): RaceDistance {
   return "medium";
 }
 
-function deriveBestWeather(stats: GiglingStats, traits: GiglingTrait[]): RaceWeather {
+function deriveBestTrackCondition(stats: GiglingStats, traits: GiglingTrait[]): TrackCondition {
   const traitNames = traits.map((trait) => trait.name.toLowerCase());
 
-  if (stats.handling >= 82) {
+  if (stats.finish >= 82) {
     return "cold";
   }
 
@@ -402,7 +354,7 @@ function deriveBestWeather(stats: GiglingStats, traits: GiglingTrait[]): RaceWea
     return "hot";
   }
 
-  if (stats.consistency >= 78 || stats.stamina >= 78) {
+  if (stats.finish >= 78 || stats.stamina >= 78) {
     return "average";
   }
 
@@ -433,8 +385,8 @@ function adaptTrait(input: unknown, index: number): GiglingTrait {
   const safeCategory = [
     "speed",
     "stamina",
-    "luck",
-    "handling",
+    "start",
+    "finish",
     "temperament",
     "special"
   ].includes(category)
@@ -462,7 +414,7 @@ function adaptTraits(value: unknown): GiglingTrait[] {
   return [];
 }
 
-function weatherFromParams(record: UnknownRecord) {
+function trackConditionFromParams(record: UnknownRecord) {
   const ids = firstValue(record, ["extraParamIds", "paramIds"]);
   const values = firstValue(record, ["extraParamVals", "paramVals"]);
 
@@ -470,20 +422,19 @@ function weatherFromParams(record: UnknownRecord) {
     return undefined;
   }
 
-  const weatherIndex = ids.findIndex((id) => normalizeNumber(id, -1) === 200);
+  const conditionIndex = ids.findIndex((id) => normalizeNumber(id, -1) === 200);
 
-  if (weatherIndex < 0) {
+  if (conditionIndex < 0) {
     return undefined;
   }
 
-  const mapped: Record<number, RaceWeather> = {
-    0: "sunny",
-    1: "foggy",
-    2: "rainy",
-    3: "stormy"
+  const mapped: Record<number, TrackCondition> = {
+    0: "average",
+    1: "cold",
+    2: "hot"
   };
 
-  return mapped[normalizeNumber(values[weatherIndex], -1)];
+  return mapped[normalizeNumber(values[conditionIndex], -1)];
 }
 
 function isAppGigling(input: UnknownRecord): input is Gigling {
@@ -522,9 +473,9 @@ function hasGiglingStatShape(value: unknown) {
     "spd",
     "stamina",
     "sta",
+    "finish",
     "handling",
     "control",
-    "finish",
     "acceleration",
     "accel",
     "launch",
@@ -593,7 +544,9 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
   const explicitBestDistance = normalizeDistance(
     firstValue(input, ["bestDistance", "distance"])
   );
-  const explicitBestWeather = normalizeWeather(firstValue(input, ["bestWeather", "weather"]));
+  const explicitBestTrackCondition = normalizeTrackCondition(
+    firstValue(input, ["bestTrackCondition", "trackCondition", "condition", "weather"])
+  );
 
   return {
     id,
@@ -637,7 +590,7 @@ export function adaptApiGigling(input: unknown): Gigling | undefined {
     currentStreak: normalizeNumber(firstValue(input, ["currentStreak", "streak"]), 0),
     bestDistance:
       explicitBestDistance === "unknown" ? deriveBestDistance(stats) : explicitBestDistance,
-    bestWeather: explicitBestWeather === "unknown" ? deriveBestWeather(stats, traits) : explicitBestWeather,
+    bestTrackCondition: explicitBestTrackCondition === "unknown" ? deriveBestTrackCondition(stats, traits) : explicitBestTrackCondition,
     lastRaceAt: normalizeDate(firstValue(input, ["lastRaceAt", "lastRace", "updatedAt"]))
   };
 }
@@ -746,9 +699,12 @@ export function adaptApiRace(input: unknown): Race | undefined {
     return undefined;
   }
 
-  const weather =
-    weatherFromParams(raceRecord) ??
-    normalizeWeather(firstValue(raceRecord, ["weather", "weatherName", "raceTemp"]));
+  const trackCondition =
+    trackConditionFromParams(raceRecord) ??
+    normalizeTrackCondition(
+      firstValue(raceRecord, ["trackCondition", "condition", "track", "trackType"]) ??
+        firstValue(raceRecord, ["raceTemp", "weather", "weatherName"])
+    );
   const participants =
     firstValue(raceRecord, ["participants", "entries", "pets"]) ??
     firstValue(input, ["participants", "entries", "pets"]);
@@ -774,11 +730,7 @@ export function adaptApiRace(input: unknown): Race | undefined {
       firstValue(raceRecord, ["distance", "distanceName"]),
       firstValue(raceRecord, ["trackLength", "length"])
     ),
-    weather,
-    trackCondition: normalizeTrack(
-      firstValue(raceRecord, ["trackCondition", "condition", "track", "trackType"]) ??
-        firstValue(raceRecord, ["raceTemp", "weather", "weatherName"])
-    ),
+    trackCondition,
     entryFee: normalizeTokenAmount(firstValue(raceRecord, ["entryFee", "entryFeeWei"]), 0),
     prizePool: explicitPrizePool > 0 ? explicitPrizePool : payoutPrizePool,
     startedAt: normalizeDate(firstValue(raceRecord, ["startedAt", "raceStart", "createdAt"])),

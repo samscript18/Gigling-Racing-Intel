@@ -18,7 +18,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { MetricCard } from "@/components/shared/metric-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { useGiglingsPage } from "@/hooks/use-giglings";
-import type { Gigling, GiglingFaction, GiglingRarity, RaceDistance, RaceWeather } from "@/types";
+import type { Gigling, GiglingFaction, GiglingRarity, RaceDistance, TrackCondition } from "@/types";
 import { formatOptionalToken, formatPercent } from "@/lib/utils/format";
 
 type SortKey = "winRate" | "podiumRate" | "earnings" | "totalRaces" | "elo";
@@ -48,16 +48,11 @@ const rarityOptions: Array<GiglingRarity | "all"> = [
   "giga"
 ];
 
-const weatherOptions: Array<RaceWeather | "all"> = [
+const conditionOptions: Array<TrackCondition | "all"> = [
   "all",
   "cold",
   "average",
-  "hot",
-  "sunny",
-  "rainy",
-  "stormy",
-  "foggy",
-  "windy"
+  "hot"
 ];
 
 const distanceOptions: Array<RaceDistance | "all"> = [
@@ -157,14 +152,14 @@ export function GiglingExplorer() {
   const [search, setSearch] = useState("");
   const [faction, setFaction] = useState<GiglingFaction | "all">("all");
   const [rarity, setRarity] = useState<GiglingRarity | "all">("all");
-  const [weather, setWeather] = useState<RaceWeather | "all">("all");
+  const [condition, setCondition] = useState<TrackCondition | "all">("all");
   const [distance, setDistance] = useState<RaceDistance | "all">("all");
   const [sortBy, setSortBy] = useState<SortKey>("winRate");
   const giglings = pageData?.items;
 
   useEffect(() => {
     setPage(0);
-  }, [distance, faction, rarity, search, weather]);
+  }, [condition, distance, faction, rarity, search]);
 
   const filteredGiglings = useMemo(() => {
     if (!giglings) {
@@ -175,10 +170,10 @@ export function GiglingExplorer() {
       .filter((gigling) => matchesSearch(gigling, search))
       .filter((gigling) => faction === "all" || gigling.faction === faction)
       .filter((gigling) => rarity === "all" || gigling.rarity === rarity)
-      .filter((gigling) => weather === "all" || gigling.bestWeather === weather)
+      .filter((gigling) => condition === "all" || gigling.bestTrackCondition === condition)
       .filter((gigling) => distance === "all" || gigling.bestDistance === distance)
       .sort((first, second) => getSortableValue(second, sortBy) - getSortableValue(first, sortBy));
-  }, [distance, faction, giglings, rarity, search, sortBy, weather]);
+  }, [condition, distance, faction, giglings, rarity, search, sortBy]);
 
   const topResult = filteredGiglings[0];
   const averageWinRate =
@@ -196,7 +191,7 @@ export function GiglingExplorer() {
     setSearch("");
     setFaction("all");
     setRarity("all");
-    setWeather("all");
+    setCondition("all");
     setDistance("all");
     setSortBy("winRate");
   }
@@ -314,10 +309,10 @@ export function GiglingExplorer() {
               onChange={setRarity}
             />
             <SelectFilter
-              label="Weather"
-              options={weatherOptions}
-              value={weather}
-              onChange={setWeather}
+              label="Condition"
+              options={conditionOptions}
+              value={condition}
+              onChange={setCondition}
             />
             <SelectFilter
               label="Distance"
@@ -414,7 +409,7 @@ export function GiglingExplorer() {
           </motion.div>
         ) : (
           <EmptyState
-            description="Try clearing a filter, widening weather or distance fit, or searching by owner instead."
+            description="Try clearing a filter, widening condition or distance fit, or searching by owner instead."
             title="No Giglings match this scout pattern"
           />
         )}

@@ -28,7 +28,7 @@ function scoreLabel(participant: RaceParticipant) {
 }
 
 function conditionsLabel(race: Race) {
-	return [formatConditionLabel(race.distance), formatConditionLabel(race.weather), formatConditionLabel(race.trackCondition)].join(" / ");
+	return [formatConditionLabel(race.distance), formatConditionLabel(race.trackCondition), formatConditionLabel(race.trackCondition)].join(" / ");
 }
 
 export function GiglingRaceHistoryTable({ rows, pageSize = 10 }: GiglingRaceHistoryTableProps) {

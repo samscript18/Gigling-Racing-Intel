@@ -169,21 +169,18 @@ export function ItemTimeline({ items }: ItemTimelineProps) {
 
 export function RaceConditionStrip({
   distance,
-  weather,
   trackCondition
 }: {
   distance: string;
-  weather: string;
   trackCondition: string;
 }) {
   const items = [
     { label: "Distance", value: distance },
-    { label: "Weather", value: weather },
-    { label: "Track", value: trackCondition }
+    { label: "Condition", value: trackCondition }
   ];
 
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2">
       {items.map((item) => (
         <div key={item.label} className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/38">

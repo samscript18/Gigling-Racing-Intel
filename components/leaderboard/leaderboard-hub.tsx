@@ -258,7 +258,7 @@ export function LeaderboardHub({ giglings, players, factions, races, stables }: 
 		},
 		{ header: "Winner", cell: winnerName },
 		{ header: "Distance", cell: (row) => row.distance },
-		{ header: "Weather", cell: (row) => row.weather },
+		{ header: "Condition", cell: (row) => row.trackCondition },
 		{ header: "Prize", cell: (row) => formatToken(row.prizePool) },
 	];
 

@@ -4,14 +4,13 @@ import type {
   GiglingFaction,
   Race,
   RaceDistance,
-  RaceWeather,
   StableBreedingRecommendation,
   StableLeaderboardEntry,
   StableRetirementWarning,
   TrackCondition
 } from "@/types";
 
-const weatherOrder: RaceWeather[] = ["cold", "average", "hot", "sunny", "rainy", "stormy", "foggy", "windy"];
+const conditionOrder: TrackCondition[] = ["cold", "average", "hot"];
 const distanceOrder: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
 
 function sumAvailableTokenValues(values: number[]) {
@@ -240,16 +239,8 @@ export function summarizeConditionFit(gigling: Gigling, race: Race) {
     matches.push(`${race.distance} distance`);
   }
 
-  if (gigling.bestWeather === race.weather) {
-    matches.push(`${race.weather} weather`);
-  }
-
-  if (["wet", "muddy", "icy"].includes(race.trackCondition) && gigling.stats.handling >= 85) {
-    matches.push("high handling");
-  }
-
-  if (race.trackCondition === "chaotic" && gigling.stats.luck >= 80) {
-    matches.push("chaos-ready luck");
+  if (gigling.bestTrackCondition === race.trackCondition) {
+    matches.push(`${race.trackCondition} condition`);
   }
 
   return matches;
@@ -264,13 +255,13 @@ export function getGiglingStatRadarData(gigling: Gigling) {
     }));
 }
 
-export function getGiglingPerformanceByWeather(giglingId: string, races: Race[]) {
+export function getGiglingPerformanceByCondition(giglingId: string, races: Race[]) {
   const history = getGiglingRaceHistory(giglingId, races).filter(
     ({ participant }) => typeof participant.finalPosition === "number"
   );
 
-  return weatherOrder.map((weather) => {
-    const entries = history.filter(({ race }) => race.weather === weather);
+  return conditionOrder.map((trackCondition) => {
+    const entries = history.filter(({ race }) => race.trackCondition === trackCondition);
     const wins = entries.filter(({ participant }) => participant.finalPosition === 1).length;
     const podiums = entries.filter(
       ({ participant }) =>
@@ -282,7 +273,7 @@ export function getGiglingPerformanceByWeather(giglingId: string, races: Race[])
     );
 
     return {
-      label: getConditionLabel(weather),
+      label: getConditionLabel(trackCondition),
       races: entries.length,
       wins,
       podiums,
@@ -348,11 +339,11 @@ export function getGiglingIntelligenceSummary(gigling: Gigling, races: Race[]) {
   );
 
   const hasDistanceSignal = gigling.bestDistance !== "unknown";
-  const hasWeatherSignal = gigling.bestWeather !== "unknown";
+  const hasConditionSignal = gigling.bestTrackCondition !== "unknown";
   const headline =
-    hasDistanceSignal || hasWeatherSignal
-      ? `${gigling.name} profiles with ${hasDistanceSignal ? `${getConditionLabel(gigling.bestDistance)} distance` : "no distance"} and ${hasWeatherSignal ? `${getConditionLabel(gigling.bestWeather)} weather` : "no weather"} fit signals.`
-      : `${gigling.name} has no live distance or weather fit signal yet, so the profile leans on indexed stats and race history.`;
+    hasDistanceSignal || hasConditionSignal
+      ? `${gigling.name} profiles with ${hasDistanceSignal ? `${getConditionLabel(gigling.bestDistance)} distance` : "no distance"} and ${hasConditionSignal ? `${getConditionLabel(gigling.bestTrackCondition)} condition` : "no condition"} fit signals.`
+      : `${gigling.name} has no live distance or condition fit signal yet, so the profile leans on indexed stats and race history.`;
 
   return {
     headline,
@@ -376,38 +367,38 @@ export function getRecommendedRaceConditions(gigling: Gigling) {
     });
   }
 
-  if (gigling.bestWeather !== "unknown") {
+  if (gigling.bestTrackCondition !== "unknown") {
     recommendations.push({
-      label: `${getConditionLabel(gigling.bestWeather)} weather`,
-      description: "Best weather signal from its indexed career profile."
+      label: `${getConditionLabel(gigling.bestTrackCondition)} condition`,
+      description: "Best track-condition signal from its indexed career profile."
     });
   }
 
-  if (gigling.stats.handling >= 85) {
+  if (gigling.stats.finish >= 85) {
     recommendations.push({
-      label: "Wet or technical tracks",
-      description: "High handling should protect placement on wet, muddy, or icy tracks."
+      label: "Harsh condition lobbies",
+      description: "High finish control should protect placement when cold or hot conditions add pressure."
     });
   }
 
-  if (gigling.stats.acceleration >= 88) {
+  if (gigling.stats.start >= 88) {
     recommendations.push({
       label: "High-pressure sprint lobbies",
       description: "Launch speed can create early lane control before item pressure spikes."
     });
   }
 
-  if (gigling.stats.consistency >= 86) {
+  if (gigling.stats.finish >= 86) {
     recommendations.push({
       label: "Low-variance prize races",
-      description: "Consistency makes the Gigling more reliable when the field is evenly matched."
+      description: "Finish strength makes the Gigling more reliable when the field is evenly matched."
     });
   }
 
   if (recommendations.length === 0) {
     recommendations.push({
       label: "Stat-first scouting",
-      description: "Distance and weather fit are not present in the live feed, so compare speed, stamina, handling, and recent race history before entry."
+      description: "Distance and condition fit are not present in the live feed, so compare start, speed, stamina, finish, and recent race history before entry."
     });
   }
 
@@ -423,12 +414,8 @@ export function getGiglingRiskWarnings(gigling: Gigling) {
     );
   }
 
-  if (gigling.stats.handling < 75) {
-    warnings.push("Handling is below 75, making wet, muddy, or icy tracks a riskier entry.");
-  }
-
-  if (gigling.stats.luck < 70) {
-    warnings.push("Luck is below 70, so chaotic tracks and sabotage-heavy fields can swing against it.");
+  if (gigling.stats.finish < 75) {
+    warnings.push("Finish is below 75, making harsh conditions and late-race pressure riskier.");
   }
 
   if (gigling.bestDistance === "sprint" && gigling.stats.stamina < 76) {
@@ -470,7 +457,7 @@ export function explainLoss(race: Race, gigling: Gigling) {
       ? `${gigling.name} finished P${placement}, which suggests the field punished at least one weakness.`
       : `${gigling.name} has not finished this race yet.`,
     conditionFit.length === 0
-      ? "The race conditions did not match its strongest weather or distance profile."
+      ? "The race conditions did not match its strongest condition or distance profile."
       : `It had useful fit in ${conditionFit.join(", ")}, but not enough to overcome the field.`,
     itemPressure > 0
       ? `${itemPressure} item actions created extra variance in the race.`
@@ -482,12 +469,10 @@ export function getLossActionPlan(race: Race, gigling: Gigling, winner?: Gigling
   const actions: string[] = [];
   const relevantStats: Array<keyof Gigling["stats"]> =
     race.distance === "sprint"
-      ? ["speed", "acceleration"]
+      ? ["start", "speed"]
       : race.distance === "long" || race.distance === "marathon"
-        ? ["stamina", "consistency"]
-        : race.trackCondition === "wet" || race.trackCondition === "muddy" || race.trackCondition === "icy"
-          ? ["handling", "consistency"]
-          : ["speed", "handling"];
+        ? ["stamina", "finish"]
+        : ["speed", "finish"];
   const weakestRelevantStat = [...relevantStats].sort(
     (first, second) => gigling.stats[first] - gigling.stats[second]
   )[0];
@@ -509,12 +494,12 @@ export function getLossActionPlan(race: Race, gigling: Gigling, winner?: Gigling
   }
 
   if (
-    race.weather !== "unknown" &&
-    gigling.bestWeather !== "unknown" &&
-    race.weather !== gigling.bestWeather
+    race.trackCondition !== "unknown" &&
+    gigling.bestTrackCondition !== "unknown" &&
+    race.trackCondition !== gigling.bestTrackCondition
   ) {
     actions.push(
-      `Wait for ${getConditionLabel(gigling.bestWeather)} weather when entry cost is meaningful, or lower confidence when racing in ${getConditionLabel(race.weather)} conditions.`
+      `Wait for ${getConditionLabel(gigling.bestTrackCondition)} conditions when entry cost is meaningful, or lower confidence when racing in ${getConditionLabel(race.trackCondition)} conditions.`
     );
   }
 
@@ -555,12 +540,9 @@ export function getRaceFieldSummary(race: Race, giglings: Gigling[]) {
     0
   );
   const conditionRisk =
-    race.trackCondition === "chaotic" ||
-    race.weather === "stormy" ||
-    race.weather === "hot" ||
-    race.trackCondition === "icy"
+    race.trackCondition === "hot"
       ? "high"
-      : race.weather === "cold" || race.weather === "rainy" || race.trackCondition === "muddy"
+      : race.trackCondition === "cold"
         ? "medium"
         : "low";
 
@@ -571,9 +553,9 @@ export function getRaceFieldSummary(race: Race, giglings: Gigling[]) {
     conditionRisk,
     summary:
       conditionRisk === "high"
-        ? "This race carried elevated variance because harsh conditions increased the value of luck, handling, and item timing."
+        ? "This race carried elevated variance because harsh conditions increased the value of finish strength and item timing."
         : conditionRisk === "medium"
-          ? "This race rewarded condition fit more than raw speed because the surface or weather introduced technical pressure."
+          ? "This race rewarded condition fit more than raw speed because the track condition introduced technical pressure."
           : "This race leaned cleaner, so baseline stats and lane execution were easier to trust."
   };
 }
@@ -611,7 +593,6 @@ export function getSimilarRaces(race: Race, races: Race[]) {
     .map((entry) => {
       const score =
         (entry.distance === race.distance ? 3 : 0) +
-        (entry.weather === race.weather ? 2 : 0) +
         (entry.trackCondition === race.trackCondition ? 2 : 0) +
         (entry.status === race.status ? 1 : 0);
 
@@ -628,7 +609,7 @@ export function getSimilarRaces(race: Race, races: Race[]) {
 
 export function countRacesByCondition(
   races: Race[],
-  key: "weather" | "distance" | "trackCondition"
+  key: "distance" | "trackCondition"
 ) {
   return races.reduce<Record<string, number>>((totals, race) => {
     const label = race[key];
@@ -648,23 +629,10 @@ export function getFactionDashboardData(performance: FactionPerformance[]) {
 }
 
 export function getRaceConditionTrend(races: Race[]) {
-  const trackWeight: Record<TrackCondition, number> = {
-    dry: 34,
-    wet: 58,
-    muddy: 66,
-    icy: 74,
-    chaotic: 88,
-    unknown: 0
-  };
-  const weatherWeight: Record<RaceWeather, number> = {
+  const conditionWeight: Record<TrackCondition, number> = {
     cold: 64,
     average: 32,
     hot: 58,
-    sunny: 28,
-    windy: 46,
-    rainy: 62,
-    foggy: 69,
-    stormy: 82,
     unknown: 0
   };
 
@@ -681,8 +649,7 @@ export function getRaceConditionTrend(races: Race[]) {
       ).length;
       const conditionScore = Math.min(
         100,
-        (trackWeight[race.trackCondition] + weatherWeight[race.weather]) / 2 +
-          itemPressure * 4
+        conditionWeight[race.trackCondition] + itemPressure * 4
       );
 
       return {
@@ -690,7 +657,6 @@ export function getRaceConditionTrend(races: Race[]) {
         conditionScore: Number(conditionScore.toFixed(1)),
         itemPressure,
         prizePool: race.prizePool,
-        weather: race.weather,
         trackCondition: race.trackCondition,
         distance: race.distance
       };
@@ -764,10 +730,10 @@ export function getRarityPerformanceData(races: Race[]) {
   });
 }
 
-export function getWeatherImpactData(races: Race[]) {
-  return weatherOrder.map((weather) => {
+export function getConditionImpactData(races: Race[]) {
+  return conditionOrder.map((trackCondition) => {
     const matchingRaces = races.filter(
-      (race) => race.status === "completed" && race.weather === weather
+      (race) => race.status === "completed" && race.trackCondition === trackCondition
     );
     const participants = matchingRaces.flatMap((race) => race.participants);
     const scoreTotal = participants.reduce(
@@ -785,19 +751,13 @@ export function getWeatherImpactData(races: Race[]) {
     );
 
     return {
-      weather: getConditionLabel(weather),
+      trackCondition: getConditionLabel(trackCondition),
       races: matchingRaces.length,
       averageScore: Number((scoreTotal / Math.max(participants.length, 1)).toFixed(1)),
       itemPressure,
       volatility: Number(
         ((itemPressure / Math.max(matchingRaces.length, 1)) * 12 +
-          (weather === "stormy" || weather === "hot"
-            ? 36
-            : weather === "foggy" || weather === "cold"
-              ? 28
-              : weather === "rainy"
-                ? 20
-                : 12)).toFixed(1)
+          (trackCondition === "hot" ? 36 : trackCondition === "cold" ? 28 : 12)).toFixed(1)
       )
     };
   });
@@ -834,9 +794,7 @@ export function getDistanceImpactData(races: Race[]) {
 }
 
 export function getTrackConditionTrendData(races: Race[]) {
-  const trackOrder: TrackCondition[] = ["dry", "wet", "muddy", "icy", "chaotic"];
-
-  return trackOrder.map((trackCondition) => {
+  return conditionOrder.map((trackCondition) => {
     const matchingRaces = races.filter(
       (race) =>
         race.status === "completed" && race.trackCondition === trackCondition
@@ -866,9 +824,8 @@ export function getTrackConditionTrendData(races: Race[]) {
         ((upsetCount / Math.max(matchingRaces.length, 1)) * 100).toFixed(1)
       ),
       technicalLoad: Number(
-        (((trackCondition === "chaotic" ? 90 : trackCondition === "icy" ? 82 : trackCondition === "muddy" ? 72 : trackCondition === "wet" ? 62 : 38) +
-          podiumScores.length * 2) /
-          1).toFixed(1)
+        ((trackCondition === "hot" ? 78 : trackCondition === "cold" ? 66 : 38) +
+          podiumScores.length * 2).toFixed(1)
       )
     };
   });
@@ -896,17 +853,17 @@ export function getWeeklyTrendSummary(races: Race[], performance: FactionPerform
     bullets: [
       `${itemPressure} recorded item actions are shaping current race variance.`,
       `Podium conversion is the better signal than raw wins in volatile tracks.`,
-      `Condition fit is most important when hot, cold, stormy, foggy, muddy, icy, or chaotic tags stack.`
+      `Condition fit is most important when hot or cold tags stack with distance and item pressure.`
     ]
   };
 }
 
 export function getMetaActionPlan(races: Race[], performance: FactionPerformance[]) {
   const topFaction = getTopFaction(performance);
-  const weatherData = getWeatherImpactData(races).filter((entry) => entry.races > 0);
+  const conditionData = getConditionImpactData(races).filter((entry) => entry.races > 0);
   const distanceData = getDistanceImpactData(races).filter((entry) => entry.races > 0);
   const trackData = getTrackConditionTrendData(races).filter((entry) => entry.races > 0);
-  const volatileWeather = [...weatherData].sort(
+  const volatileCondition = [...conditionData].sort(
     (first, second) => second.volatility - first.volatility
   )[0];
   const volatileTrack = [...trackData].sort(
@@ -923,9 +880,9 @@ export function getMetaActionPlan(races: Race[], performance: FactionPerformance
       action: `Treat the leading faction as field-strength context, then compare individual condition fit before copying the trend.`
     },
     {
-      title: `Price in ${volatileWeather?.weather ?? "weather"} variance`,
-      signal: `${volatileWeather?.volatility ?? 0}/100 weather volatility and ${volatileTrack?.upsetRate ?? 0}% ${volatileTrack?.trackCondition ?? "track"} upset rate`,
-      action: `Reduce conviction in volatile combinations and prefer consistent, high-handling Giglings when those tags stack.`
+      title: `Price in ${volatileCondition?.trackCondition ?? "condition"} variance`,
+      signal: `${volatileCondition?.volatility ?? 0}/100 condition volatility and ${volatileTrack?.upsetRate ?? 0}% ${volatileTrack?.trackCondition ?? "condition"} upset rate`,
+      action: `Reduce conviction in volatile combinations and prefer high-finish Giglings when those tags stack.`
     },
     {
       title: `Review ${prizeDistance?.distance ?? "distance"} value`,
@@ -947,7 +904,7 @@ export function getTopEmergingGiglings(giglings: Gigling[]) {
 }
 
 export function getConditionLabel(
-  value: GiglingFaction | RaceDistance | RaceWeather | TrackCondition | string
+  value: GiglingFaction | RaceDistance | TrackCondition | TrackCondition | string
 ) {
   if (!value || value === "unknown") {
     return "Unavailable";

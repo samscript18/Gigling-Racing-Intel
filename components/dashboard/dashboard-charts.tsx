@@ -27,7 +27,6 @@ type RaceTrendDatum = {
   conditionScore: number;
   itemPressure: number;
   prizePool: number;
-  weather: string;
   trackCondition: string;
   distance: string;
 };
@@ -62,9 +61,9 @@ function DashboardTooltip({ active, payload, label }: CustomTooltipProps) {
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-racing">
         {label}
       </p>
-      {source?.weather ? (
+      {source?.trackCondition ? (
         <p className="mt-1 text-xs capitalize text-white/46">
-          {source.distance} / {source.weather} / {source.trackCondition}
+          {source.distance} / {source.trackCondition}
         </p>
       ) : null}
       <div className="mt-2 space-y-1">
@@ -133,7 +132,7 @@ export function DashboardCharts({ factionData, raceTrendData }: DashboardChartsP
       </ChartCard>
 
       <ChartCard
-        description="Condition volatility rises when harsh weather, difficult tracks, and item pressure stack together."
+        description="Condition volatility rises when hot or cold track states and item pressure stack together."
         mechanic="trackCondition"
         title="Race Condition Trend"
       >

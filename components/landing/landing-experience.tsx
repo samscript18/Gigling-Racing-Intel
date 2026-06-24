@@ -325,7 +325,7 @@ export function LandingExperience({ feedStatus, factionPerformance, giglings, in
 		},
 		{
 			accent: "violet",
-			body: "Faction strength, weather pressure, distance curves, and track volatility are framed as racing signals.",
+			body: "Faction strength, condition pressure, distance curves, and track volatility are framed as racing signals.",
 			href: "/meta",
 			icon: LineChart,
 			label: "Detect",
@@ -473,7 +473,7 @@ export function LandingExperience({ feedStatus, factionPerformance, giglings, in
 							value={liveCount(giglings.length, feedStatus.giglings)}
 						/>
 						<MetricCard
-							detail={feedDetail(feedStatus.meta, "Faction, rarity, weather, distance, and track reads", "No live meta insights returned")}
+							detail={feedDetail(feedStatus.meta, "Faction, rarity, distance, and condition reads", "No live meta insights returned")}
 							icon="barChart"
 							label="Meta Insights"
 							tone="emerald"
@@ -570,7 +570,7 @@ export function LandingExperience({ feedStatus, factionPerformance, giglings, in
 									{
 										icon: Gauge,
 										label: "Condition pressure",
-										text: latestRace ? `${latestRace.weather} weather and ${latestRace.trackCondition} track state` : "Awaiting a live race state",
+										text: latestRace ? `${latestRace.trackCondition} track condition` : "Awaiting a live race state",
 									},
 									{
 										icon: Zap,
@@ -769,7 +769,7 @@ export function LandingExperience({ feedStatus, factionPerformance, giglings, in
 								{[
 									{ icon: BrainCircuit, label: "Learn", text: "Every result explains the most likely pressure points." },
 									{ icon: Radar, label: "Predict", text: "Upcoming races become fit, volatility, and risk estimates." },
-									{ icon: Medal, label: "Improve", text: "Stable choices are tied to distance, weather, and field shape." },
+									{ icon: Medal, label: "Improve", text: "Stable choices are tied to distance, condition, and field shape." },
 									{ icon: ShieldCheck, label: "Share", text: "Reports package the story into a social-ready artifact." },
 								].map((item) => {
 									const Icon = item.icon;

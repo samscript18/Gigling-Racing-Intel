@@ -12,16 +12,12 @@ function conditionFit(gigling: Gigling, input: PredictionInput) {
     score += 22;
   }
 
-  if (gigling.bestWeather === input.weather) {
+  if (gigling.bestTrackCondition === input.trackCondition) {
     score += 18;
   }
 
-  if (["cold", "hot", "rainy", "stormy"].includes(input.weather) || ["wet", "muddy", "icy"].includes(input.trackCondition)) {
-    score += Math.max(0, gigling.stats.handling - 72) * 0.35;
-  }
-
-  if (input.trackCondition === "chaotic") {
-    score += Math.max(0, gigling.stats.luck - 70) * 0.45;
+  if (input.trackCondition === "cold" || input.trackCondition === "hot") {
+    score += Math.max(0, gigling.stats.finish - 72) * 0.35;
   }
 
   return Math.min(100, score);
@@ -30,30 +26,25 @@ function conditionFit(gigling: Gigling, input: PredictionInput) {
 function weightedScore(gigling: Gigling, input: PredictionInput) {
   const stats = gigling.stats;
   let score =
+    stats.start * 0.2 +
     stats.speed * 0.25 +
     stats.stamina * 0.2 +
-    stats.handling * 0.15 +
-    stats.consistency * 0.15 +
-    stats.luck * 0.1 +
+    stats.finish * 0.2 +
     conditionFit(gigling, input) * 0.15;
 
   if (input.distance === "sprint") {
-    score += stats.speed * 0.05 + stats.acceleration * 0.08;
+    score += stats.speed * 0.05 + stats.start * 0.08;
   }
 
   if (input.distance === "long" || input.distance === "marathon") {
-    score += stats.stamina * 0.07 + stats.consistency * 0.05;
+    score += stats.stamina * 0.07 + stats.finish * 0.05;
   }
 
-  if (["cold", "hot", "rainy", "stormy"].includes(input.weather) || ["wet", "muddy"].includes(input.trackCondition)) {
-    score += stats.handling * 0.05;
+  if (input.trackCondition === "cold" || input.trackCondition === "hot") {
+    score += stats.finish * 0.05;
   }
 
-  if (input.trackCondition === "chaotic") {
-    score += stats.luck * 0.06;
-  }
-
-  if (gigling.bestWeather === input.weather) {
+  if (gigling.bestTrackCondition === input.trackCondition) {
     score += 4;
   } else {
     score -= 2;
@@ -77,24 +68,20 @@ function buildReasons(gigling: Gigling, input: PredictionInput) {
     reasons.push(`${gigling.name} has proven fit at ${input.distance} distance.`);
   }
 
-  if (gigling.bestWeather === input.weather) {
-    reasons.push(`Its best weather is ${input.weather}, matching this race.`);
+  if (gigling.bestTrackCondition === input.trackCondition) {
+    reasons.push(`Its best condition is ${input.trackCondition}, matching this race.`);
   }
 
-  if (input.distance === "sprint" && gigling.stats.acceleration >= 85) {
-    reasons.push("High acceleration gives it a strong launch profile.");
+  if (input.distance === "sprint" && gigling.stats.start >= 85) {
+    reasons.push("High start gives it a strong launch profile.");
   }
 
   if ((input.distance === "long" || input.distance === "marathon") && gigling.stats.stamina >= 85) {
     reasons.push("Strong stamina protects the late split.");
   }
 
-  if (["wet", "muddy", "icy"].includes(input.trackCondition) && gigling.stats.handling >= 85) {
-    reasons.push("High handling lowers weather and track-condition risk.");
-  }
-
-  if (input.trackCondition === "chaotic" && gigling.stats.luck >= 80) {
-    reasons.push("Luck is high enough to benefit from chaotic item variance.");
+  if ((input.trackCondition === "cold" || input.trackCondition === "hot") && gigling.stats.finish >= 85) {
+    reasons.push("High finish control lowers condition mismatch risk.");
   }
 
   if (gigling.currentStreak > 0) {
@@ -133,7 +120,7 @@ export function runRacePrediction(
       const riskLevel: PredictionParticipantResult["riskLevel"] =
         gigling.currentStreak < -1 || conditionFit(gigling, input) < 55
           ? "high"
-          : input.trackCondition === "chaotic" || confidence < 64
+          : input.trackCondition !== "average" || confidence < 64
             ? "medium"
             : "low";
 
@@ -165,17 +152,11 @@ export function runRacePrediction(
     0
   ) / Math.max(results.length, 1);
   const conditionPressure =
-    input.trackCondition === "chaotic"
-      ? 92
-      : ["muddy", "icy"].includes(input.trackCondition)
-        ? 76
-        : ["hot", "cold", "stormy", "foggy"].includes(input.weather)
-          ? 68
-          : 38;
+    input.trackCondition === "hot" || input.trackCondition === "cold" ? 68 : 38;
   const fieldVolatility = Math.round((riskPressure + conditionPressure) / 2);
   const fieldWarning =
-    input.trackCondition === "chaotic"
-      ? "Chaotic tracks increase item and luck variance, so confidence should be treated carefully."
+    input.trackCondition === "hot" || input.trackCondition === "cold"
+      ? "Hot or cold conditions can expose condition mismatches, so confidence should be treated carefully."
       : "Prediction is directional and explainable, not a guarantee.";
 
   return {

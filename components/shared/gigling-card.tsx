@@ -70,7 +70,7 @@ export function GiglingCard({ gigling, compact = false, className }: GiglingCard
           <div className="mt-4 flex flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 min-[430px]:flex-row min-[430px]:items-center min-[430px]:justify-between">
             <span className="flex items-center gap-2 text-sm text-white/58">
               <Gauge className="h-4 w-4 text-orange-racing" />
-              {formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather)}
+              {formatGiglingRaceFit(gigling.bestDistance, gigling.bestTrackCondition)}
             </span>
             <span className="text-sm font-bold text-emerald-racing">
               {formatOptionalToken(gigling.earnings)}

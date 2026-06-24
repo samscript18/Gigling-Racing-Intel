@@ -31,8 +31,8 @@ type RarityMetaDatum = {
   averageScore: number;
 };
 
-type WeatherMetaDatum = {
-  weather: string;
+type ConditionMetaDatum = {
+  trackCondition: string;
   races: number;
   averageScore: number;
   itemPressure: number;
@@ -58,7 +58,7 @@ type TrackMetaDatum = {
 type MetaChartsProps = {
   factionData: FactionMetaDatum[];
   rarityData: RarityMetaDatum[];
-  weatherData: WeatherMetaDatum[];
+  conditionData: ConditionMetaDatum[];
   distanceData: DistanceMetaDatum[];
   trackData: TrackMetaDatum[];
 };
@@ -103,7 +103,7 @@ const yAxisTick = { fill: "rgba(255,255,255,0.42)", fontSize: 12 };
 export function MetaCharts({
   factionData,
   rarityData,
-  weatherData,
+  conditionData,
   distanceData,
   trackData
 }: MetaChartsProps) {
@@ -158,26 +158,26 @@ export function MetaCharts({
       </ChartCard>
 
       <ChartCard
-        description="Weather volatility combines harsh weather weight and observed item pressure."
-        mechanic="weather"
-        title="Weather Impact Chart"
+        description="Condition volatility combines hot or cold track pressure with observed item pressure."
+        mechanic="trackCondition"
+        title="Condition Impact Chart"
       >
         <div className="h-[300px]">
           <ResponsiveContainer height="100%" width="100%">
-            <AreaChart data={weatherData} margin={{ left: -22, right: 8, top: 8 }}>
+            <AreaChart data={conditionData} margin={{ left: -22, right: 8, top: 8 }}>
               <defs>
-                <linearGradient id="metaWeatherVolatility" x1="0" x2="0" y1="0" y2="1">
+                <linearGradient id="metaConditionVolatility" x1="0" x2="0" y1="0" y2="1">
                   <stop offset="0%" stopColor="#FF8A1F" stopOpacity={0.48} />
                   <stop offset="100%" stopColor="#FF8A1F" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-              <XAxis axisLine={false} dataKey="weather" tick={axisTick} tickLine={false} />
+              <XAxis axisLine={false} dataKey="trackCondition" tick={axisTick} tickLine={false} />
               <YAxis axisLine={false} tick={yAxisTick} tickLine={false} />
               <Tooltip content={<MetaTooltip />} />
               <Area
                 dataKey="volatility"
-                fill="url(#metaWeatherVolatility)"
+                fill="url(#metaConditionVolatility)"
                 name="Volatility"
                 stroke="#FF8A1F"
                 strokeWidth={3}

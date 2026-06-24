@@ -14,7 +14,7 @@ import {
 	getTopEmergingGiglings,
 	getTopFaction,
 	getTrackConditionTrendData,
-	getWeatherImpactData,
+	getConditionImpactData,
 	getWeeklyTrendSummary,
 } from "@/lib/gigaverse/analytics";
 import { fetchGiglings, fetchMetaData, fetchRaces } from "@/lib/gigaverse/api-client";
@@ -30,7 +30,7 @@ export default async function MetaPage() {
 	if (completedRaces.length === 0) {
 		return (
 			<div>
-				<PageHeader description="Read the current Gigling Racing meta across faction, rarity, weather, distance, and track-condition performance." eyebrow="Meta Intelligence" title="Meta" />
+				<PageHeader description="Read the current Gigling Racing meta across faction, rarity, distance, and track-condition performance." eyebrow="Meta Intelligence" title="Meta" />
 				<EmptyState description="The live race feed has no completed races with final placements, so faction and condition analytics cannot be calculated yet." title="No completed live samples" />
 			</div>
 		);
@@ -40,21 +40,21 @@ export default async function MetaPage() {
 	const emerging = getTopEmergingGiglings(giglings);
 	const factionData = getFactionDashboardData(factionPerformance);
 	const rarityData = getRarityPerformanceData(races);
-	const weatherData = getWeatherImpactData(races);
+	const conditionData = getConditionImpactData(races);
 	const distanceData = getDistanceImpactData(races);
 	const trackData = getTrackConditionTrendData(races);
 	const weeklySummary = getWeeklyTrendSummary(races, factionPerformance);
 	const actionPlan = getMetaActionPlan(races, factionPerformance);
-	const highestVolatility = [...weatherData].sort((first, second) => second.volatility - first.volatility)[0];
+	const highestVolatility = [...conditionData].sort((first, second) => second.volatility - first.volatility)[0];
 
 	return (
 		<div>
-			<PageHeader description="Read the current Gigling Racing meta across faction, rarity, weather, distance, and track-condition performance." eyebrow="Meta Intelligence" title="Meta" />
+			<PageHeader description="Read the current Gigling Racing meta across faction, rarity, distance, and track-condition performance." eyebrow="Meta Intelligence" title="Meta" />
 
 			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 				<MetricCard detail={`${topFaction.faction} leading`} icon="barChart" label="Top Faction" mechanic="faction" value={formatPercent(topFaction.winRate)} />
 				<MetricCard detail="Completed races analyzed" icon="activity" label="Samples" tone="emerald" value={`${completedRaces.length}`} />
-				<MetricCard detail={`${highestVolatility.weather} weather pressure`} icon="lineChart" label="Volatility" mechanic="weather" tone="violet" value={`${highestVolatility.volatility}/100`} />
+				<MetricCard detail={`${highestVolatility.trackCondition} condition pressure`} icon="lineChart" label="Volatility" mechanic="trackCondition" tone="violet" value={`${highestVolatility.volatility}/100`} />
 				<MetricCard detail={emerging[0]?.name ?? "Pending"} icon="zap" label="Emerging Pick" mechanic="podiumRate" tone="orange" value={formatPercent(emerging[0]?.podiumRate ?? 0)} />
 			</div>
 
@@ -103,7 +103,7 @@ export default async function MetaPage() {
 			</section>
 
 			<div className="mt-6">
-				<MetaCharts distanceData={distanceData} factionData={factionData} rarityData={rarityData} trackData={trackData} weatherData={weatherData} />
+				<MetaCharts distanceData={distanceData} factionData={factionData} rarityData={rarityData} trackData={trackData} conditionData={conditionData} />
 			</div>
 
 			<div className="mt-6 grid gap-5 grid-cols-1">

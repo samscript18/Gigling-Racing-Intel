@@ -9,7 +9,7 @@ export const racingMechanics = {
   distance: {
     label: "Race distance",
     explanation:
-      "Distance is normalized from the live track length. Short fields reward launch speed, while longer fields put more pressure on stamina and consistency.",
+      "Distance is normalized from the live track length. Short fields reward start and speed, while longer fields put more pressure on stamina and finish.",
     strategy:
       "Compare the race distance with each Gigling's strongest indexed distance before entering."
   },
@@ -74,21 +74,14 @@ export const racingMechanics = {
     explanation:
       "Streak summarizes recent winning or losing momentum from the indexed racing profile.",
     strategy:
-      "Momentum is useful context, but do not let a short streak outweigh distance and weather fit."
+      "Momentum is useful context, but do not let a short streak outweigh distance and condition fit."
   },
   trackCondition: {
     label: "Track condition",
     explanation:
-      "Track condition describes the race surface. Wet, muddy, and icy tracks place more emphasis on handling; chaotic tracks increase variance.",
+      "Track condition is the race's single condition axis: cold, average, or hot. Matching a Gigling's preference can improve its race fit.",
     strategy:
-      "Favor handling on technical surfaces and demand more confidence before entering chaotic races."
-  },
-  weather: {
-    label: "Race weather",
-    explanation:
-      "Weather is supplied by the offchain resolver metadata and can be compared with each Gigling's indexed condition history.",
-    strategy:
-      "A matching weather record is supporting evidence, not a guaranteed bonus."
+      "Compare the race condition with each Gigling's indexed condition preference before entering."
   },
   winRate: {
     label: "Win rate",

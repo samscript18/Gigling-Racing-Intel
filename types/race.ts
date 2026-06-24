@@ -2,20 +2,9 @@ import type { GiglingFaction, GiglingRarity } from "./gigling";
 
 export type RaceStatus = "scheduled" | "live" | "completed" | "cancelled" | "unknown";
 
-export type RaceWeather =
-  | "cold"
-  | "average"
-  | "hot"
-  | "sunny"
-  | "rainy"
-  | "stormy"
-  | "foggy"
-  | "windy"
-  | "unknown";
+export type TrackCondition = "cold" | "average" | "hot" | "unknown";
 
 export type RaceDistance = "sprint" | "medium" | "long" | "marathon" | "unknown";
-
-export type TrackCondition = "dry" | "wet" | "muddy" | "icy" | "chaotic" | "unknown";
 
 export type RaceItemUsage = {
   id: string;
@@ -44,7 +33,6 @@ export type Race = {
   raceNumber: number;
   status: RaceStatus;
   distance: RaceDistance;
-  weather: RaceWeather;
   trackCondition: TrackCondition;
   entryFee: number;
   prizePool: number;

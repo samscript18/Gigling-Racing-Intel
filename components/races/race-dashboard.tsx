@@ -15,7 +15,7 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useRaceRealtime, useRaces } from "@/hooks/use-races";
 import { formatConditionLabel, formatToken } from "@/lib/utils/format";
-import type { Race, RaceDistance, RaceWeather, TrackCondition } from "@/types";
+import type { Race, RaceDistance, TrackCondition } from "@/types";
 
 type RaceTab = "live" | "recent" | "historical";
 type ItemFilter = "all" | "with-items" | "no-items";
@@ -49,24 +49,11 @@ const distanceOptions: Array<RaceDistance | "all"> = [
   "long",
   "marathon"
 ];
-const weatherOptions: Array<RaceWeather | "all"> = [
+const conditionOptions: Array<TrackCondition | "all"> = [
   "all",
   "cold",
   "average",
-  "hot",
-  "sunny",
-  "rainy",
-  "stormy",
-  "foggy",
-  "windy"
-];
-const trackOptions: Array<TrackCondition | "all"> = [
-  "all",
-  "dry",
-  "wet",
-  "muddy",
-  "icy",
-  "chaotic"
+  "hot"
 ];
 const itemOptions: ItemFilter[] = ["all", "with-items", "no-items"];
 
@@ -142,7 +129,6 @@ function matchesSearch(race: Race, search: string) {
     `${race.raceNumber}`,
     race.id,
     race.distance,
-    race.weather,
     race.trackCondition,
     getRaceWinnerName(race),
     participantText
@@ -155,7 +141,6 @@ export function RaceDashboard() {
   const [activeTab, setActiveTab] = useState<RaceTab>("live");
   const [search, setSearch] = useState("");
   const [distance, setDistance] = useState<RaceDistance | "all">("all");
-  const [weather, setWeather] = useState<RaceWeather | "all">("all");
   const [trackCondition, setTrackCondition] = useState<TrackCondition | "all">("all");
   const [itemFilter, setItemFilter] = useState<ItemFilter>("all");
 
@@ -179,7 +164,6 @@ export function RaceDashboard() {
     return raceBuckets[activeTab]
       .filter((race) => matchesSearch(race, search))
       .filter((race) => distance === "all" || race.distance === distance)
-      .filter((race) => weather === "all" || race.weather === weather)
       .filter((race) => trackCondition === "all" || race.trackCondition === trackCondition)
       .filter((race) => {
         const itemCount = getRaceItemCount(race);
@@ -194,7 +178,7 @@ export function RaceDashboard() {
 
         return true;
       });
-  }, [activeTab, distance, itemFilter, raceBuckets, search, trackCondition, weather]);
+  }, [activeTab, distance, itemFilter, raceBuckets, search, trackCondition]);
 
   const totalPrizePool = visibleRaces.reduce((total, race) => total + race.prizePool, 0);
   const participantCount = visibleRaces.reduce(
@@ -225,7 +209,7 @@ export function RaceDashboard() {
     {
       header: "Conditions",
       cell: (race) =>
-        `${formatConditionLabel(race.distance)} / ${formatConditionLabel(race.weather)} / ${formatConditionLabel(race.trackCondition)}`
+        `${formatConditionLabel(race.distance)} / ${formatConditionLabel(race.trackCondition)}`
     },
     {
       header: "Entry",
@@ -252,7 +236,6 @@ export function RaceDashboard() {
   function resetFilters() {
     setSearch("");
     setDistance("all");
-    setWeather("all");
     setTrackCondition("all");
     setItemFilter("all");
   }
@@ -383,7 +366,7 @@ export function RaceDashboard() {
               <div>
                 <h2 className="text-lg font-black text-white">Race Filters</h2>
                 <p className="text-sm text-white/48">
-                  Search race number, winner, entrant, owner, weather, distance, or track condition.
+                  Search race number, winner, entrant, owner, distance, or condition.
                 </p>
               </div>
             </div>
@@ -397,7 +380,7 @@ export function RaceDashboard() {
             </button>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.35fr_repeat(4,0.75fr)]">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.35fr_repeat(3,0.75fr)]">
             <label className="block">
               <span className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-white/42">
                 Search
@@ -406,7 +389,7 @@ export function RaceDashboard() {
                 <Search className="h-4 w-4 text-white/38" />
                 <input
                   className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-white outline-none placeholder:text-white/32"
-                  placeholder="Race #9017, Volt Vandal, rainy..."
+                  placeholder="Race #9017, Volt Vandal, cold..."
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                 />
@@ -419,14 +402,8 @@ export function RaceDashboard() {
               onChange={setDistance}
             />
             <SelectFilter
-              label="Weather"
-              options={weatherOptions}
-              value={weather}
-              onChange={setWeather}
-            />
-            <SelectFilter
-              label="Track"
-              options={trackOptions}
+              label="Condition"
+              options={conditionOptions}
               value={trackCondition}
               onChange={setTrackCondition}
             />
@@ -455,7 +432,7 @@ export function RaceDashboard() {
         <AnimatePresence mode="wait">
           {visibleRaces.length > 0 ? (
             <motion.div
-              key={`${activeTab}-${search}-${distance}-${weather}-${trackCondition}-${itemFilter}`}
+              key={`${activeTab}-${search}-${distance}-${trackCondition}-${itemFilter}`}
               animate={{ opacity: 1, y: 0 }}
               className="grid gap-4 md:grid-cols-2"
               exit={{ opacity: 0, y: -8 }}
@@ -474,7 +451,7 @@ export function RaceDashboard() {
               initial={{ opacity: 0, y: 10 }}
             >
               <EmptyState
-                description="Try a different tab, clear the search, or loosen the distance, weather, track, or item filters."
+                description="Try a different tab, clear the search, or loosen the distance, condition, or item filters."
                 title="No races match this feed"
               />
             </motion.div>

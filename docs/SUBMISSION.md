@@ -4,7 +4,7 @@ Gigling Racing Intel
 
 # 2. Short Description (What & Why)
 
-Gigling Racing Intel is a premium analytics and race intelligence platform built for Gigling Racing. It transforms race history, Gigling performance, faction trends, weather conditions, track context, race economics, and player data into actionable insights that help racers make smarter decisions, understand the evolving meta, and improve their competitive performance.
+Gigling Racing Intel is a premium analytics and race intelligence platform built for Gigling Racing. It transforms race history, Gigling performance, faction trends, track conditions, race economics, and player data into actionable insights that help racers make smarter decisions, understand the evolving meta, and improve their competitive performance.
 
 # 3. Problem It Solves
 
@@ -32,7 +32,7 @@ The platform uses:
 * Race results and placements
 * Race entry fees, prize pools, payouts, and item/action fields when available
 * Faction performance data
-* Weather, distance, and track condition data
+* Distance and track condition data
 * Player and stable information
 * ELO leaderboard and global racing statistics
 * Onchain racing data from Gigling Racing contracts

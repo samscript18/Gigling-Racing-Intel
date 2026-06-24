@@ -20,13 +20,11 @@ import type {
   PredictionParticipantResult,
   PredictionResult,
   RaceDistance,
-  RaceWeather,
   TrackCondition
 } from "@/types";
 
 const distanceOptions: RaceDistance[] = ["sprint", "medium", "long", "marathon"];
-const weatherOptions: RaceWeather[] = ["cold", "average", "hot", "sunny", "rainy", "stormy", "foggy", "windy"];
-const trackOptions: TrackCondition[] = ["dry", "wet", "muddy", "icy", "chaotic"];
+const conditionOptions: TrackCondition[] = ["cold", "average", "hot"];
 const PARTICIPANT_PAGE_SIZE = 50;
 
 const riskStyles: Record<PredictionParticipantResult["riskLevel"], string> = {
@@ -187,8 +185,7 @@ export function RaceIntelligenceEngine() {
     isLoading
   } = useGiglingsPage(PARTICIPANT_PAGE_SIZE, pageOffset);
   const [distance, setDistance] = useState<RaceDistance>("sprint");
-  const [weather, setWeather] = useState<RaceWeather>("average");
-  const [trackCondition, setTrackCondition] = useState<TrackCondition>("dry");
+  const [trackCondition, setTrackCondition] = useState<TrackCondition>("average");
   const [participantSearch, setParticipantSearch] = useState("");
   const [selectedGiglingIds, setSelectedGiglingIds] = useState<string[]>([]);
   const [knownGiglings, setKnownGiglings] = useState<Map<string, Gigling>>(
@@ -262,8 +259,7 @@ export function RaceIntelligenceEngine() {
     setPage(0);
     setParticipantSearch("");
     setDistance("sprint");
-    setWeather("average");
-    setTrackCondition("dry");
+    setTrackCondition("average");
     setSelectedGiglingIds(getDefaultSelectedIds(predictionGiglings.length ? predictionGiglings : giglings));
     setPrediction(undefined);
   }
@@ -277,7 +273,6 @@ export function RaceIntelligenceEngine() {
       runRacePrediction(
         {
           distance,
-          weather,
           trackCondition,
           participantGiglingIds: selectedGiglingIds
         },
@@ -324,7 +319,7 @@ export function RaceIntelligenceEngine() {
           value={topPick ? formatPercent(topPick.estimatedWinProbability) : "N/A"}
         />
         <MetricCard
-          detail={`${distance} / ${weather}`}
+          detail={`${distance} / ${trackCondition}`}
           icon="radar"
           label="Race Conditions"
           mechanic="trackCondition"
@@ -371,7 +366,7 @@ export function RaceIntelligenceEngine() {
             </button>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2">
             <SelectInput
               label="Distance"
               options={distanceOptions}
@@ -379,14 +374,8 @@ export function RaceIntelligenceEngine() {
               onChange={setDistance}
             />
             <SelectInput
-              label="Weather"
-              options={weatherOptions}
-              value={weather}
-              onChange={setWeather}
-            />
-            <SelectInput
-              label="Track"
-              options={trackOptions}
+              label="Condition"
+              options={conditionOptions}
               value={trackCondition}
               onChange={setTrackCondition}
             />
@@ -583,7 +572,7 @@ export function RaceIntelligenceEngine() {
                     <div className="rounded-lg border border-white/10 bg-white/[0.035] p-2">
                       <p className="text-white/38">Fit</p>
                       <p className="font-bold capitalize text-white">
-                        {formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather)}
+                        {formatGiglingRaceFit(gigling.bestDistance, gigling.bestTrackCondition)}
                       </p>
                     </div>
                   </div>

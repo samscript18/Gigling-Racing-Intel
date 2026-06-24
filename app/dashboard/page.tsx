@@ -76,7 +76,6 @@ export default async function DashboardPage() {
 								raceNumber: featuredRace.raceNumber,
 								status: featuredRace.status,
 								trackCondition: featuredRace.trackCondition,
-								weather: featuredRace.weather,
 							}
 						: undefined
 				}
@@ -176,7 +175,7 @@ export default async function DashboardPage() {
 						</div>
 						<p className="mt-5 rounded-lg border border-white/10 bg-white/[0.035] p-4 text-sm leading-6 text-white/58">
 							Current dashboard read: {topFaction.faction} has the strongest faction conversion,
-							{` ${topGigling.name}`} owns the highest individual win rate, and hot, cold, chaotic, or stormy races should be treated as higher-risk predictor inputs.
+							{` ${topGigling.name}`} owns the highest individual win rate, and hot or cold races should be treated as higher-risk predictor inputs.
 						</p>
 					</div>
 				</section>

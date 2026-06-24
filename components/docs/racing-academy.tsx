@@ -93,7 +93,7 @@ const learningPath = [
 		href: "/races",
 		icon: CloudSun,
 		label: "Read Race Conditions",
-		text: "Distance, weather, track, entry, prize, field size, and items define the pressure profile.",
+		text: "Distance, track condition, entry, prize, field size, and items define the pressure profile.",
 	},
 	{
 		href: "/giglings",
@@ -105,7 +105,7 @@ const learningPath = [
 		href: "/meta",
 		icon: LineChart,
 		label: "Track the Meta",
-		text: "Watch faction, rarity, weather, distance, and track trends move across completed races.",
+		text: "Watch faction, rarity, distance, and condition trends move across completed races.",
 	},
 	{
 		href: "/predictor",
@@ -137,15 +137,14 @@ const basics = [
 	{ icon: Bot, title: "What a Gigling is", text: "A racing companion with identity, faction, rarity, owner context, traits, stats, and a career record." },
 	{ icon: Flag, title: "Factions", text: "Faction labels help compare groups of Giglings and detect emerging dominance across race samples." },
 	{ icon: Medal, title: "Rarity", text: "Rarity gives players another comparison axis for performance, traits, and leaderboard storytelling." },
-	{ icon: Gauge, title: "Stats", text: "Speed, stamina, handling, acceleration, luck, and consistency shape expected race behavior." },
+	{ icon: Gauge, title: "Stats", text: "Start, speed, stamina, and finish shape expected race behavior." },
 	{ icon: Users, title: "Owner and stable", text: "Wallet ownership lets the app frame decisions around the connected player's available roster." },
 	{ icon: History, title: "Race history", text: "Past placements, payouts, entries, and conditions reveal where a Gigling has already performed." },
 ];
 
 const mechanics = [
 	{ label: "Distance", text: "Sprint, medium, long, and marathon races reward different stat profiles." },
-	{ label: "Weather", text: "Weather adds pressure to handling, speed, consistency, and race volatility." },
-	{ label: "Track", text: "Track condition changes how risky the field feels and which stats matter most." },
+	{ label: "Condition", text: "Cold, average, or hot track conditions change how well each Gigling fits the race." },
 	{ label: "Entry fee", text: "Entry cost frames the downside before committing a Gigling to a lobby." },
 	{ label: "Prize pool", text: "Prize flow shows the upside available when the race settles." },
 	{ label: "Participants", text: "Field size and opponent quality shape win probability and risk level." },
@@ -156,39 +155,39 @@ const mechanics = [
 const strategyPairs = [
 	{
 		title: "Sprint races",
-		doText: "Prioritize speed, acceleration, and clean condition fit.",
+		doText: "Prioritize start, speed, and clean condition fit.",
 		avoidText: "Avoid slow starters in crowded fields unless their historical sprint form is strong.",
 	},
 	{
 		title: "Medium races",
-		doText: "Look for balanced speed, handling, and recent podium consistency.",
-		avoidText: "Do not overvalue raw speed if the weather or track punishes handling.",
+		doText: "Look for balanced speed, finish, and recent podium form.",
+		avoidText: "Do not overvalue raw speed if the condition does not fit the Gigling.",
 	},
 	{
 		title: "Long and marathon races",
-		doText: "Favor stamina, consistency, and proven late-race performance.",
+		doText: "Favor stamina, finish, and proven late-race performance.",
 		avoidText: "Avoid fragile high-variance picks unless the prize flow justifies the risk.",
 	},
 	{
-		title: "Wet or chaotic tracks",
-		doText: "Treat handling, luck, and volatility warnings as primary signals.",
+		title: "Hot or cold conditions",
+		doText: "Treat condition preference and volatility warnings as primary signals.",
 		avoidText: "Avoid reading win rate without checking whether the Gigling fits the actual conditions.",
 	},
 ];
 
 const lossReasons = [
-	"Poor condition fit against the race distance, weather, or track.",
+	"Poor condition fit against the race distance or track condition.",
 	"Weak stat match compared with the top opponent profile.",
 	"A stronger rival entered with better recent form or matchup history.",
 	"Item pressure changed the expected flow when item data was available.",
-	"Low consistency increased placement volatility in a crowded field.",
-	"The selected distance favored stamina, speed, or handling differently than expected.",
+	"Low finish strength increased placement volatility in a crowded field.",
+	"The selected distance favored stamina, speed, or finish differently than expected.",
 ];
 
 const metaSignals = [
 	{ label: "Emerging Meta", text: "A faction, rarity, or condition cluster begins outperforming recent samples.", tone: "violet" as Tone },
 	{ label: "Faction Surge", text: "One faction gains podium share and starts appearing more often in winner context.", tone: "orange" as Tone },
-	{ label: "Performance Trends", text: "Weather, distance, and track curves reveal where the field is becoming exploitable.", tone: "cyan" as Tone },
+	{ label: "Performance Trends", text: "Distance and condition curves reveal where the field is becoming exploitable.", tone: "cyan" as Tone },
 ];
 
 const faqItems = [
@@ -206,7 +205,7 @@ const faqItems = [
 	},
 	{
 		question: "Why do race conditions matter?",
-		answer: "Distance, weather, and track condition decide which stats are more valuable and whether a favorite is actually exposed.",
+		answer: "Distance and track condition decide which stats are more valuable and whether a favorite is actually exposed.",
 	},
 	{
 		question: "How are rivalries calculated?",
@@ -514,9 +513,8 @@ function FormulaCard() {
 	const terms = [
 		["speed", "0.25"],
 		["stamina", "0.20"],
-		["handling", "0.15"],
-		["consistency", "0.15"],
-		["luck", "0.10"],
+		["start", "0.20"],
+		["finish", "0.20"],
 		["historical condition fit", "0.15"],
 	];
 
@@ -679,7 +677,7 @@ export function RacingAcademy() {
 						</DocsSection>
 
 						<DocsSection
-							description="Use distance, weather, track, and stat fit together. A strong racer can still be a poor entry in the wrong lobby."
+							description="Use distance, track condition, and stat fit together. A strong racer can still be a poor entry in the wrong lobby."
 							id="strategy-guide"
 							kicker="Strategy Guide"
 							title="Do The Right Thing For The Right Race"

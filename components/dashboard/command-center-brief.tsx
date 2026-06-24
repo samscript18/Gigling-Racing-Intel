@@ -16,7 +16,7 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { cn } from "@/lib/utils/cn";
 import { formatConditionLabel, formatPercent, formatToken } from "@/lib/utils/format";
-import type { GiglingFaction, RaceDistance, RaceStatus, RaceWeather, TrackCondition } from "@/types";
+import type { GiglingFaction, RaceDistance, RaceStatus, TrackCondition } from "@/types";
 
 type FeaturedRace = {
   distance: RaceDistance;
@@ -28,7 +28,6 @@ type FeaturedRace = {
   raceNumber: number;
   status: RaceStatus;
   trackCondition: TrackCondition;
-  weather: RaceWeather;
 };
 
 type CommandCenterBriefProps = {
@@ -223,11 +222,7 @@ export function CommandCenterBrief({
           <div className="space-y-3">
             {[
               {
-                label: "Weather",
-                value: featuredRace ? formatConditionLabel(featuredRace.weather) : "N/A"
-              },
-              {
-                label: "Track",
+                label: "Condition",
                 value: featuredRace ? formatConditionLabel(featuredRace.trackCondition) : "N/A"
               },
               {

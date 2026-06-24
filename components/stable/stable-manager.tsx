@@ -415,7 +415,7 @@ export function StableManager() {
                   </p>
                   <p className="mt-2 text-lg font-black text-white">{bestGigling.name}</p>
                   <p className="mt-1 text-sm text-white/52">
-                    {formatPercent(bestGigling.winRate)} win rate, best weather {formatConditionLabel(bestGigling.bestWeather, "not provided")}.
+                    {formatPercent(bestGigling.winRate)} win rate, best condition {formatConditionLabel(bestGigling.bestTrackCondition, "not provided")}.
                   </p>
                 </motion.div>
                 <motion.div

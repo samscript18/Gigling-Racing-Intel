@@ -126,7 +126,7 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
     <div>
       <PageHeader
         actions={<StatusBadge status={race.status} />}
-        description={`Race #${race.raceNumber} ran under ${race.weather} ${race.trackCondition} conditions at ${race.distance} distance.`}
+        description={`Race #${race.raceNumber} ran under ${race.trackCondition} conditions at ${race.distance} distance.`}
         eyebrow="Race Detail"
         title={`Race #${race.raceNumber}`}
       />
@@ -152,7 +152,6 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
             <RaceConditionStrip
               distance={race.distance}
               trackCondition={race.trackCondition}
-              weather={race.weather}
             />
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
@@ -308,7 +307,7 @@ export default async function RaceDetailPage({ params }: RaceDetailPageProps) {
       </div>
 
       <section className="mt-6">
-        <SectionHeader description="Similar distance, weather, or track condition races." title="Similar Races" />
+        <SectionHeader description="Similar distance or track-condition races." title="Similar Races" />
         <div className="mobile-card-rail grid gap-4 lg:grid-cols-3">
           {similarRaces.map((entry) => (
             <RaceCard key={entry.id} race={entry} />

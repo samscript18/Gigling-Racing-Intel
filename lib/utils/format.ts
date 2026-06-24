@@ -34,10 +34,10 @@ export function formatConditionLabel(value?: string | null, unavailableLabel = "
   return !value || value === "unknown" ? unavailableLabel : value;
 }
 
-export function formatGiglingRaceFit(distance: string, weather: string) {
+export function formatGiglingRaceFit(distance: string, condition: string) {
   const labels = [
     formatConditionLabel(distance, ""),
-    formatConditionLabel(weather, "")
+    formatConditionLabel(condition, "")
   ].filter(Boolean);
 
   return labels.length > 0 ? labels.join(" / ") : "N/A";

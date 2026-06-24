@@ -1,5 +1,5 @@
 import type { GiglingFaction, GiglingRarity } from "./gigling";
-import type { RaceDistance, RaceWeather, TrackCondition } from "./race";
+import type { RaceDistance, TrackCondition } from "./race";
 
 export type MetaInsight = {
   id: string;
@@ -30,7 +30,7 @@ export type RarityPerformance = {
 };
 
 export type ConditionPerformance = {
-  label: RaceWeather | RaceDistance | TrackCondition;
+  label: RaceDistance | TrackCondition;
   races: number;
   averagePerformanceScore: number;
   upsetRate: number;

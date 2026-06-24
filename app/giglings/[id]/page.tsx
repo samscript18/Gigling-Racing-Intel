@@ -9,7 +9,7 @@ import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { RarityBadge } from "@/components/shared/rarity-badge";
 import { SectionHeader } from "@/components/shared/section-header";
-import { getGiglingIntelligenceSummary, getGiglingPerformanceByDistance, getGiglingPerformanceByWeather, getGiglingRaceHistory, getGiglingRiskWarnings, getGiglingStatRadarData, getRecommendedRaceConditions } from "@/lib/gigaverse/analytics";
+import { getGiglingIntelligenceSummary, getGiglingPerformanceByCondition, getGiglingPerformanceByDistance, getGiglingRaceHistory, getGiglingRiskWarnings, getGiglingStatRadarData, getRecommendedRaceConditions } from "@/lib/gigaverse/analytics";
 import { fetchGiglingById, fetchGiglingRaceHistory, fetchGiglings, fetchRaces } from "@/lib/gigaverse/api-client";
 import { formatConditionLabel, formatInteger, formatOptionalToken, formatPercent, shortenAddress } from "@/lib/utils/format";
 
@@ -38,7 +38,7 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
 	const raceHistory = getGiglingRaceHistory(gigling.id, profileRaces);
 	const completedHistory = raceHistory.filter(({ participant }) => typeof participant.finalPosition === "number");
 	const statData = getGiglingStatRadarData(gigling);
-	const weatherData = getGiglingPerformanceByWeather(gigling.id, profileRaces);
+	const conditionData = getGiglingPerformanceByCondition(gigling.id, profileRaces);
 	const distanceData = getGiglingPerformanceByDistance(gigling.id, profileRaces);
 	const intelligence = getGiglingIntelligenceSummary(gigling, profileRaces);
 	const recommendations = getRecommendedRaceConditions(gigling);
@@ -91,8 +91,8 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
 								<p className="mt-2 font-black capitalize text-cyan-racing">{formatConditionLabel(gigling.bestDistance)}</p>
 							</div>
 							<div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
-								<p className="text-xs uppercase tracking-[0.2em] text-white/38">Best Weather</p>
-								<p className="mt-2 font-black capitalize text-orange-racing">{formatConditionLabel(gigling.bestWeather)}</p>
+								<p className="text-xs uppercase tracking-[0.2em] text-white/38">Best Condition</p>
+								<p className="mt-2 font-black capitalize text-orange-racing">{formatConditionLabel(gigling.bestTrackCondition)}</p>
 							</div>
 						</div>
 					</div>
@@ -108,7 +108,7 @@ export default async function GiglingDetailPage({ params }: GiglingDetailPagePro
 			</div>
 
 			<div className="mt-6">
-				<GiglingDetailCharts distanceData={distanceData} statData={statData} weatherData={weatherData} />
+				<GiglingDetailCharts conditionData={conditionData} distanceData={distanceData} statData={statData} />
 			</div>
 
 			<div className="mt-6 grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

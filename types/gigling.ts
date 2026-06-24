@@ -1,4 +1,4 @@
-import type { RaceDistance, RaceWeather } from "./race";
+import type { RaceDistance, TrackCondition } from "./race";
 
 export type GiglingRarity =
   | "common"
@@ -24,19 +24,17 @@ export type GiglingFaction =
 export type GiglingTrait = {
   id: string;
   name: string;
-  category: "speed" | "stamina" | "luck" | "handling" | "temperament" | "special";
+  category: "start" | "speed" | "stamina" | "finish" | "temperament" | "special";
   revealed: boolean;
   value?: number;
   description: string;
 };
 
 export type GiglingStats = {
+  start: number;
   speed: number;
   stamina: number;
-  handling: number;
-  acceleration: number;
-  luck: number;
-  consistency: number;
+  finish: number;
 };
 
 export type Gigling = {
@@ -60,6 +58,6 @@ export type Gigling = {
   earnings: number;
   currentStreak: number;
   bestDistance: RaceDistance;
-  bestWeather: RaceWeather;
+  bestTrackCondition: TrackCondition;
   lastRaceAt?: string;
 };

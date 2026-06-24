@@ -21,7 +21,7 @@ type StatDatum = {
   value: number;
 };
 
-type WeatherDatum = {
+type ConditionDatum = {
   label: string;
   races: number;
   winRate: number;
@@ -39,7 +39,7 @@ type DistanceDatum = {
 
 type GiglingDetailChartsProps = {
   statData: StatDatum[];
-  weatherData: WeatherDatum[];
+  conditionData: ConditionDatum[];
   distanceData: DistanceDatum[];
 };
 
@@ -85,7 +85,7 @@ function DetailTooltip({ active, payload, label }: DetailTooltipProps) {
 
 export function GiglingDetailCharts({
   statData,
-  weatherData,
+  conditionData,
   distanceData
 }: GiglingDetailChartsProps) {
   const hasStatData = statData.some((entry) => Number.isFinite(entry.value) && entry.value > 0);
@@ -93,7 +93,7 @@ export function GiglingDetailCharts({
   return (
     <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
       <ChartCard
-        description="Radar profile for speed, stamina, handling, acceleration, luck, and consistency."
+        description="Radar profile for start, speed, stamina, and finish."
         title="Stat Radar"
       >
         <div className="h-[330px]">
@@ -140,8 +140,7 @@ export function GiglingDetailCharts({
                   Stats unavailable
                 </p>
                 <p className="mt-3 max-w-sm text-sm leading-6 text-white/58">
-                  Gigaverse returned this Gigling without speed, stamina, handling,
-                  acceleration, luck, or consistency values.
+                  Gigaverse returned this Gigling without start, speed, stamina, or finish values.
                 </p>
               </div>
             </div>
@@ -151,12 +150,12 @@ export function GiglingDetailCharts({
 
       <div className="grid gap-5">
         <ChartCard
-          description="Win and podium conversion by weather from indexed race history."
-          title="Performance By Weather"
+          description="Win and podium conversion by condition from indexed race history."
+          title="Performance By Condition"
         >
           <div className="h-[230px]">
             <ResponsiveContainer height="100%" width="100%">
-              <BarChart data={weatherData} margin={{ left: -24, right: 8, top: 8 }}>
+              <BarChart data={conditionData} margin={{ left: -24, right: 8, top: 8 }}>
                 <defs>
                   <linearGradient id="giglingWeatherWin" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%" stopColor="#20F7FF" stopOpacity={0.96} />

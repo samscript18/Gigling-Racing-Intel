@@ -80,7 +80,7 @@ export function Sidebar() {
 						<div className="relative z-10">
 							<p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-racing">Meta Ping</p>
 							<p className="mt-2 text-sm font-semibold text-white">Chobo sprint pressure is live.</p>
-							<p className="mt-1 mb-4 text-xs leading-5 text-white/54">Watch windy sprint lobbies before committing lower-acceleration Giglings.</p>
+							<p className="mt-1 mb-4 text-xs leading-5 text-white/54">Watch hot sprint lobbies before committing lower-start Giglings.</p>
 						</div>
 					</div>
 				) : null}

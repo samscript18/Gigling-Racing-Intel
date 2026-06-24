@@ -233,7 +233,7 @@ function drawReportCanvas({ gigling, insight, race }: { gigling: Gigling; insigh
 	drawText(ctx, gigling.tokenId, 286, 392, 300, "rgba(248, 251, 255, 0.52)");
 	drawText(ctx, `${formatConditionLabel(gigling.faction)} / ${formatConditionLabel(gigling.rarity)}`, 286, 430, 360, "#20f7ff");
 	setReportFont(ctx, 700, 17);
-	drawText(ctx, `Best fit: ${formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather)}`, 286, 466, 360, "rgba(248, 251, 255, 0.70)");
+	drawText(ctx, `Best fit: ${formatGiglingRaceFit(gigling.bestDistance, gigling.bestTrackCondition)}`, 286, 466, 360, "rgba(248, 251, 255, 0.70)");
 
 	drawMetric(ctx, "Win rate", formatPercent(gigling.winRate), 668, 78, 218, "rgba(32, 247, 255, 0.96)");
 	drawMetric(ctx, "Podium", formatPercent(gigling.podiumRate), 914, 78, 218, "rgba(255, 138, 37, 0.96)");
@@ -250,7 +250,7 @@ function drawReportCanvas({ gigling, insight, race }: { gigling: Gigling; insigh
 
 	drawPanel(ctx, 56, 548, 1076, 52, "rgba(32, 247, 255, 0.7)");
 	setReportFont(ctx, 800, 18);
-	drawText(ctx, `Race: ${formatConditionLabel(race.distance)} / ${formatConditionLabel(race.weather)} / ${formatConditionLabel(race.trackCondition)}`, 86, 581, 390, "rgba(248, 251, 255, 0.78)");
+	drawText(ctx, `Race: ${formatConditionLabel(race.distance)} / ${formatConditionLabel(race.trackCondition)} / ${formatConditionLabel(race.trackCondition)}`, 86, 581, 390, "rgba(248, 251, 255, 0.78)");
 	drawText(ctx, `Entry: ${formatToken(race.entryFee)}   Prize: ${formatToken(race.prizePool)}`, 516, 581, 350, "rgba(248, 251, 255, 0.78)");
 	drawText(ctx, `Items: ${race.participants.flatMap((entry) => entry.itemsUsed).length}`, 924, 581, 150, "rgba(248, 251, 255, 0.78)");
 
@@ -452,7 +452,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
 		return <EmptyState description="Reports require a live Gigling, a completed live race, and a live meta signal. Gigaverse has not returned all three inputs yet." title="Not enough live data for a report" />;
 	}
 
-	const socialCopy = `${gigling.name} watchlist: ${formatPercent(gigling.winRate)} win rate, ${formatPercent(gigling.podiumRate)} podium rate, best fit ${formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather).toLowerCase()}. Race #${race.raceNumber} winner: ${winnerName(race)}. Meta signal: ${insight.title} (${insight.metricValue}). Powered by Gigling Racing Intel.`;
+	const socialCopy = `${gigling.name} watchlist: ${formatPercent(gigling.winRate)} win rate, ${formatPercent(gigling.podiumRate)} podium rate, best fit ${formatGiglingRaceFit(gigling.bestDistance, gigling.bestTrackCondition).toLowerCase()}. Race #${race.raceNumber} winner: ${winnerName(race)}. Meta signal: ${insight.title} (${insight.metricValue}). Powered by Gigling Racing Intel.`;
 
 	async function renderReportImage() {
 		await document.fonts.ready;
@@ -604,7 +604,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
 							</div>
 							<div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
 								<p className="text-xs text-white/38">Best Fit</p>
-								<p className="mt-1 font-black capitalize text-white">{formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather)}</p>
+								<p className="mt-1 font-black capitalize text-white">{formatGiglingRaceFit(gigling.bestDistance, gigling.bestTrackCondition)}</p>
 							</div>
 							<div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
 								<p className="text-xs text-white/38">Earnings</p>
@@ -612,9 +612,9 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
 							</div>
 						</div>
 						<p className="mt-5 text-sm leading-6 text-white/58">
-							{gigling.bestWeather === "unknown"
-								? `${gigling.name} has no live weather-fit signal yet and is currently carrying a ${gigling.currentStreak} race streak.`
-								: `${gigling.name} is strongest in ${formatConditionLabel(gigling.bestWeather)} weather and is currently carrying a ${gigling.currentStreak} race streak.`}
+							{gigling.bestTrackCondition === "unknown"
+								? `${gigling.name} has no live condition-fit signal yet and is currently carrying a ${gigling.currentStreak} race streak.`
+								: `${gigling.name} is strongest in ${formatConditionLabel(gigling.bestTrackCondition)} conditions and is currently carrying a ${gigling.currentStreak} race streak.`}
 						</p>
 					</ReportShell>
 
@@ -635,7 +635,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
 							<div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
 								<p className="text-xs text-white/38">Conditions</p>
 								<p className="mt-1 font-black capitalize text-white">
-									{formatConditionLabel(race.weather)} / {formatConditionLabel(race.trackCondition)}
+									{formatConditionLabel(race.trackCondition)} / {formatConditionLabel(race.trackCondition)}
 								</p>
 							</div>
 							<div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">

@@ -1,9 +1,8 @@
-import type { RaceDistance, RaceWeather, TrackCondition } from "./race";
+import type { RaceDistance, TrackCondition } from "./race";
 
 export type PredictionInput = {
   raceId?: string;
   distance: RaceDistance;
-  weather: RaceWeather;
   trackCondition: TrackCondition;
   participantGiglingIds: string[];
 };

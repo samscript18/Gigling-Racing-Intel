@@ -35,17 +35,13 @@ export function RaceCard({ race, className }: RaceCardProps) {
 					</Link>
 				</div>
 
-				<div className="mt-5 grid gap-2 text-sm min-[390px]:grid-cols-3">
+				<div className="mt-5 grid gap-2 text-sm min-[390px]:grid-cols-2">
 					<div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
 						<p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Distance</p>
 						<p className="mt-1 font-bold capitalize text-white">{formatConditionLabel(race.distance)}</p>
 					</div>
 					<div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
-						<p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Weather</p>
-						<p className="mt-1 font-bold capitalize text-white">{formatConditionLabel(race.weather)}</p>
-					</div>
-					<div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
-						<p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Track</p>
+						<p className="text-[11px] uppercase tracking-[0.16em] text-white/36">Condition</p>
 						<p className="mt-1 font-bold capitalize text-white">{formatConditionLabel(race.trackCondition)}</p>
 					</div>
 				</div>

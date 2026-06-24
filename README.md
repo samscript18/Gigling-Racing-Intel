@@ -9,7 +9,7 @@ Built for GIGATHON 1, the app targets Player Tools & Analytics while also suppor
 - Premium dark-mode dashboard with racing metrics, active races, meta alerts, charts, and quick actions.
 - Gigling explorer with search, filters, sorting, cards, and full Gigling detail pages.
 - Race dashboard and race detail pages with placements, item timelines, winner explanations, and "Why Did I Lose?" analysis.
-- Meta insights for faction, rarity, weather, distance, and track condition performance.
+- Meta insights for faction, rarity, distance, and track-condition performance.
 - Race Intelligence Engine with weighted scoring, probabilities, confidence, risk, warnings, and plain-English reasoning.
 - Stable manager with RainbowKit, contract-backed race eligibility, live breeding-profile research, rotation/retirement watches, and race suggestions.
 - Rivalry intelligence, player and live-derived stable leaderboards, profile scouting, and shareable 970 x 630 PNG report cards.
@@ -136,7 +136,7 @@ Every Gigling, race, player, stable, rivalry, leaderboard, and meta record comes
 ## Hackathon Demo Flow
 
 1. Open `/dashboard` to show the product value in under 20 seconds.
-2. Open `/giglings` and filter by faction, rarity, weather, or distance.
+2. Open `/giglings` and filter by faction, rarity, condition, or distance.
 3. Open a Gigling detail page to explain strengths, history, and risk warnings.
 4. Open `/races` and a race detail page to show winner and loss explanations.
 5. Open `/predictor` and run the Race Intelligence Engine.
