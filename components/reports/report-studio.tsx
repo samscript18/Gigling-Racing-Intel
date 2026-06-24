@@ -27,6 +27,8 @@ type ReportStudioProps = {
 };
 
 type ShareAction = "copy" | "share" | "download";
+const REPORT_IMAGE_HEIGHT = 630;
+const REPORT_IMAGE_WIDTH = 1200;
 
 function winnerName(race: Race) {
   return (
@@ -134,6 +136,49 @@ function ReportShell({
   );
 }
 
+function ShareExportArtifact({ artifactRef, gigling, insight, race }: { artifactRef: RefObject<HTMLDivElement | null>; gigling: Gigling; insight: MetaInsight; race: Race }) {
+  return (
+    <div
+      ref={artifactRef}
+      aria-hidden="true"
+      className="pointer-events-none fixed -left-[9999px] top-0 h-[630px] w-[1200px] overflow-hidden bg-[#05070d] p-8 text-white"
+    >
+      <div className="absolute inset-0 bg-racing-grid opacity-35" />
+      <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
+      <div className="relative z-10 grid h-full grid-cols-[0.92fr_1.08fr] items-center gap-7">
+        <div className="flex min-w-0 items-center gap-6">
+          <GiglingAvatar className="h-40 w-40 shrink-0 rounded-lg" imageUrl={gigling.imageUrl} name={gigling.name} priority />
+          <div className="min-w-0">
+            <p className="text-sm font-black uppercase tracking-[0.24em] text-cyan-racing">Gigling Report</p>
+            <h3 className="mt-3 line-clamp-2 text-5xl font-black leading-tight text-white">{gigling.name}</h3>
+            <p className="mt-3 text-base text-white/48">{gigling.tokenId}</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <FactionBadge faction={gigling.faction} />
+              <RarityBadge rarity={gigling.rarity} />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="min-w-0 rounded-lg border border-cyan-racing/22 bg-cyan-racing/[0.07] p-5">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-cyan-racing">Win rate</p>
+            <p className="mt-3 text-5xl font-black text-white">{formatPercent(gigling.winRate)}</p>
+          </div>
+          <div className="min-w-0 rounded-lg border border-orange-racing/22 bg-orange-racing/[0.07] p-5">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-orange-racing">Race #{race.raceNumber}</p>
+            <p className="mt-3 line-clamp-2 text-3xl font-black leading-tight text-white">{winnerName(race)}</p>
+          </div>
+          <div className="col-span-2 min-w-0 rounded-lg border border-emerald-racing/22 bg-emerald-racing/[0.07] p-5">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-racing">Meta signal</p>
+            <p className="mt-3 line-clamp-2 text-4xl font-black leading-tight text-white">{insight.metricValue}</p>
+            <p className="mt-2 line-clamp-2 text-base leading-7 text-white/58">{insight.title}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SharePreview({
   artifactRef,
   gigling,
@@ -147,13 +192,14 @@ function SharePreview({
 }) {
   return (
     <section className="premium-panel rounded-lg p-5">
+      <ShareExportArtifact artifactRef={artifactRef} gigling={gigling} insight={insight} race={race} />
       <div className="relative z-10">
         <SectionHeader
           description="A social-format preview of the PNG report generated from the selected live inputs."
           title="Social Preview"
         />
         <div className="w-full overflow-hidden rounded-lg border border-white/10 bg-[#05070d] shadow-glow">
-          <div ref={artifactRef} className="relative overflow-hidden bg-[#05070d] p-4 text-white sm:p-5 lg:aspect-[1200/630] lg:p-6">
+          <div className="relative overflow-hidden bg-[#05070d] p-4 text-white sm:p-5 lg:aspect-[1200/630] lg:p-6">
             <div className="absolute inset-0 bg-racing-grid opacity-35" />
             <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
             <div className="relative z-10 grid gap-5 lg:h-full lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
@@ -255,9 +301,9 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
     const blob = await toBlob(exportRef.current, {
       backgroundColor: "#05070d",
       cacheBust: true,
-      height: 630,
+      height: REPORT_IMAGE_HEIGHT,
       pixelRatio: 2,
-      width: 970
+      width: REPORT_IMAGE_WIDTH
     });
 
     if (!blob) {
@@ -313,7 +359,7 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
-        setActionMessage("A 970 x 630 PNG report was saved.");
+        setActionMessage(`${REPORT_IMAGE_WIDTH} x ${REPORT_IMAGE_HEIGHT} PNG report saved.`);
       }
 
       setActiveAction(action);
