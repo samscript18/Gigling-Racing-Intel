@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Check, Copy, Download, LoaderCircle, Share2, Sparkles } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 
 import { FactionBadge } from "@/components/shared/faction-badge";
@@ -35,6 +35,267 @@ function winnerName(race: Race) {
     race.participants.find((participant) => participant.giglingId === race.winnerGiglingId)
       ?.giglingName ?? "Pending"
   );
+}
+
+function roundedPath(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+  const r = Math.min(radius, width / 2, height / 2);
+
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawPanel(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, accent: string) {
+  roundedPath(ctx, x, y, width, height, 18);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.045)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  const gradient = ctx.createLinearGradient(x, y, x + width, y + height);
+  gradient.addColorStop(0, accent);
+  gradient.addColorStop(0.45, "rgba(255, 255, 255, 0)");
+  gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+  roundedPath(ctx, x, y, width, height, 18);
+  ctx.fillStyle = gradient;
+  ctx.globalAlpha = 0.18;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+function setReportFont(ctx: CanvasRenderingContext2D, weight: number, size: number) {
+  ctx.font = weight + " " + size + "px \"Space Grotesk\", Inter, system-ui, sans-serif";
+}
+
+function fitCanvasText(ctx: CanvasRenderingContext2D, value: string, maxWidth: number) {
+  if (ctx.measureText(value).width <= maxWidth) {
+    return value;
+  }
+
+  let output = value;
+  while (output.length > 3 && ctx.measureText(output + "...").width > maxWidth) {
+    output = output.slice(0, -1);
+  }
+
+  return output + "...";
+}
+
+function drawText(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, maxWidth: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.fillText(fitCanvasText(ctx, value, maxWidth), x, y);
+}
+
+function drawWrappedText(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines: number, color: string) {
+  const words = value.split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const next = current ? current + " " + word : word;
+
+    if (ctx.measureText(next).width <= maxWidth) {
+      current = next;
+      continue;
+    }
+
+    if (current) {
+      lines.push(current);
+    }
+    current = word;
+
+    if (lines.length === maxLines) {
+      break;
+    }
+  }
+
+  if (lines.length < maxLines && current) {
+    lines.push(current);
+  }
+
+  ctx.fillStyle = color;
+  lines.slice(0, maxLines).forEach((line, index) => {
+    const output = index === maxLines - 1 ? fitCanvasText(ctx, line, maxWidth) : line;
+    ctx.fillText(output, x, y + index * lineHeight);
+  });
+}
+
+async function loadReportImage(imageUrl: string) {
+  if (!imageUrl) {
+    return null;
+  }
+
+  return new Promise<HTMLImageElement | null>((resolve) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.decoding = "async";
+    image.referrerPolicy = "no-referrer";
+    image.onload = () => resolve(image);
+    image.onerror = () => resolve(null);
+    image.src = imageUrl;
+  });
+}
+
+function drawAvatar(ctx: CanvasRenderingContext2D, image: HTMLImageElement | null, name: string, x: number, y: number, size: number) {
+  ctx.save();
+  roundedPath(ctx, x, y, size, size, 26);
+  ctx.clip();
+
+  if (image) {
+    ctx.drawImage(image, x, y, size, size);
+  } else {
+    const gradient = ctx.createLinearGradient(x, y, x + size, y + size);
+    gradient.addColorStop(0, "rgba(32, 247, 255, 0.34)");
+    gradient.addColorStop(0.55, "rgba(135, 84, 255, 0.28)");
+    gradient.addColorStop(1, "rgba(255, 138, 37, 0.24)");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, size, size);
+    setReportFont(ctx, 900, 58);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+    ctx.fillText(name.slice(0, 2).toUpperCase(), x + size / 2, y + size / 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  ctx.restore();
+
+  roundedPath(ctx, x, y, size, size, 26);
+  ctx.strokeStyle = "rgba(32, 247, 255, 0.48)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function drawMetric(ctx: CanvasRenderingContext2D, label: string, value: string, x: number, y: number, width: number, accent: string) {
+  drawPanel(ctx, x, y, width, 108, accent);
+  setReportFont(ctx, 800, 18);
+  drawText(ctx, label.toUpperCase(), x + 22, y + 34, width - 44, accent);
+  setReportFont(ctx, 900, 34);
+  drawText(ctx, value, x + 22, y + 78, width - 44, "#f8fbff");
+}
+
+function drawReportCanvas({ gigling, insight, race }: { gigling: Gigling; insight: MetaInsight; race: Race }, image: HTMLImageElement | null) {
+  const canvas = document.createElement("canvas");
+  canvas.width = REPORT_IMAGE_WIDTH;
+  canvas.height = REPORT_IMAGE_HEIGHT;
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("The browser could not prepare the report canvas.");
+  }
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.fillStyle = "#05070d";
+  ctx.fillRect(0, 0, REPORT_IMAGE_WIDTH, REPORT_IMAGE_HEIGHT);
+
+  const glow = ctx.createRadialGradient(260, 170, 20, 260, 170, 560);
+  glow.addColorStop(0, "rgba(32, 247, 255, 0.24)");
+  glow.addColorStop(0.45, "rgba(135, 84, 255, 0.12)");
+  glow.addColorStop(1, "rgba(5, 7, 13, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, REPORT_IMAGE_WIDTH, REPORT_IMAGE_HEIGHT);
+
+  ctx.strokeStyle = "rgba(32, 247, 255, 0.12)";
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= REPORT_IMAGE_WIDTH; x += 44) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, REPORT_IMAGE_HEIGHT);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= REPORT_IMAGE_HEIGHT; y += 44) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(REPORT_IMAGE_WIDTH, y);
+    ctx.stroke();
+  }
+
+  const topBar = ctx.createLinearGradient(0, 0, REPORT_IMAGE_WIDTH, 0);
+  topBar.addColorStop(0, "#20f7ff");
+  topBar.addColorStop(0.45, "#ff8a25");
+  topBar.addColorStop(1, "#8754ff");
+  ctx.fillStyle = topBar;
+  ctx.fillRect(0, 0, REPORT_IMAGE_WIDTH, 9);
+
+  setReportFont(ctx, 900, 20);
+  drawText(ctx, "GIGLING RACING INTEL", 56, 66, 390, "#20f7ff");
+  setReportFont(ctx, 900, 54);
+  drawWrappedText(ctx, "Share the signal.", 56, 128, 520, 58, 2, "#f8fbff");
+  setReportFont(ctx, 500, 22);
+  drawWrappedText(ctx, "A live racing report built from selected Gigling, race, and meta intelligence.", 58, 226, 540, 30, 2, "rgba(248, 251, 255, 0.66)");
+
+  drawAvatar(ctx, image, gigling.name, 64, 320, 188);
+
+  setReportFont(ctx, 900, 34);
+  drawText(ctx, gigling.name, 284, 360, 350, "#f8fbff");
+  setReportFont(ctx, 700, 19);
+  drawText(ctx, gigling.tokenId, 286, 392, 300, "rgba(248, 251, 255, 0.52)");
+  drawText(ctx, formatConditionLabel(gigling.faction) + " / " + formatConditionLabel(gigling.rarity), 286, 430, 360, "#20f7ff");
+  setReportFont(ctx, 700, 17);
+  drawText(ctx, "Best fit: " + formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather), 286, 466, 360, "rgba(248, 251, 255, 0.70)");
+
+  drawMetric(ctx, "Win rate", formatPercent(gigling.winRate), 668, 78, 218, "rgba(32, 247, 255, 0.96)");
+  drawMetric(ctx, "Podium", formatPercent(gigling.podiumRate), 914, 78, 218, "rgba(255, 138, 37, 0.96)");
+  drawMetric(ctx, "Earnings", formatOptionalToken(gigling.earnings), 668, 214, 218, "rgba(52, 255, 157, 0.96)");
+  drawMetric(ctx, "Race #" + race.raceNumber, winnerName(race), 914, 214, 218, "rgba(135, 84, 255, 0.96)");
+
+  drawPanel(ctx, 668, 356, 464, 190, "rgba(52, 255, 157, 0.9)");
+  setReportFont(ctx, 900, 20);
+  drawText(ctx, "META SIGNAL", 696, 398, 400, "#34ff9d");
+  setReportFont(ctx, 900, 39);
+  drawText(ctx, insight.metricValue, 696, 448, 400, "#f8fbff");
+  setReportFont(ctx, 700, 21);
+  drawWrappedText(ctx, insight.title, 696, 488, 390, 28, 2, "rgba(248, 251, 255, 0.76)");
+
+  drawPanel(ctx, 56, 548, 1076, 52, "rgba(32, 247, 255, 0.7)");
+  setReportFont(ctx, 800, 18);
+  drawText(ctx, "Race: " + formatConditionLabel(race.distance) + " / " + formatConditionLabel(race.weather) + " / " + formatConditionLabel(race.trackCondition), 86, 581, 390, "rgba(248, 251, 255, 0.78)");
+  drawText(ctx, "Entry: " + formatToken(race.entryFee) + "   Prize: " + formatToken(race.prizePool), 516, 581, 350, "rgba(248, 251, 255, 0.78)");
+  drawText(ctx, "Items: " + race.participants.flatMap((entry) => entry.itemsUsed).length, 924, 581, 150, "rgba(248, 251, 255, 0.78)");
+
+  return canvas;
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement) {
+  return new Promise<Blob>((resolve, reject) => {
+    try {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+
+        reject(new Error("The browser could not render the report image."));
+      }, "image/png");
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+async function renderReportCanvas(payload: { gigling: Gigling; insight: MetaInsight; race: Race }) {
+  const image = await loadReportImage(payload.gigling.imageUrl);
+  const canvas = drawReportCanvas(payload, image);
+
+  try {
+    return await canvasToBlob(canvas);
+  } catch (error) {
+    if (!image) {
+      throw error;
+    }
+
+    return canvasToBlob(drawReportCanvas(payload, null));
+  }
 }
 
 async function copyText(value: string) {
@@ -136,12 +397,12 @@ function ReportShell({
   );
 }
 
-function ShareExportArtifact({ artifactRef, gigling, insight, race }: { artifactRef: RefObject<HTMLDivElement | null>; gigling: Gigling; insight: MetaInsight; race: Race }) {
+function ShareExportArtifact({ artifactRef, gigling, insight, race, scale = 1 }: { artifactRef: RefObject<HTMLDivElement | null>; gigling: Gigling; insight: MetaInsight; race: Race; scale?: number }) {
   return (
     <div
       ref={artifactRef}
-      aria-hidden="true"
-      className="pointer-events-none fixed -left-[9999px] top-0 h-[630px] w-[1200px] overflow-hidden bg-[#05070d] p-8 text-white"
+      className="relative h-[630px] w-[1200px] origin-top-left overflow-hidden bg-[#05070d] p-8 text-white"
+      style={{ transform: "scale(" + scale + ")" }}
     >
       <div className="absolute inset-0 bg-racing-grid opacity-35" />
       <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
@@ -190,67 +451,48 @@ function SharePreview({
   insight: MetaInsight;
   race: Race;
 }) {
+  const previewFrameRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
+
+  useEffect(() => {
+    const frame = previewFrameRef.current;
+
+    if (!frame) {
+      return;
+    }
+
+    const resizePreview = () => {
+      setPreviewScale(Math.min(1, frame.clientWidth / REPORT_IMAGE_WIDTH));
+    };
+
+    resizePreview();
+
+    const observer = new ResizeObserver(resizePreview);
+    observer.observe(frame);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section className="premium-panel rounded-lg p-5">
-      <ShareExportArtifact artifactRef={artifactRef} gigling={gigling} insight={insight} race={race} />
       <div className="relative z-10">
         <SectionHeader
           description="A social-format preview of the PNG report generated from the selected live inputs."
           title="Social Preview"
         />
         <div className="w-full overflow-hidden rounded-lg border border-white/10 bg-[#05070d] shadow-glow">
-          <div className="relative overflow-hidden bg-[#05070d] p-4 text-white sm:p-5 lg:aspect-[1200/630] lg:p-6">
-            <div className="absolute inset-0 bg-racing-grid opacity-35" />
-            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-cyan-racing via-orange-racing to-violet-racing" />
-            <div className="relative z-10 grid gap-5 lg:h-full lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
-              <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center">
-                <GiglingAvatar
-                  className="h-24 w-24 shrink-0 rounded-lg sm:h-28 sm:w-28 lg:h-36 lg:w-36"
-                  imageUrl={gigling.imageUrl}
-                  name={gigling.name}
-                  priority
-                />
-                <div className="min-w-0">
-                  <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-cyan-racing sm:text-xs sm:tracking-[0.22em]">
-                    Gigling Report
-                  </p>
-                  <h3 className="mt-2 break-words text-2xl font-black leading-tight text-white sm:text-3xl lg:text-4xl">
-                    {gigling.name}
-                  </h3>
-                  <p className="mt-2 text-sm text-white/48">{gigling.tokenId}</p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <FactionBadge faction={gigling.faction} />
-                    <RarityBadge rarity={gigling.rarity} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="min-w-0 rounded-lg border border-cyan-racing/22 bg-cyan-racing/[0.07] p-3 sm:p-4">
-                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-cyan-racing sm:text-xs sm:tracking-[0.18em]">
-                    Win rate
-                  </p>
-                  <p className="mt-2 text-2xl font-black text-white sm:text-3xl">
-                    {formatPercent(gigling.winRate)}
-                  </p>
-                </div>
-                <div className="min-w-0 rounded-lg border border-orange-racing/22 bg-orange-racing/[0.07] p-3 sm:p-4">
-                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-orange-racing sm:text-xs sm:tracking-[0.18em]">
-                    Race #{race.raceNumber}
-                  </p>
-                  <p className="mt-2 break-words text-lg font-black text-white sm:text-xl">
-                    {winnerName(race)}
-                  </p>
-                </div>
-                <div className="min-w-0 rounded-lg border border-emerald-racing/22 bg-emerald-racing/[0.07] p-3 sm:col-span-2 sm:p-4">
-                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-emerald-racing sm:text-xs sm:tracking-[0.18em]">
-                    Meta signal
-                  </p>
-                  <p className="mt-2 break-words text-xl font-black text-white sm:text-2xl">{insight.metricValue}</p>
-                  <p className="mt-1 text-sm leading-6 text-white/58">{insight.title}</p>
-                </div>
-              </div>
-            </div>
+          <div
+            ref={previewFrameRef}
+            className="relative w-full overflow-hidden bg-[#05070d]"
+            style={{ height: REPORT_IMAGE_HEIGHT * previewScale }}
+          >
+            <ShareExportArtifact
+              artifactRef={artifactRef}
+              gigling={gigling}
+              insight={insight}
+              race={race}
+              scale={previewScale}
+            />
           </div>
         </div>
       </div>
@@ -292,32 +534,8 @@ export function ReportStudio({ giglings, races, insights }: ReportStudioProps) {
   const socialCopy = `${gigling.name} watchlist: ${formatPercent(gigling.winRate)} win rate, ${formatPercent(gigling.podiumRate)} podium rate, best fit ${formatGiglingRaceFit(gigling.bestDistance, gigling.bestWeather).toLowerCase()}. Race #${race.raceNumber} winner: ${winnerName(race)}. Meta signal: ${insight.title} (${insight.metricValue}). Powered by Gigling Racing Intel.`;
 
   async function renderReportImage() {
-    if (!exportRef.current) {
-      throw new Error("The visual report is not ready yet.");
-    }
-
     await document.fonts.ready;
-    const { toBlob } = await import("html-to-image");
-    const blob = await toBlob(exportRef.current, {
-      backgroundColor: "#05070d",
-      cacheBust: true,
-      height: REPORT_IMAGE_HEIGHT,
-      pixelRatio: 2,
-      style: {
-        height: `${REPORT_IMAGE_HEIGHT}px`,
-        left: "0",
-        position: "relative",
-        top: "0",
-        width: `${REPORT_IMAGE_WIDTH}px`
-      },
-      width: REPORT_IMAGE_WIDTH
-    });
-
-    if (!blob) {
-      throw new Error("The browser could not render the report image.");
-    }
-
-    return blob;
+    return renderReportCanvas({ gigling, insight, race });
   }
 
   async function handleAction(action: ShareAction) {
