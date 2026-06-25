@@ -1,3 +1,5 @@
+
+
 # Gigling Racing Intel
 
 Gigling Racing Intel is a polished racing intelligence dashboard for Gigaverse Gigling Racing. It helps players inspect Giglings, study race history, understand the current meta, run explainable race predictions, manage a stable, track rivals, compare leaderboards, and generate shareable reports.
@@ -134,6 +136,8 @@ The race dashboard watches PetRacingSystem lifecycle events over Abstract RPC an
 Every Gigling, race, player, stable, rivalry, leaderboard, and meta record comes from the live Gigaverse Racing API or Abstract contract reads. Missing categorical fields are labeled `unknown`; unavailable services and valid empty responses are never replaced with synthetic records.
 
 ## Hackathon Demo Flow
+
+https://github.com/user-attachments/assets/db4a0d72-5b4a-41a5-8a0e-31d94e5933a9
 
 1. Open `/dashboard` to show the product value in under 20 seconds.
 2. Open `/giglings` and filter by faction, rarity, condition, or distance.
